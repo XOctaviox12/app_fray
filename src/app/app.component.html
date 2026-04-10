@@ -10,41 +10,98 @@
 
     <ion-content>
 
-      
+      <!-- TARJETA DE USUARIO -->
+      <div *ngIf="loggedIn && usuario" class="user-card-container">
+        <div class="user-card">
+          <div class="avatar-section">
+            <img
+              [src]="avatarUrl"
+              (error)="onErrorImagen()"
+              class="user-avatar"
+            />
+            <div class="online-badge"></div>
+          </div>
+
+          <div class="info-section">
+            <h3 class="user-name">{{ getNombreDisplay() }}</h3>
+            <p class="user-email">{{ getEmailDisplay() }}</p>
+            <div class="status-text">
+              <span class="dot">●</span> CONECTADO
+            </div>
+          </div>
+        </div>
+
+        <ion-menu-toggle auto-hide="false">
+          <ion-button
+            expand="block"
+            fill="outline"
+            class="btn-profile"
+            routerLink="/perfil"
+          >
+            <ion-icon name="person-circle" slot="start"></ion-icon>
+            VER PERFIL
+          </ion-button>
+        </ion-menu-toggle>
+      </div>
+
+      <!-- Skeleton mientras carga -->
+      <div *ngIf="!loggedIn || !usuario" class="user-card-skeleton">
+        <ion-skeleton-text animated style="width: 56px; height: 56px; border-radius: 50%;"></ion-skeleton-text>
+        <div style="flex: 1; margin-left: 12px;">
+          <ion-skeleton-text animated style="width: 70%; height: 14px;"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 90%; height: 12px; margin-top: 6px;"></ion-skeleton-text>
+        </div>
+      </div>
+
       <ion-list>
 
-        <ion-item routerLink="/inicio">
-          <ion-icon name="home-outline" slot="start"></ion-icon>
-          <ion-label>Inicio</ion-label>
-        </ion-item>
+        <ion-menu-toggle auto-hide="false">
+          <ion-item routerLink="/inicio" routerLinkActive="active-item">
+            <ion-icon name="home-outline" slot="start"></ion-icon>
+            <ion-label>Inicio</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
 
-        <ion-item routerLink="/tareas">
-          <ion-icon name="clipboard-outline" slot="start"></ion-icon>
-          <ion-label>Tareas</ion-label>
-        </ion-item>
+        <ion-menu-toggle auto-hide="false">
+          <ion-item routerLink="/tareas" routerLinkActive="active-item">
+            <ion-icon name="clipboard-outline" slot="start"></ion-icon>
+            <ion-label>Tareas</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
 
-        <ion-item routerLink="/comunidad">
-          <ion-icon name="people-outline" slot="start"></ion-icon>
-          <ion-label>Comunidad</ion-label>
-        </ion-item>
+        <ion-menu-toggle auto-hide="false">
+          <ion-item routerLink="/comunidad" routerLinkActive="active-item">
+            <ion-icon name="people-outline" slot="start"></ion-icon>
+            <ion-label>Comunidad</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
 
-        <ion-item routerLink="/materias">
-          <ion-icon name="book-outline" slot="start"></ion-icon>
-          <ion-label>Materias</ion-label>
-        </ion-item>
+        <ion-menu-toggle auto-hide="false">
+          <ion-item routerLink="/materias" routerLinkActive="active-item">
+            <ion-icon name="book-outline" slot="start"></ion-icon>
+            <ion-label>Materias</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
 
-        <ion-item routerLink="/aula">
-          <ion-icon name="school-outline" slot="start"></ion-icon>
-          <ion-label>Aula</ion-label>
+        <ion-menu-toggle auto-hide="false">
+          <ion-item routerLink="/aula" routerLinkActive="active-item">
+            <ion-icon name="school-outline" slot="start"></ion-icon>
+            <ion-label>Aula</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+
+        <!-- Cerrar sesión -->
+        <ion-item button (click)="cerrarSesion()" class="logout-item">
+          <ion-icon name="log-out-outline" slot="start" color="danger"></ion-icon>
+          <ion-label color="danger">Cerrar sesión</ion-label>
         </ion-item>
 
       </ion-list>
 
-      <!-- IMAGEN ABAJO -->
+      <!-- LOGO ABAJO -->
       <div class="menu-footer">
         <img src="../assets/img/logotipo_lisboa.png" alt="logo">
       </div>
-
 
     </ion-content>
   </ion-menu>

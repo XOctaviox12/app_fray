@@ -1,0 +1,69 @@
+<ion-content class="login-content">
+  <div class="login-wrapper">
+
+    <!-- Logo -->
+    <div class="logo-section">
+      <img src="assets/img/logotipo_lisboa.png" alt="Logo" class="logo" />
+      <h2 class="app-title">Bienvenido</h2>
+      <p class="app-subtitle">Inicia sesión para continuar</p>
+    </div>
+
+    <!-- Formulario -->
+    <div class="form-section">
+
+      <!-- Error -->
+      <div class="error-banner" *ngIf="error">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <span>{{ error }}</span>
+      </div>
+
+      <!-- Usuario -->
+      <div class="input-group">
+        <label class="input-label">Usuario</label>
+        <div class="input-wrapper">
+          <ion-icon name="person-outline" class="input-icon"></ion-icon>
+          <input
+            type="text"
+            class="custom-input"
+            placeholder="Ingresa tu usuario"
+            [(ngModel)]="username"
+            (keyup.enter)="login()"
+            autocomplete="username"
+          />
+        </div>
+      </div>
+
+      <!-- Contraseña -->
+      <div class="input-group">
+        <label class="input-label">Contraseña</label>
+        <div class="input-wrapper">
+          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+          <input
+            [type]="mostrarPassword ? 'text' : 'password'"
+            class="custom-input"
+            placeholder="Ingresa tu contraseña"
+            [(ngModel)]="password"
+            (keyup.enter)="login()"
+            autocomplete="current-password"
+          />
+          <ion-icon
+            [name]="mostrarPassword ? 'eye-off-outline' : 'eye-outline'"
+            class="input-icon-right"
+            (click)="togglePassword()"
+          ></ion-icon>
+        </div>
+      </div>
+
+      <!-- Botón -->
+      <button
+        class="btn-login"
+        (click)="login()"
+        [disabled]="cargando"
+      >
+        <ion-spinner *ngIf="cargando" name="crescent" class="spinner"></ion-spinner>
+        <span *ngIf="!cargando">Iniciar sesión</span>
+      </button>
+
+    </div>
+  </div>
+</ion-content>
