@@ -2,18 +2,13 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
+import { RouterModule, Routes } from '@angular/router';
+import { TareasPage } from './tareas.page';
 
-import { TareasPageRoutingModule } from './tareas-routing.module';
-import { TareasPage } from './tareas.page'; // Importar el componente
+const routes: Routes = [{ path: '', component: TareasPage }];
 
 @NgModule({
-  imports: [
-    CommonModule,
-    FormsModule,
-    IonicModule,
-    TareasPageRoutingModule,
-    TareasPage // <--- DEBE ESTAR AQUÍ
-  ],
-  declarations: [] // <--- ESTO DEBE QUEDAR VACÍO
+  imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild(routes)],
+  declarations: [TareasPage],
 })
 export class TareasPageModule {}

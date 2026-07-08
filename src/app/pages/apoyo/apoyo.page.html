@@ -1,43 +1,153 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar class="header-apoyo">
+  <ion-toolbar class="header-toolbar">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/materias" color="light" text="Atrás">
+      <ion-back-button defaultHref="/materias" class="back-btn" text="">
       </ion-back-button>
     </ion-buttons>
-    <ion-title mode="ios">APOYO ESCOLAR</ion-title>
+    <ion-title class="header-title">Apoyo Escolar</ion-title>
+    <ion-buttons slot="end">
+      <ion-button class="header-action-btn">
+        <ion-icon name="search-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
-
-  <div class="lineas-decorativas"></div>
+  <div class="header-accent-bar"></div>
 </ion-header>
 
-<ion-content class="ion-padding fondo">
-  <h1 class="titulo">Material de Apoyo</h1>
-  <p class="subtitulo">Recursos multimedia para tus tareas</p>
+<ion-content class="apoyo-content">
 
-  <ion-card class="card-apoyo">
-    <div class="lineas-decorativas-card"></div>
+  <div class="section-hero">
+    <h2 class="section-title">Material de Apoyo</h2>
+    <p class="section-sub">Recursos multimedia para tus tareas y estudios</p>
+  </div>
 
-    <ion-card-header>
-      <ion-card-subtitle>MATEMÁTICAS</ion-card-subtitle>
-      <ion-card-title>Ecuaciones de Primer Grado</ion-card-title>
-    </ion-card-header>
+  <div class="apoyo-cards-container">
 
-    <ion-card-content>
-      <p>Revisa este video explicativo y la guía en PDF para resolver tus ejercicios.</p>
+    <div class="apoyo-card">
+      <div class="apoyo-card-top-bar orange-bar"></div>
+      <div class="apoyo-card-body">
+        <div class="apoyo-card-header">
+          <span class="apoyo-category orange-cat">
+            <ion-icon name="calculator-outline"></ion-icon>
+            Matemáticas
+          </span>
+        </div>
+        <h3 class="apoyo-card-title">Ecuaciones de Primer Grado</h3>
+        <p class="apoyo-card-desc">
+          Revisa este video explicativo y la guía en PDF para resolver tus ejercicios de álgebra.
+        </p>
 
-      <ion-list lines="none" class="ion-margin-top">
-        <ion-item class="item-recurso">
-          <ion-icon name="videocam-outline" slot="start" color="primary"></ion-icon>
-          <ion-label>Video: Introducción a Álgebra</ion-label>
-          <ion-button fill="clear" slot="end">Ver</ion-button>
-        </ion-item>
+        <div class="resources-list">
 
-        <ion-item class="item-recurso">
-          <ion-icon name="document-outline" slot="start" color="danger"></ion-icon>
-          <ion-label>PDF: Guía de ejercicios</ion-label>
-          <ion-button fill="clear" slot="end">Bajar</ion-button>
-        </ion-item>
-      </ion-list>
-    </ion-card-content>
-  </ion-card>
+          <div class="resource-item" (click)="openResource('video-algebra')">
+            <div class="resource-icon-wrap video-icon">
+              <ion-icon name="videocam-outline"></ion-icon>
+            </div>
+            <div class="resource-info">
+              <span class="resource-name">Introducción al Álgebra</span>
+              <span class="resource-meta">Video · 12 min</span>
+            </div>
+            <ion-button fill="clear" size="small" class="resource-action-btn">
+              <ion-icon name="play-circle-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+
+          <div class="resource-item" (click)="openResource('pdf-algebra')">
+            <div class="resource-icon-wrap pdf-icon">
+              <ion-icon name="document-outline"></ion-icon>
+            </div>
+            <div class="resource-info">
+              <span class="resource-name">Guía de Ejercicios</span>
+              <span class="resource-meta">PDF · 2.4 MB</span>
+            </div>
+            <ion-button fill="clear" size="small" class="resource-action-btn">
+              <ion-icon name="download-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="apoyo-card">
+      <div class="apoyo-card-top-bar blue-bar"></div>
+      <div class="apoyo-card-body">
+        <div class="apoyo-card-header">
+          <span class="apoyo-category blue-cat">
+            <ion-icon name="language-outline"></ion-icon>
+            Español
+          </span>
+        </div>
+        <h3 class="apoyo-card-title">Literatura Contemporánea</h3>
+        <p class="apoyo-card-desc">
+          Recursos para entender los textos narrativos del siglo XX.
+        </p>
+
+        <div class="resources-list">
+
+          <div class="resource-item" (click)="openResource('doc-literatura')">
+            <div class="resource-icon-wrap doc-icon">
+              <ion-icon name="reader-outline"></ion-icon>
+            </div>
+            <div class="resource-info">
+              <span class="resource-name">Análisis de Texto</span>
+              <span class="resource-meta">Documento · 1.1 MB</span>
+            </div>
+            <ion-button fill="clear" size="small" class="resource-action-btn blue-action">
+              <ion-icon name="download-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+
+          <div class="resource-item" (click)="openResource('video-literatura')">
+            <div class="resource-icon-wrap video-icon">
+              <ion-icon name="videocam-outline"></ion-icon>
+            </div>
+            <div class="resource-info">
+              <span class="resource-name">Video: Corrientes Literarias</span>
+              <span class="resource-meta">Video · 18 min</span>
+            </div>
+            <ion-button fill="clear" size="small" class="resource-action-btn blue-action">
+              <ion-icon name="play-circle-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="apoyo-card">
+      <div class="apoyo-card-top-bar red-bar"></div>
+      <div class="apoyo-card-body">
+        <div class="apoyo-card-header">
+          <span class="apoyo-category red-cat">
+            <ion-icon name="globe-outline"></ion-icon>
+            Inglés
+          </span>
+        </div>
+        <h3 class="apoyo-card-title">Grammar &amp; Writing</h3>
+        <p class="apoyo-card-desc">
+          Practica con estos materiales de gramática y redacción en inglés.
+        </p>
+
+        <div class="resources-list">
+
+          <div class="resource-item" (click)="openResource('pdf-ingles')">
+            <div class="resource-icon-wrap pdf-icon">
+              <ion-icon name="document-outline"></ion-icon>
+            </div>
+            <div class="resource-info">
+              <span class="resource-name">Verb to Be — Ejercicios</span>
+              <span class="resource-meta">PDF · 1.8 MB</span>
+            </div>
+            <ion-button fill="clear" size="small" class="resource-action-btn red-action">
+              <ion-icon name="download-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 </ion-content>

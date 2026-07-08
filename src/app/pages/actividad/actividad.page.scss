@@ -1,433 +1,325 @@
-/* ===== Variables ===== */
-$primary: #0a1f44;
-$accent: #ff6b00;
-$accent-light: #ff8533;
-$gradient: linear-gradient(135deg, $primary, #132d5e);
-$gradient-accent: linear-gradient(135deg, $accent, $accent-light);
-$radius: 18px;
-$font: 'Plus Jakarta Sans', sans-serif;
+@import "src/theme/variables";
 
-/* ===== Toolbar ===== */
-.actividad-toolbar {
-  --background: $primary;
-  --color: #ffffff;
-  --border-width: 0;
-  ion-title { font-family: $font; font-weight: 800; font-size: 1.3rem; letter-spacing: -0.5px; }
+// ── HEADER ────────────────────────────────────────────────────
+.header-toolbar    { --background: #{$navy-2}; --color: #{$white}; --border-style: none; --min-height: 56px; }
+.header-title      { color: $white; font-size: 1rem; font-weight: 800; letter-spacing: -0.3px; }
+.header-accent-bar { height: 3px; background: linear-gradient(90deg, $orange, transparent); }
+.header-add-btn    { --color: rgba(255,255,255,0.85); }
+
+// ── CONTENT ───────────────────────────────────────────────────
+.actividad-content { --background: #{$navy}; }
+
+// ── ERROR GLOBAL ──────────────────────────────────────────────
+.global-error {
+  display: flex; align-items: center; gap: 8px;
+  margin: 14px 16px; padding: 12px 14px;
+  background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 12px; font-size: 12px; color: #ef4444;
+  ion-icon { font-size: 16px; flex-shrink: 0; }
 }
 
-.actividad-content {
-  --background: #f1f5f9;
-  font-family: $font;
-}
-
-/* ===== Hero ===== */
+// ── HERO + ANILLO ─────────────────────────────────────────────
 .hero-section {
-  background: $gradient;
-  border-radius: 0 0 32px 32px;
-  padding: 25px 20px 35px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: white;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    width: 200px; height: 200px;
-    background: rgba($accent, 0.12);
-    border-radius: 50%;
-    top: -60px; right: -40px;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    width: 120px; height: 120px;
-    background: rgba($accent, 0.08);
-    border-radius: 50%;
-    bottom: -30px; left: -20px;
-  }
+  background: $navy-2; padding: 18px 18px 22px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
 }
+.hero-info  { flex: 1; }
+.hero-title { margin: 0; color: $white; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+.hero-sub   { margin: 4px 0 0; color: $white-35; font-size: 12px; }
 
-.hero-greeting {
-  flex: 1;
-  .hero-emoji { font-size: 2rem; }
-  h1 { font-size: 1.5rem; font-weight: 800; margin: 6px 0 4px; letter-spacing: -0.5px; }
-  p { font-size: 0.85rem; opacity: 0.85; margin: 0; line-height: 1.4; }
-}
+.progress-ring-container { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
+.progress-ring           { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring-bg   { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; }
+.ring-fill { fill: none; stroke: $orange; stroke-width: 8; stroke-linecap: round; stroke-dasharray: 314.16; transition: stroke-dashoffset 0.8s ease; }
+.ring-label   { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ring-percent { font-size: 18px; font-weight: 800; color: $white; line-height: 1; }
+.ring-text    { font-size: 9px; color: $white-35; text-transform: uppercase; letter-spacing: 0.5px; }
 
-/* Progress Ring */
-.progress-ring-container {
-  position: relative;
-  width: 90px; height: 90px;
-  flex-shrink: 0;
-}
-
-.progress-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
-.ring-bg { fill: none; stroke: rgba(255,255,255,0.15); stroke-width: 8; }
-.ring-fill {
-  fill: none; stroke: $accent; stroke-width: 8;
-  stroke-linecap: round;
-  stroke-dasharray: 314.16;
-  transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ring-label {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  .ring-percent { font-size: 1.3rem; font-weight: 800; color: white; }
-  .ring-text { font-size: 0.6rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
-}
-
-/* ===== Quick Stats ===== */
-.quick-stats {
-  display: flex;
-  gap: 10px;
-  padding: 0 16px;
-  margin-top: -20px;
-  position: relative;
-  z-index: 2;
-}
-
+// ── STATS / FILTROS ───────────────────────────────────────────
+.quick-stats { display: flex; gap: 6px; padding: 12px 16px 0; }
 .stat-bubble {
-  flex: 1;
-  background: white;
-  border-radius: 16px;
-  padding: 14px 10px;
-  text-align: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-  transition: transform 0.2s;
-  border-top: 3px solid transparent;
-
-  &:active { transform: scale(0.96); }
-
-  .stat-num { display: block; font-size: 1.4rem; font-weight: 800; }
-  .stat-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
-
-  &.pending {
-    border-top-color: $accent;
-    .stat-num { color: $accent; }
-  }
-  &.todo {
-    border-top-color: $primary;
-    .stat-num { color: $primary; }
-  }
-  &.done {
-    border-top-color: #10b981;
-    .stat-num { color: #10b981; }
-  }
+  flex: 1; background: $card-bg; border: 1px solid $card-border;
+  border-radius: 13px; padding: 10px 6px; text-align: center; cursor: pointer; transition: all .15s;
+  .stat-num   { display: block; font-size: 18px; font-weight: 800; color: $white; }
+  .stat-label { font-size: 8px; color: $white-35; text-transform: uppercase; letter-spacing: 0.5px; }
+  &.active        { border-color: $orange; background: rgba(255,107,0,0.1); }
+  &.pending   .stat-num { color: $orange; }
+  &.done      .stat-num { color: #22c55e; }
+  &.calificada .stat-num { color: #60a5fa; }
 }
 
-/* ===== Filter Chips ===== */
-.filter-chips {
-  display: flex;
-  gap: 8px;
-  padding: 20px 16px 10px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
+// ════════════════════════════════════════════════════════════
+// FORMULARIO ACTIVIDAD
+// ════════════════════════════════════════════════════════════
+.act-form {
+  margin: 14px 16px;
+  background: $card-bg; border: 1px solid $card-border; border-top: 2px solid $orange;
+  border-radius: 16px; padding: 16px; backdrop-filter: blur(10px);
 }
 
-.chip {
-  padding: 8px 16px;
-  border-radius: 50px;
-  border: 1.5px solid #e2e8f0;
-  background: white;
-  font-family: $font;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #64748b;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all 0.25s;
+.form-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+}
+.form-title    { margin: 0; font-size: 14px; font-weight: 800; color: $white; }
+.form-close-btn {
+  width: 28px; height: 28px; border-radius: 50%; border: none;
+  background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; cursor: pointer;
+  ion-icon { font-size: 16px; color: $white-35; }
+}
 
-  &.active {
-    background: $gradient-accent;
-    color: white;
-    border-color: transparent;
-    box-shadow: 0 4px 15px rgba($accent, 0.35);
+.input-group  { margin-bottom: 12px; }
+.input-label  { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: $white-35; margin-bottom: 5px; }
+.input-hint   { margin: 5px 2px 0; font-size: 10px; color: $white-35; line-height: 1.4; }
+
+.input-wrap {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; padding: 0 10px; transition: border-color 0.2s;
+  &:focus-within { border-color: $orange; }
+  input, textarea, select {
+    flex: 1; min-width: 0; border: none; background: transparent; outline: none;
+    font-size: 13px; color: $white; padding: 10px 0;
+    &::placeholder { color: $white-35; }
   }
+  select { appearance: none; -webkit-appearance: none; option { background: $navy-2; color: $white; } }
+}
+.textarea-wrap { align-items: flex-start; textarea { resize: none; } }
+.select-wrap:has(select:disabled) { opacity: 0.5; }
+.field-icon { font-size: 15px; color: $white-35; flex-shrink: 0; }
+
+// Tipo de actividad
+.tipo-selector { display: flex; gap: 8px; flex-wrap: wrap; }
+.tipo-opt {
+  flex: 1; min-width: 80px; display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 10px 8px; border-radius: 12px; border: 1px solid $card-border;
+  background: $card-bg; color: $white-35; font-size: 10px; font-weight: 700; cursor: pointer;
+  ion-icon { font-size: 18px; }
+  transition: all 0.15s;
+  &.selected { border-color: $orange; background: rgba(255,107,0,0.1); color: $orange; }
+  &:active   { transform: scale(0.96); }
 }
 
-/* ===== Activity Cards ===== */
-.activities-container {
-  padding: 10px 16px 100px;
+// Fila de fecha + hora
+.form-row { display: flex; gap: 10px; }
+.half     { flex: 1; }
+
+// Toggle publicar
+.publish-toggle-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; padding: 10px 12px; margin-bottom: 12px;
+  ion-toggle { flex-shrink: 0; }
 }
+.publish-toggle-text  { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.publish-toggle-title { font-size: 11.5px; font-weight: 700; color: $white; }
+.publish-toggle-sub   { font-size: 10px; color: $white-35; line-height: 1.3; }
+
+// Acciones formulario
+.form-actions { display: flex; gap: 10px; margin-top: 4px; }
+.btn-cancel, .btn-save {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 11px; border-radius: 10px; border: none; font-size: 12.5px; font-weight: 700; cursor: pointer;
+  ion-icon   { font-size: 15px; }
+  ion-spinner{ width: 15px; height: 15px; }
+  &[disabled]{ opacity: 0.6; cursor: not-allowed; }
+}
+.btn-cancel { background: rgba(255,255,255,0.06); color: $white-60; }
+.btn-save   { background: $orange; color: $white; box-shadow: 0 4px 14px $orange-glow; }
+
+// ── ARCHIVOS ──────────────────────────────────────────────────
+.file-upload-zone {
+  border: 1.5px dashed rgba(255,255,255,0.15); border-radius: 12px;
+  padding: 18px 12px; text-align: center; cursor: pointer; margin-bottom: 10px;
+  transition: border-color 0.2s, background 0.2s;
+  &:hover, &.dragging { border-color: $orange; background: rgba(255,107,0,0.04); }
+}
+.upload-icon { font-size: 24px; color: $white-35; margin-bottom: 6px; }
+.upload-text { margin: 0; font-size: 12px; color: $white-60; span { color: $orange; font-weight: 700; } }
+.upload-hint { margin: 4px 0 0; font-size: 10px; color: $white-35; }
+
+.files-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.file-chip {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px; padding: 8px 10px;
+  &.error { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); }
+}
+.file-type-icon { font-size: 15px; color: $orange; flex-shrink: 0; }
+.file-chip-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.file-name          { font-size: 11px; color: $white; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-size          { font-size: 10px; color: $white-35; }
+.file-progress-text { font-size: 10px; color: $orange; font-weight: 600; }
+.file-error-text    { font-size: 10px; color: #ef4444; font-weight: 600; }
+.file-progress-bar  { width: 100%; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.08); overflow: hidden; }
+.file-progress-fill { height: 100%; background: $orange; transition: width 0.15s ease; }
+.retry-file  { font-size: 16px; color: $orange;   flex-shrink: 0; cursor: pointer; }
+.remove-file { font-size: 16px; color: $white-35; flex-shrink: 0; cursor: pointer; &:hover { color: #ef4444; } }
+
+// ════════════════════════════════════════════════════════════
+// LISTA DE ACTIVIDADES
+// ════════════════════════════════════════════════════════════
+.skeleton-card {
+  display: flex; align-items: flex-start;
+  margin: 10px 16px; padding: 14px;
+  background: $card-bg; border: 1px solid $card-border; border-radius: 14px;
+}
+
+.activities-container { padding: 10px 16px 0; }
 
 .activity-card {
-  display: flex;
-  align-items: flex-start;
-  background: white;
-  border-radius: $radius;
-  padding: 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: slideUp 0.4s ease-out both;
+  background: $card-bg; border: 1px solid $card-border;
+  border-left: 3px solid rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 14px; margin-bottom: 10px;
+  backdrop-filter: blur(8px);
+  animation: fade-in-up 0.3s ease both;
 
-  &:active { transform: scale(0.98); }
-
-  &.is-done {
-    opacity: 0.6;
-    .activity-title { text-decoration: line-through; color: #94a3b8; }
-  }
-
-  &.is-pending { border-left: 4px solid $accent; }
-  &.is-todo { border-left: 4px solid $primary; }
+  &.critica     { border-left-color: #f97316; background: rgba(249,115,22,0.04); }
+  &.vencida-card{ border-left-color: #ef4444; opacity: .7; }
+  &.draft       { border-left-color: $white-35; border-style: dashed; }
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.card-left {
-  margin-right: 12px;
-  padding-top: 2px;
+// Card header
+.card-header {
+  display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px;
 }
 
-.check-btn {
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  border: 2px solid #cbd5e1;
-  background: transparent;
+.tipo-icon-wrap {
+  width: 38px; height: 38px; border-radius: 11px;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s;
-
-  ion-icon { font-size: 18px; color: #cbd5e1; }
-
-  &.checked {
-    background: #10b981;
-    border-color: #10b981;
-    ion-icon { color: white; }
-  }
+  flex-shrink: 0; font-size: 18px;
+  &.estado-pendiente    { background: rgba(255,107,0,0.12);  ion-icon { color: $orange; } }
+  &.estado-entregada    { background: rgba(34,197,94,0.12);  ion-icon { color: #22c55e; } }
+  &.estado-calificada   { background: rgba(96,165,250,0.12); ion-icon { color: #60a5fa; } }
+  &.estado-no-entregada { background: rgba(239,68,68,0.12);  ion-icon { color: #ef4444; } }
 }
 
-.card-center { flex: 1; min-width: 0; }
+.card-info      { flex: 1; min-width: 0; }
+.card-title-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.activity-title { margin: 0; font-size: 13.5px; font-weight: 700; color: $white; line-height: 1.3; }
 
-.card-top-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
+.draft-badge {
+  font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
+  color: $white-60; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px; padding: 2px 6px; flex-shrink: 0;
 }
 
-.subject-chip {
-  padding: 3px 10px;
-  border-radius: 50px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.card-meta-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
+.meta-icon { font-size: 11px; color: $orange; flex-shrink: 0; }
+.meta-sep  { color: $white-35; font-size: 10px; }
+.meta-txt  { font-size: 10.5px; color: $white-35; }
+
+// Acciones docente (editar / eliminar)
+.card-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.act-btn {
+  width: 28px; height: 28px; border-radius: 50%; border: none; background: transparent;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  ion-icon { font-size: 15px; color: $white-35; }
+  &:active { background: rgba(255,107,0,0.12); ion-icon { color: $orange; } }
+  &.delete:active { background: rgba(239,68,68,0.12); ion-icon { color: #ef4444; } }
 }
 
-.priority-dot { font-size: 0.6rem; }
-
-.activity-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: $primary;
-  margin: 0 0 4px;
-  transition: all 0.3s;
+// Nota badge
+.nota-badge {
+  flex-shrink: 0; min-width: 36px; padding: 4px 8px; border-radius: 8px;
+  font-size: 14px; font-weight: 800; text-align: center;
+  &.nota-excelente { background: rgba(34,197,94,0.15);  color: #22c55e; }
+  &.nota-bien      { background: rgba(96,165,250,0.15); color: #60a5fa; }
+  &.nota-regular   { background: rgba(249,115,22,0.15); color: #f97316; }
+  &.nota-reprobado { background: rgba(239,68,68,0.15);  color: #ef4444; }
 }
 
-.activity-desc {
-  font-size: 0.78rem;
-  color: #94a3b8;
-  margin: 0 0 8px;
-  line-height: 1.4;
+// Descripción
+.activity-desc { font-size: 11.5px; color: $white-60; margin: 0 0 10px; line-height: 1.45; }
+
+// Chips tipo / valor / link
+.chips-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.tipo-chip, .valor-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 6px; font-size: 9.5px; font-weight: 700;
+  ion-icon { font-size: 10px; }
+}
+.tipo-chip  { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); color: $white-60; }
+.valor-chip { background: rgba(255,107,0,0.1);    border: 1px solid rgba(255,107,0,0.2);    color: $orange; }
+.link-chip  {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 6px; font-size: 9.5px; font-weight: 700;
+  background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.25);
+  color: #60a5fa; text-decoration: none;
+  ion-icon { font-size: 10px; }
 }
 
-.card-meta {
-  display: flex;
-  gap: 12px;
+// Alerta crítica
+.alerta-critica {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 8px; padding: 8px 10px;
+  background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.25);
+  border-radius: 8px; font-size: 11px; font-weight: 700; color: #f97316;
+  ion-icon { font-size: 14px; flex-shrink: 0; }
 }
 
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.72rem;
-  color: #94a3b8;
-  ion-icon { font-size: 14px; color: $accent; }
+// Feedback
+.feedback-box {
+  display: flex; align-items: flex-start; gap: 7px; margin-bottom: 8px; padding: 9px 11px;
+  background: rgba(96,165,250,0.07); border: 1px solid rgba(96,165,250,0.15); border-radius: 9px;
+  ion-icon { font-size: 15px; color: #60a5fa; flex-shrink: 0; margin-top: 1px; }
+  p { margin: 0; font-size: 11.5px; color: $white-60; line-height: 1.45; font-style: italic; }
 }
 
-.card-right {
-  margin-left: 8px;
+// Footer card
+.card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 10px; margin-top: 6px; border-top: 1px solid $white-08;
+  gap: 8px; flex-wrap: wrap;
+}
+.footer-left  { display: flex; flex-direction: column; gap: 3px; }
+.footer-right { display: flex; align-items: center; gap: 8px; }
+
+.fecha-txt { display: flex; align-items: center; gap: 4px; font-size: 10.5px; color: $white-35; ion-icon { font-size: 12px; } }
+.dias-restantes { font-size: 10px; font-weight: 700; color: $white-35; &.vence-hoy { color: #f97316; } &.vencido { color: #ef4444; } }
+
+// Publicar mini-btn
+.publish-mini-btn {
+  display: flex; align-items: center; gap: 4px;
+  border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
+  color: $white-35; font-size: 10px; font-weight: 700;
+  padding: 4px 8px; border-radius: 8px; cursor: pointer;
+  ion-icon { font-size: 12px; }
+  &.is-published { border-color: rgba(34,197,94,0.25); background: rgba(34,197,94,0.08); color: #22c55e; }
 }
 
-.action-btn {
-  width: 34px; height: 34px;
-  border-radius: 10px;
-  border: none;
-  background: #fef2f2;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  ion-icon { font-size: 16px; color: #ef4444; }
-  &:active { transform: scale(0.9); background: #fee2e2; }
+// Estado chip alumno
+.estado-chip {
+  display: flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700;
+  ion-icon { font-size: 13px; }
+  &.chip-pendiente    { color: $orange;   }
+  &.chip-entregada    { color: #22c55e;  }
+  &.chip-calificada   { color: #60a5fa;  }
+  &.chip-no-entregada { color: #ef4444;  }
 }
 
-/* ===== Empty State ===== */
+// ── EMPTY STATE ───────────────────────────────────────────────
 .empty-state {
-  text-align: center;
-  padding: 50px 20px;
-  .empty-emoji { font-size: 3rem; }
-  h3 { font-size: 1.1rem; font-weight: 700; color: $primary; margin: 12px 0 6px; }
-  p { font-size: 0.85rem; color: #94a3b8; }
+  display: flex; flex-direction: column; align-items: center; text-align: center; padding: 52px 24px;
+}
+.empty-icon-wrap {
+  width: 70px; height: 70px; border-radius: 50%;
+  background: rgba(255,107,0,0.08); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
+  ion-icon { font-size: 30px; color: $orange; }
+}
+.empty-title { margin: 0 0 6px; font-size: 15px; font-weight: 700; color: $white; }
+.empty-sub   { margin: 0 0 16px; font-size: 12px; color: $white-35; }
+
+.btn-nueva-act {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 20px; border-radius: 12px; border: none;
+  background: $orange; color: $white; font-size: 13px; font-weight: 700; cursor: pointer;
+  ion-icon { font-size: 16px; }
+  box-shadow: 0 4px 14px $orange-glow;
 }
 
-/* ===== FAB ===== */
-.fab-add {
-  --background: #{$accent};
-  --box-shadow: 0 6px 25px rgba($accent, 0.45);
-  --border-radius: 18px;
-  width: 60px; height: 60px;
-  transition: transform 0.2s;
-  &:active { transform: scale(0.92); }
-}
-
-/* ===== Modal ===== */
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba($primary, 0.6);
-  backdrop-filter: blur(6px);
-  z-index: 999;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  animation: fadeIn 0.25s ease-out;
-}
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-.modal-card {
-  background: white;
-  border-radius: 24px 24px 0 0;
-  width: 100%;
-  max-width: 500px;
-  max-height: 85vh;
-  overflow-y: auto;
-  animation: slideModal 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideModal {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 20px 10px;
-  border-bottom: 3px solid $accent;
-  h2 { font-size: 1.2rem; font-weight: 800; color: $primary; margin: 0; }
-}
-
-.close-btn {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  border: none;
-  background: #f1f5f9;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  ion-icon { font-size: 20px; color: #64748b; }
-  &:hover { background: #e2e8f0; }
-}
-
-.modal-body { padding: 10px 20px 20px; }
-
-.form-group {
-  margin-bottom: 16px;
-  label { display: block; font-size: 0.8rem; font-weight: 700; color: $primary; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-  input, textarea, select {
-    width: 100%;
-    padding: 12px 14px;
-    border-radius: 12px;
-    border: 1.5px solid #e2e8f0;
-    font-family: $font;
-    font-size: 0.9rem;
-    background: #f8fafc;
-    color: $primary;
-    outline: none;
-    transition: border-color 0.2s;
-    &:focus { border-color: $accent; box-shadow: 0 0 0 3px rgba($accent, 0.12); }
-  }
-  textarea { resize: none; }
-}
-
-.form-row {
-  display: flex;
-  gap: 12px;
-  .half { flex: 1; }
-}
-
-.modal-footer {
-  display: flex;
-  gap: 10px;
-  padding: 0 20px 25px;
-}
-
-.btn-cancel {
-  flex: 1;
-  padding: 14px;
-  border-radius: 14px;
-  border: 1.5px solid #e2e8f0;
-  background: white;
-  font-family: $font;
-  font-weight: 700;
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.2s;
-  &:hover { background: #f1f5f9; }
-}
-
-.btn-save {
-  flex: 2;
-  padding: 14px;
-  border-radius: 14px;
-  border: none;
-  background: $gradient-accent;
-  font-family: $font;
-  font-weight: 700;
-  color: white;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba($accent, 0.35);
-  transition: transform 0.2s;
-  &:active { transform: scale(0.97); }
-}
-.actividad-toolbar {
-  // 1. Color de fondo y texto
-  --background: #001a3d; 
-  --color: white;
-  text-align: center;
-  position: relative;
-
-  ion-title {
-    font-weight: bold;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    /* Si quieres el toque retro total, puedes usar la fuente que usaste antes: */
-    /* font-family: 'Press Start 2P', cursive; */
-  }
-
-  ion-menu-button {
-    --color: white;
-  }
-
-  // 2. La línea decorativa inferior (Degradado Naranja-Rojo)
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: linear-gradient(to right, #ff8c00 0%, #ff4500 50%, #ff0000 100%);
-  }
-}
+// ── FAB ───────────────────────────────────────────────────────
+.fab-agregar { --background: #{$orange}; --color: #{$white}; --box-shadow: 0 6px 18px #{$orange-glow}; }

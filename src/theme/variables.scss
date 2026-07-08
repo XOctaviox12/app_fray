@@ -1,2 +1,156 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
+// ============================================
+// VARIABLES GLOBALES - FRAY HUB
+// ============================================
+
+// Colores principales
+$orange: #ff6b00;
+$orange-dark: #e55a00;
+$orange-light: #ff8c5a;
+$orange-subtle: rgba(255, 107, 0, 0.1);
+$orange-glow: rgba(255, 107, 0, 0.3);
+
+$navy: #07111f;
+$navy-2: #0a1835;
+$navy-3: #0d1f42;
+$navy-4: #122a52;
+$navy-dark: #050912;
+
+$white: #ffffff;
+$white-08: rgba(255, 255, 255, 0.08);
+$white-35: rgba(255, 255, 255, 0.35);
+$white-60: rgba(255, 255, 255, 0.6);
+
+$green: #2dd36f;
+$green-dark: #1e9c4f;
+
+$gray-bg: #f8fafc;
+$gray-text: #64748b;
+$gray-light: #94a3b8;
+
+// Fondos y bordes
+$card-bg: rgba(10, 24, 53, 0.7);
+$card-border: rgba(255, 255, 255, 0.08);
+
+// Fuentes
+$font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+$font-display: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+// ============================================
+// MIXINS
+// ============================================
+
+@mixin toolbar-base {
+  --background: #{$navy-2};
+  --border-style: none;
+  --min-height: 56px;
+
+  .header-title {
+    font-family: $font-display;
+    font-size: 18px;
+    font-weight: 800;
+    color: $white;
+    letter-spacing: -0.5px;
+  }
+
+  .header-accent-bar {
+    height: 3px;
+    background: linear-gradient(90deg, $orange, transparent);
+  }
+}
+
+@mixin hero-base {
+  background: $navy-2;
+  padding: 20px 18px 24px;
+
+  .hero-greeting {
+    font-size: 12px;
+    color: $white-35;
+    margin-bottom: 6px;
+  }
+
+  .hero-name {
+    font-family: $font-display;
+    font-size: 22px;
+    font-weight: 800;
+    color: $white;
+  }
+
+  .hero-sub {
+    font-size: 12px;
+    color: $white-35;
+    margin-top: 4px;
+  }
+}
+
+@mixin card-base {
+  background: $white;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  margin-bottom: 12px;
+}
+
+// ============================================
+// VARIABLES CSS (para usar con var())
+// ============================================
+
+:root {
+  // Colores
+  --orange: #{$orange};
+  --orange-dark: #{$orange-dark};
+  --orange-light: #{$orange-light};
+  --orange-subtle: #{$orange-subtle};
+  --orange-glow: #{$orange-glow};
+
+  --navy: #{$navy};
+  --navy-2: #{$navy-2};
+  --navy-3: #{$navy-3};
+  --navy-4: #{$navy-4};
+
+  --white: #{$white};
+  --white-08: #{$white-08};
+  --white-35: #{$white-35};
+  --white-60: #{$white-60};
+
+  --green: #{$green};
+
+  --gray-bg: #{$gray-bg};
+  --gray-text: #{$gray-text};
+  --gray-light: #{$gray-light};
+
+  // Fondos y bordes
+  --card-bg: #{$card-bg};
+  --card-border: #{$card-border};
+
+  // Fuentes
+  --font: #{$font};
+  --font-display: #{$font-display};
+}
+
+// ============================================
+// IMPORTACIÓN GLOBAL (opcional)
+// ============================================
+
+// Si quieres que ciertos estilos se apliquen globalmente
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: $font;
+  background: $navy;
+}
+
+// Utilidades
+.text-orange {
+  color: $orange;
+}
+
+.text-white-35 {
+  color: $white-35;
+}
+
+.bg-navy-2 {
+  background: $navy-2;
+}

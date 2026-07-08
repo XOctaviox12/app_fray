@@ -1,0 +1,94 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inicio" class="header-back-btn" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title class="header-title">Mi Perfil</ion-title>
+  </ion-toolbar>
+  <div class="header-accent-bar"></div>
+</ion-header>
+
+<ion-content class="perfil-content">
+
+  <ng-container *ngIf="usuario; else sinSesion">
+
+    <div class="profile-hero">
+      <div class="avatar-wrap">
+        <img
+          [src]="avatarUrl"
+          (error)="onErrorImagen()"
+          class="profile-avatar"
+        />
+      </div>
+      <h1 class="profile-name">{{ getNombreCompleto() }}</h1>
+      <span class="role-badge">{{ getRolDisplay() }}</span>
+    </div>
+
+    <div class="info-section">
+      <p class="section-label">Información de contacto</p>
+      <div class="info-card">
+        <div class="info-row">
+          <div class="info-icon-wrap">
+            <ion-icon name="person-outline"></ion-icon>
+          </div>
+          <div class="info-text">
+            <span class="info-label">Usuario</span>
+            <span class="info-value">{{ usuario.username }}</span>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-icon-wrap">
+            <ion-icon name="mail-outline"></ion-icon>
+          </div>
+          <div class="info-text">
+            <span class="info-label">Correo electrónico</span>
+            <span class="info-value">{{ usuario.email || 'No registrado' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <p class="section-label">Información académica</p>
+      <div class="info-card">
+        <div class="info-row">
+          <div class="info-icon-wrap">
+            <ion-icon name="ribbon-outline"></ion-icon>
+          </div>
+          <div class="info-text">
+            <span class="info-label">Rol</span>
+            <span class="info-value">{{ getRolDisplay() }}</span>
+          </div>
+        </div>
+
+        <div class="info-row" *ngIf="usuario.plantel_id">
+          <div class="info-icon-wrap">
+            <ion-icon name="business-outline"></ion-icon>
+          </div>
+          <div class="info-text">
+            <span class="info-label">Plantel</span>
+            <span class="info-value">#{{ usuario.plantel_id }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-logout" (click)="cerrarSesion()">
+      <ion-icon name="log-out-outline"></ion-icon>
+      Cerrar sesión
+    </button>
+
+  </ng-container>
+
+  <ng-template #sinSesion>
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <ion-icon name="person-circle-outline"></ion-icon>
+      </div>
+      <h3 class="empty-title">No hay sesión activa</h3>
+      <p class="empty-sub">Inicia sesión para ver tu información</p>
+    </div>
+  </ng-template>
+
+</ion-content>

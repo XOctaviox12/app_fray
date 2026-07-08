@@ -1,0 +1,700 @@
+// ============================================
+// CLASE.PAGE.SCSS — Clase en Vivo
+// ============================================
+
+.header-toolbar {
+  --background: var(--navy-2);
+  --color: var(--white);
+  --border-style: none;
+  --min-height: 56px;
+}
+
+.header-title {
+  color: var(--white);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: -0.3px;
+}
+
+.header-accent-bar {
+  height: 3px;
+  background: linear-gradient(90deg, #ef4444, var(--orange));
+}
+
+// ── Indicador LIVE (header) ───────────────
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 9px;
+  font-weight: 800;
+  color: #ef4444;
+  letter-spacing: 1px;
+  margin-right: 8px;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  background: #ef4444;
+  border-radius: 50%;
+  animation: pulse-dot 1.2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.7); }
+}
+
+// ── Content ───────────────────────────────
+.clase-content {
+  --background: var(--navy);
+}
+
+// ── Loading ───────────────────────────────
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  gap: 12px;
+  color: var(--white-35);
+  font-size: 12px;
+
+  ion-spinner { color: var(--orange); }
+}
+
+// ── Hero section ──────────────────────────
+.section-hero {
+  background: var(--navy-2);
+  padding: 18px 18px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.hero-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon { font-size: 24px; color: #ef4444; }
+
+  &.waiting-icon {
+    background: rgba(255, 107, 0, 0.1);
+    border-color: rgba(255, 107, 0, 0.2);
+    ion-icon { color: var(--orange); }
+  }
+}
+
+.section-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -0.4px;
+}
+
+.section-sub {
+  font-size: 11px;
+  color: var(--white-35);
+  margin-top: 3px;
+}
+
+// ── Formulario inicio sesión ──────────────
+.inicio-form {
+  margin: 14px 18px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-top: 2px solid #ef4444;
+  border-radius: 16px;
+  padding: 18px;
+  backdrop-filter: blur(8px);
+}
+
+.form-group {
+  margin-bottom: 14px;
+
+  label {
+    display: block;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--white-35);
+    margin-bottom: 6px;
+  }
+}
+
+.label-hint {
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--white-35);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.input-wrap,
+.select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0 10px;
+  transition: border-color 0.2s;
+
+  &:focus-within { border-color: #ef4444; }
+
+  input, select, textarea {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 13px;
+    color: var(--white);
+    padding: 10px 0;
+    font-family: var(--font);
+
+    &::placeholder { color: var(--white-35); }
+
+    option {
+      background: var(--navy-2);
+      color: var(--white);
+    }
+  }
+}
+
+.textarea-wrap {
+  align-items: flex-start;
+  padding-top: 4px;
+  textarea { resize: none; }
+}
+
+.field-icon {
+  font-size: 15px;
+  color: var(--white-35);
+  flex-shrink: 0;
+}
+
+// ── Botón iniciar ─────────────────────────
+.btn-iniciar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: var(--white);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+  transition: transform 0.15s, opacity 0.15s;
+  margin-top: 4px;
+
+  ion-icon { font-size: 17px; }
+
+  &:active { transform: scale(0.98); }
+  &[disabled] { opacity: 0.5; cursor: not-allowed; }
+}
+
+// ── Barra de control (docente) ────────────
+.control-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(239, 68, 68, 0.08);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 10px 18px;
+}
+
+.control-bar-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ef4444;
+
+  ion-icon { font-size: 14px; }
+}
+
+.btn-terminar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ef4444;
+  cursor: pointer;
+
+  ion-icon { font-size: 14px; }
+}
+
+// ── Botones de tipo de bloque ─────────────
+.tipo-btns-row {
+  display: flex;
+  gap: 6px;
+  padding: 12px 18px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--white-08);
+}
+
+.tipo-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  backdrop-filter: blur(8px);
+  color: var(--white-60);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s;
+
+  ion-icon { font-size: 18px; color: var(--orange); }
+
+  &:active {
+    background: rgba(255, 107, 0, 0.08);
+    border-color: var(--orange);
+  }
+
+  &.actividad-btn {
+    ion-icon { color: #22c55e; }
+    &:active { background: rgba(34, 197, 94, 0.08); border-color: #22c55e; }
+  }
+}
+
+// ── Bloques container ─────────────────────
+.bloques-container {
+  padding: 12px 18px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty-bloques {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 24px;
+  color: var(--white-35);
+  text-align: center;
+
+  ion-icon { font-size: 36px; }
+  p { font-size: 12px; margin: 0; line-height: 1.5; }
+}
+
+// ── Bloque card ───────────────────────────
+.bloque-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  padding: 14px;
+
+  // Colores por tipo
+  &.bloque-texto    { border-left: 3px solid var(--orange); }
+  &.bloque-pdf      { border-left: 3px solid #ef4444; }
+  &.bloque-video    { border-left: 3px solid #8b5cf6; }
+  &.bloque-imagen   { border-left: 3px solid #3b82f6; }
+  &.bloque-link     { border-left: 3px solid #06b6d4; }
+  &.bloque-actividad { border-left: 3px solid #22c55e; }
+}
+
+.bloque-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.bloque-tipo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--white-35);
+
+  ion-icon { font-size: 13px; }
+}
+
+.bloque-delete-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.2s;
+
+  ion-icon { font-size: 16px; color: var(--white-35); }
+
+  &:active {
+    background: rgba(239, 68, 68, 0.1);
+    ion-icon { color: #ef4444; }
+  }
+}
+
+.bloque-titulo {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.bloque-texto {
+  font-size: 13px;
+  color: var(--white-60);
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.bloque-pdf {
+  .pdf-iframe {
+    border-radius: 8px;
+    border: 1px solid var(--white-08);
+    display: block;
+  }
+
+  .pdf-open-link {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #ef4444;
+    text-decoration: none;
+
+    ion-icon { font-size: 13px; }
+  }
+}
+
+.bloque-video {
+  .video-wrap {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 10px;
+
+    .video-iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border-radius: 10px;
+    }
+  }
+
+  .video-native {
+    width: 100%;
+    border-radius: 10px;
+  }
+}
+
+.bloque-imagen {
+  width: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+  max-height: 300px;
+  display: block;
+}
+
+.bloque-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #06b6d4;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  word-break: break-all;
+
+  ion-icon { font-size: 15px; flex-shrink: 0; }
+}
+
+.bloque-actividad {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(34, 197, 94, 0.06);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 10px;
+  padding: 12px;
+
+  .act-icon {
+    font-size: 22px;
+    color: #22c55e;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .act-instrucciones {
+    margin: 0;
+    font-size: 13px;
+    color: var(--white-60);
+    line-height: 1.5;
+  }
+}
+
+// ── Vista alumno ──────────────────────────
+.alumno-hero {
+  background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.04));
+  border-bottom: 1px solid rgba(239,68,68,0.15);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.alumno-hero-left { flex: 1; min-width: 0; }
+
+.live-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 20px;
+  padding: 3px 8px;
+  font-size: 8px;
+  font-weight: 800;
+  color: #ef4444;
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
+}
+
+.alumno-titulo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -0.4px;
+}
+
+// ── Waiting (alumno sin sesión) ────────────
+.waiting-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+  gap: 16px;
+}
+
+.pulse-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pulse-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 107, 0, 0.3);
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+
+.pulse-icon {
+  font-size: 32px;
+  color: var(--orange);
+  position: relative;
+  z-index: 1;
+}
+
+.waiting-text {
+  font-size: 12px;
+  color: var(--white-35);
+  text-align: center;
+  margin: 0;
+}
+
+@keyframes pulse-ring {
+  0%   { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+// ── Empty / Error states ──────────────────
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--white-35);
+
+  ion-icon { font-size: 40px; }
+  h3 { margin: 0; font-family: var(--font-display); font-size: 15px; color: var(--white); }
+  p  { margin: 0; font-size: 11px; line-height: 1.5; }
+}
+
+// ── Modal ─────────────────────────────────
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 17, 31, 0.6);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+  animation: fade-in 0.2s ease;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  background: var(--navy-2);
+  border-radius: 20px 20px 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slide-up 0.25s ease;
+  border-top: 2px solid #ef4444;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid var(--white-08);
+  flex-shrink: 0;
+}
+
+.modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  ion-icon { font-size: 18px; color: var(--orange); }
+  h3 { margin: 0; font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--white); }
+}
+
+.modal-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  ion-icon { font-size: 17px; color: var(--white-35); }
+}
+
+.modal-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  padding: 12px 18px 20px;
+  border-top: 1px solid var(--white-08);
+  flex-shrink: 0;
+}
+
+.btn-cancel,
+.btn-save {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px;
+  border-radius: 10px;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+
+  ion-icon { font-size: 14px; }
+}
+
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--white-35);
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: var(--white);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+
+  &[disabled] { opacity: 0.6; cursor: not-allowed; }
+}
+
+.btn-spinner {
+  width: 16px;
+  height: 16px;
+  --color: var(--white);
+}
+// ── Hint sin materias ─────────────────────
+.no-materias-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 6px 0 0;
+  font-size: 10.5px;
+  color: #f97316;
+  font-weight: 600;
+  ion-icon { font-size: 13px; flex-shrink: 0; }
+}
+
+select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+// ── Animaciones ───────────────────────────
+@keyframes fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-up { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }

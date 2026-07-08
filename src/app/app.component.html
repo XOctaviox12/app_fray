@@ -1,112 +1,286 @@
 <ion-app>
 
-  <!-- MENÚ LATERAL -->
   <ion-menu contentId="main-content">
     <ion-header>
       <ion-toolbar>
-        <ion-title>Menú</ion-title>
+        <ion-title>
+          <ion-icon name="school-outline" class="menu-logo-icon"></ion-icon>
+          Fray Hub
+        </ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content>
 
-      <!-- TARJETA DE USUARIO -->
-      <div *ngIf="loggedIn && usuario" class="user-card-container">
+      <!-- Tarjeta de usuario -->
+      <div *ngIf="loggedIn" class="user-card-container">
         <div class="user-card">
           <div class="avatar-section">
-            <img
-              [src]="avatarUrl"
-              (error)="onErrorImagen()"
-              class="user-avatar"
-            />
+            <img [src]="avatarUrl" (error)="onErrorImagen()" class="user-avatar" />
             <div class="online-badge"></div>
           </div>
-
           <div class="info-section">
             <h3 class="user-name">{{ getNombreDisplay() }}</h3>
             <p class="user-email">{{ getEmailDisplay() }}</p>
             <div class="status-text">
-              <span class="dot">●</span> CONECTADO
+              <ion-icon name="ellipse" class="status-dot"></ion-icon>
+              Conectado
             </div>
           </div>
         </div>
 
-        <ion-menu-toggle auto-hide="false">
-          <ion-button
-            expand="block"
-            fill="outline"
-            class="btn-profile"
-            routerLink="/perfil"
-          >
-            <ion-icon name="person-circle" slot="start"></ion-icon>
-            VER PERFIL
+        <ion-menu-toggle auto-hide="false" *ngIf="!esTutor">
+          <ion-button expand="block" fill="outline" class="btn-profile" routerLink="/perfil">
+            <ion-icon name="person-circle-outline" slot="start"></ion-icon>
+            Ver Perfil
           </ion-button>
         </ion-menu-toggle>
       </div>
 
-      <!-- Skeleton mientras carga -->
-      <div *ngIf="!loggedIn || !usuario" class="user-card-skeleton">
-        <ion-skeleton-text animated style="width: 56px; height: 56px; border-radius: 50%;"></ion-skeleton-text>
-        <div style="flex: 1; margin-left: 12px;">
-          <ion-skeleton-text animated style="width: 70%; height: 14px;"></ion-skeleton-text>
-          <ion-skeleton-text animated style="width: 90%; height: 12px; margin-top: 6px;"></ion-skeleton-text>
+      <!-- Skeleton sin sesión -->
+      <div *ngIf="!loggedIn" class="user-card-skeleton">
+        <ion-skeleton-text animated style="width: 42px; height: 42px; border-radius: 13px;"></ion-skeleton-text>
+        <div style="flex: 1; margin-left: 10px;">
+          <ion-skeleton-text animated style="width: 65%; height: 13px;"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 85%; height: 11px; margin-top: 6px;"></ion-skeleton-text>
         </div>
       </div>
 
       <ion-list>
 
+        <p class="nav-section-label">Principal</p>
+
         <ion-menu-toggle auto-hide="false">
-          <ion-item routerLink="/inicio" routerLinkActive="active-item">
-            <ion-icon name="home-outline" slot="start"></ion-icon>
+          <ion-item routerLink="/inicio" routerLinkActive="active-item" lines="none">
+            <div class="nav-icon-wrap" slot="start">
+              <ion-icon name="home-outline"></ion-icon>
+            </div>
             <ion-label>Inicio</ion-label>
           </ion-item>
         </ion-menu-toggle>
 
-        <ion-menu-toggle auto-hide="false">
-          <ion-item routerLink="/tareas" routerLinkActive="active-item">
-            <ion-icon name="clipboard-outline" slot="start"></ion-icon>
-            <ion-label>Tareas</ion-label>
-          </ion-item>
-        </ion-menu-toggle>
+        <!-- ===================== ALUMNO ===================== -->
+        <ng-container *ngIf="esAlumno">
 
-        <ion-menu-toggle auto-hide="false">
-          <ion-item routerLink="/comunidad" routerLinkActive="active-item">
-            <ion-icon name="people-outline" slot="start"></ion-icon>
-            <ion-label>Comunidad</ion-label>
-          </ion-item>
-        </ion-menu-toggle>
+          <!-- Clase en Vivo -->
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/clase" routerLinkActive="active-item" lines="none"
+                      class="clase-item">
+              <div class="nav-icon-wrap clase-icon-wrap" slot="start">
+                <ion-icon name="radio-outline"></ion-icon>
+              </div>
+              <ion-label>
+                Clase en Vivo
+                <p class="nav-sublabel">Contenido de tu docente</p>
+              </ion-label>
+              <div class="nav-badge-live" slot="end" *ngIf="hayClaseEnVivoActiva">LIVE</div>
+            </ion-item>
+          </ion-menu-toggle>
 
-        <ion-menu-toggle auto-hide="false">
-          <ion-item routerLink="/materias" routerLinkActive="active-item">
-            <ion-icon name="book-outline" slot="start"></ion-icon>
-            <ion-label>Materias</ion-label>
-          </ion-item>
-        </ion-menu-toggle>
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/tareas" routerLinkActive="active-item" lines="none">
+              <div class="nav-icon-wrap" slot="start">
+                <ion-icon name="document-text-outline"></ion-icon>
+              </div>
+              <ion-label>Tareas</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
 
-        <ion-menu-toggle auto-hide="false">
-          <ion-item routerLink="/aula" routerLinkActive="active-item">
-            <ion-icon name="school-outline" slot="start"></ion-icon>
-            <ion-label>Aula</ion-label>
-          </ion-item>
-        </ion-menu-toggle>
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/actividad" routerLinkActive="active-item" lines="none">
+              <div class="nav-icon-wrap" slot="start">
+                <ion-icon name="checkmark-done-outline"></ion-icon>
+              </div>
+              <ion-label>Actividades</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
 
-        <!-- Cerrar sesión -->
-        <ion-item button (click)="cerrarSesion()" class="logout-item">
-          <ion-icon name="log-out-outline" slot="start" color="danger"></ion-icon>
-          <ion-label color="danger">Cerrar sesión</ion-label>
+          <p class="nav-section-label">Académico</p>
+
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/comunidad" routerLinkActive="active-item" lines="none">
+              <div class="nav-icon-wrap" slot="start">
+                <ion-icon name="people-outline"></ion-icon>
+              </div>
+              <ion-label>Comunidad</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/materias" routerLinkActive="active-item" lines="none">
+              <div class="nav-icon-wrap" slot="start">
+                <ion-icon name="book-outline"></ion-icon>
+              </div>
+              <ion-label>Materias</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/aula" routerLinkActive="active-item" lines="none">
+              <div class="nav-icon-wrap" slot="start">
+                <ion-icon name="school-outline"></ion-icon>
+              </div>
+              <ion-label>Aula</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/herramientas" routerLinkActive="active-item" lines="none">
+              <div class="nav-icon-wrap" slot="start">
+                <ion-icon name="construct-outline"></ion-icon>
+              </div>
+              <ion-label>Herramientas</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+        </ng-container>
+
+        <!-- ===================== DOCENTE ===================== -->
+        <ng-container *ngIf="esDocente">
+
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/aula" routerLinkActive="active-item" lines="none">
+              <div class="nav-icon-wrap" slot="start">
+                <ion-icon name="school-outline"></ion-icon>
+              </div>
+              <ion-label>Mis Grupos</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/materias" routerLinkActive="active-item" lines="none">
+              <div class="nav-icon-wrap" slot="start">
+                <ion-icon name="book-outline"></ion-icon>
+              </div>
+              <ion-label>Materias</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <p class="nav-section-label">Gestión Académica</p>
+
+          <!-- Tomar Lista -->
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/asistencia" routerLinkActive="active-item" lines="none"
+                      class="asistencia-item">
+              <div class="nav-icon-wrap asistencia-icon-wrap" slot="start">
+                <ion-icon name="people-circle-outline"></ion-icon>
+              </div>
+              <ion-label>
+                Tomar Lista
+                <p class="nav-sublabel">Asistencia de grupos</p>
+              </ion-label>
+              <div class="nav-badge-hoy" slot="end" *ngIf="hayAsistenciaPendienteHoy">HOY</div>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <!-- Clase en Vivo -->
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/clase" routerLinkActive="active-item" lines="none"
+                      class="clase-item">
+              <div class="nav-icon-wrap clase-icon-wrap" slot="start">
+                <ion-icon name="radio-outline"></ion-icon>
+              </div>
+              <ion-label>
+                Clase en Vivo
+                <p class="nav-sublabel">Presenta contenido en tiempo real</p>
+              </ion-label>
+              <div class="nav-badge-live" slot="end" *ngIf="hayClaseEnVivoActiva">LIVE</div>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/tareas" routerLinkActive="active-item" lines="none">
+              <div class="nav-icon-wrap" slot="start">
+                <ion-icon name="document-text-outline"></ion-icon>
+              </div>
+              <ion-label>Tareas</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/actividad" routerLinkActive="active-item" lines="none">
+              <div class="nav-icon-wrap" slot="start">
+                <ion-icon name="checkmark-done-outline"></ion-icon>
+              </div>
+              <ion-label>Actividades</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/herramientas" routerLinkActive="active-item" lines="none">
+              <div class="nav-icon-wrap" slot="start">
+                <ion-icon name="construct-outline"></ion-icon>
+              </div>
+              <ion-label>Material de Apoyo</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/comunidad" routerLinkActive="active-item" lines="none">
+              <div class="nav-icon-wrap" slot="start">
+                <ion-icon name="people-outline"></ion-icon>
+              </div>
+              <ion-label>Comunidad</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+        </ng-container>
+
+        <!-- ===================== TUTOR ===================== -->
+        <ng-container *ngIf="esTutor">
+
+          <p class="nav-section-label">Seguimiento</p>
+
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/mi-hijo" routerLinkActive="active-item" lines="none">
+              <div class="nav-icon-wrap" slot="start">
+                <ion-icon name="school-outline"></ion-icon>
+              </div>
+              <ion-label>Mi Hijo(a)</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/tareas-hijo" routerLinkActive="active-item" lines="none">
+              <div class="nav-icon-wrap" slot="start">
+                <ion-icon name="document-text-outline"></ion-icon>
+              </div>
+              <ion-label>Tareas Hijo(a)</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/comunidad" routerLinkActive="active-item" lines="none">
+              <div class="nav-icon-wrap" slot="start">
+                <ion-icon name="megaphone-outline"></ion-icon>
+              </div>
+              <ion-label>Comunicados</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+        </ng-container>
+
+        <p class="nav-section-label">Cuenta</p>
+
+        <!-- Sin ion-menu-toggle a propósito: el menú se cierra manualmente
+             desde cerrarSesion() solo después de confirmar, no al primer toque. -->
+        <ion-item button (click)="cerrarSesion()" class="logout-item" lines="none">
+          <div class="nav-icon-wrap logout-icon-wrap" slot="start">
+            <ion-icon name="log-out-outline"></ion-icon>
+          </div>
+          <ion-label class="logout-label">Cerrar sesión</ion-label>
         </ion-item>
 
       </ion-list>
 
-      <!-- LOGO ABAJO -->
       <div class="menu-footer">
-        <img src="../assets/img/logotipo_lisboa.png" alt="logo">
+        <img src="assets/img/logotipo_lisboa.png" alt="logo" />
+        <span class="menu-footer-text">Universidad Lisboa · {{ currentYear }}</span>
       </div>
 
     </ion-content>
   </ion-menu>
 
-  <!-- CONTENIDO PRINCIPAL -->
   <div class="ion-page" id="main-content">
     <ion-router-outlet></ion-router-outlet>
   </div>

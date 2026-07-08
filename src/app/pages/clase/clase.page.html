@@ -1,0 +1,333 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button>
+        <ion-icon name="menu-outline"></ion-icon>
+      </ion-menu-button>
+    </ion-buttons>
+    <ion-title class="header-title">
+      {{ sesionActiva ? sesionActiva.titulo : 'Clase en Vivo' }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <div class="live-badge" *ngIf="sesionActiva">
+        <span class="live-dot"></span>
+        EN VIVO
+      </div>
+    </ion-buttons>
+  </ion-toolbar>
+  <div class="header-accent-bar"></div>
+</ion-header>
+
+<ion-content class="clase-content">
+
+  <div class="loading-overlay" *ngIf="cargando">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Conectando...</p>
+  </div>
+
+  <ng-container *ngIf="!cargando">
+
+    <!-- DOCENTE sin sesión -->
+    <ng-container *ngIf="esDocente && !sesionActiva">
+
+      <div class="section-hero">
+        <div class="hero-icon-wrap">
+          <ion-icon name="radio-outline"></ion-icon>
+        </div>
+        <div>
+          <h2 class="section-title">Iniciar Clase</h2>
+          <p class="section-sub">Los alumnos verán el contenido en tiempo real</p>
+        </div>
+      </div>
+
+      <div class="inicio-form">
+
+        <div class="form-group">
+          <label>Título de la sesión</label>
+          <div class="input-wrap">
+            <ion-icon name="create-outline" class="field-icon"></ion-icon>
+            <input type="text" [(ngModel)]="tituloSesion" placeholder="Ej: Álgebra — Ecuaciones lineales" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Grupo</label>
+          <div class="select-wrap">
+            <ion-icon name="people-outline" class="field-icon"></ion-icon>
+            <select [(ngModel)]="grupoSeleccionado" (ngModelChange)="onGrupoChange()">
+              <option [ngValue]="null" disabled>Selecciona un grupo</option>
+              <option *ngFor="let g of misGrupos" [ngValue]="g.id">
+                {{ g.grado }}° — Grupo {{ g.nombre }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="grupoSeleccionado">
+          <label>Materia</label>
+          <div class="select-wrap">
+            <ion-icon name="book-outline" class="field-icon"></ion-icon>
+            <select [(ngModel)]="asignaturaSeleccionada"
+              [disabled]="misAsignaturas.length === 0">
+              <option [ngValue]="null" disabled>
+                {{ misAsignaturas.length === 0
+                  ? 'Sin materias asignadas en este grupo'
+                  : 'Selecciona la materia' }}
+              </option>
+              <option *ngFor="let a of misAsignaturas" [ngValue]="a.id">
+                {{ getLabelAsignatura(a) }}
+              </option>
+            </select>
+          </div>
+          <!-- Aviso si no hay materias -->
+          <p class="no-materias-hint" *ngIf="misAsignaturas.length === 0">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            No tienes materias asignadas en este grupo. Contacta al administrador.
+          </p>
+        </div>
+
+        <button
+          class="btn-iniciar"
+          (click)="iniciarSesion()"
+          [disabled]="!grupoSeleccionado || !asignaturaSeleccionada || !tituloSesion.trim()"
+        >
+          <ion-icon name="radio-outline"></ion-icon>
+          Iniciar clase ahora
+        </button>
+
+      </div>
+
+      <div class="empty-state" *ngIf="misGrupos.length === 0">
+        <ion-icon name="people-circle-outline"></ion-icon>
+        <h3>Sin grupos asignados</h3>
+        <p>Solicita al administrador que te asigne grupos.</p>
+      </div>
+
+    </ng-container>
+
+    <!-- DOCENTE con sesión activa -->
+    <ng-container *ngIf="esDocente && sesionActiva">
+
+      <div class="control-bar">
+        <div class="control-bar-info">
+          <ion-icon name="people-outline"></ion-icon>
+          <span>Sesión activa para el grupo</span>
+        </div>
+        <button class="btn-terminar" (click)="terminarSesion()">
+          <ion-icon name="stop-circle-outline"></ion-icon>
+          Terminar
+        </button>
+      </div>
+
+      <div class="tipo-btns-row">
+        <button class="tipo-btn" (click)="abrirModalBloque('texto')">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <span>Texto</span>
+        </button>
+        <button class="tipo-btn" (click)="abrirModalBloque('pdf')">
+          <ion-icon name="document-outline"></ion-icon>
+          <span>PDF</span>
+        </button>
+        <button class="tipo-btn" (click)="abrirModalBloque('video')">
+          <ion-icon name="videocam-outline"></ion-icon>
+          <span>Video</span>
+        </button>
+        <button class="tipo-btn" (click)="abrirModalBloque('imagen')">
+          <ion-icon name="image-outline"></ion-icon>
+          <span>Imagen</span>
+        </button>
+        <button class="tipo-btn" (click)="abrirModalBloque('link')">
+          <ion-icon name="link-outline"></ion-icon>
+          <span>Enlace</span>
+        </button>
+        <button class="tipo-btn actividad-btn" (click)="abrirModalBloque('actividad')">
+          <ion-icon name="checkmark-done-outline"></ion-icon>
+          <span>Actividad</span>
+        </button>
+      </div>
+
+      <div class="bloques-container">
+        <div class="empty-bloques" *ngIf="bloques.length === 0">
+          <ion-icon name="radio-outline"></ion-icon>
+          <p>La sesión está activa. Agrega contenido para que los alumnos lo vean.</p>
+        </div>
+
+        <div class="bloque-card" *ngFor="let b of bloques; trackBy: trackBloque" [ngClass]="'bloque-' + b.tipo">
+          <div class="bloque-header">
+            <div class="bloque-tipo-badge">
+              <ion-icon [name]="iconoBloque(b.tipo)"></ion-icon>
+              {{ etiquetaTipo(b.tipo) }}
+            </div>
+            <button class="bloque-delete-btn" (click)="eliminarBloque(b)">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
+          <h4 class="bloque-titulo" *ngIf="b.titulo">{{ b.titulo }}</h4>
+          <p class="bloque-texto" *ngIf="b.tipo === 'texto'">{{ b.contenido }}</p>
+          <div class="bloque-pdf" *ngIf="b.tipo === 'pdf'">
+            <iframe [src]="b.contenido" width="100%" height="360px" class="pdf-iframe"></iframe>
+            <a [href]="b.contenido" target="_blank" class="pdf-open-link">
+              <ion-icon name="open-outline"></ion-icon> Abrir en nueva pestaña
+            </a>
+          </div>
+          <div class="bloque-video" *ngIf="b.tipo === 'video'">
+            <div class="video-wrap" *ngIf="esYoutube(b.contenido)">
+              <iframe [src]="youtubeEmbed(b.contenido)" frameborder="0" allowfullscreen class="video-iframe"></iframe>
+            </div>
+            <video *ngIf="!esYoutube(b.contenido)" controls class="video-native">
+              <source [src]="b.contenido" />
+            </video>
+          </div>
+          <img *ngIf="b.tipo === 'imagen'" [src]="b.contenido" class="bloque-imagen" />
+          <a *ngIf="b.tipo === 'link'" [href]="b.contenido" target="_blank" class="bloque-link">
+            <ion-icon name="link-outline"></ion-icon>
+            {{ b.contenido }}
+          </a>
+          <div class="bloque-actividad" *ngIf="b.tipo === 'actividad'">
+            <ion-icon name="checkmark-done-circle-outline" class="act-icon"></ion-icon>
+            <p class="act-instrucciones">{{ b.contenido }}</p>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+
+    <!-- ALUMNO sin sesión -->
+    <ng-container *ngIf="esAlumno && !sesionActiva">
+      <div class="section-hero">
+        <div class="hero-icon-wrap waiting-icon">
+          <ion-icon name="time-outline"></ion-icon>
+        </div>
+        <div>
+          <h2 class="section-title">Sin clase activa</h2>
+          <p class="section-sub">Cuando tu maestro inicie la clase, aparecerá aquí automáticamente.</p>
+        </div>
+      </div>
+      <div class="waiting-card">
+        <div class="pulse-wrap">
+          <div class="pulse-ring"></div>
+          <ion-icon name="radio-outline" class="pulse-icon"></ion-icon>
+        </div>
+        <p class="waiting-text">Esperando que el docente inicie la sesión...</p>
+      </div>
+    </ng-container>
+
+    <!-- ALUMNO con sesión -->
+    <ng-container *ngIf="esAlumno && sesionActiva">
+      <div class="alumno-hero">
+        <div class="alumno-hero-left">
+          <span class="live-chip">
+            <span class="live-dot"></span>
+            EN VIVO
+          </span>
+          <h2 class="alumno-titulo">{{ sesionActiva.titulo }}</h2>
+        </div>
+      </div>
+      <div class="bloques-container">
+        <div class="empty-bloques" *ngIf="bloques.length === 0">
+          <ion-icon name="hourglass-outline"></ion-icon>
+          <p>El docente está preparando el contenido...</p>
+        </div>
+        <div class="bloque-card" *ngFor="let b of bloques; trackBy: trackBloque" [ngClass]="'bloque-' + b.tipo">
+          <div class="bloque-header">
+            <div class="bloque-tipo-badge">
+              <ion-icon [name]="iconoBloque(b.tipo)"></ion-icon>
+              {{ etiquetaTipo(b.tipo) }}
+            </div>
+          </div>
+          <h4 class="bloque-titulo" *ngIf="b.titulo">{{ b.titulo }}</h4>
+          <p class="bloque-texto" *ngIf="b.tipo === 'texto'">{{ b.contenido }}</p>
+          <div class="bloque-pdf" *ngIf="b.tipo === 'pdf'">
+            <iframe [src]="b.contenido" width="100%" height="360px" class="pdf-iframe"></iframe>
+            <a [href]="b.contenido" target="_blank" class="pdf-open-link">
+              <ion-icon name="open-outline"></ion-icon> Abrir PDF
+            </a>
+          </div>
+          <div class="bloque-video" *ngIf="b.tipo === 'video'">
+            <div class="video-wrap" *ngIf="esYoutube(b.contenido)">
+              <iframe [src]="youtubeEmbed(b.contenido)" frameborder="0" allowfullscreen class="video-iframe"></iframe>
+            </div>
+            <video *ngIf="!esYoutube(b.contenido)" controls class="video-native">
+              <source [src]="b.contenido" />
+            </video>
+          </div>
+          <img *ngIf="b.tipo === 'imagen'" [src]="b.contenido" class="bloque-imagen" />
+          <a *ngIf="b.tipo === 'link'" [href]="b.contenido" target="_blank" class="bloque-link">
+            <ion-icon name="link-outline"></ion-icon>
+            Abrir enlace
+          </a>
+          <div class="bloque-actividad" *ngIf="b.tipo === 'actividad'">
+            <ion-icon name="checkmark-done-circle-outline" class="act-icon"></ion-icon>
+            <p class="act-instrucciones">{{ b.contenido }}</p>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+  </ng-container>
+
+  <!-- MODAL nuevo bloque -->
+  <div class="modal-overlay" *ngIf="mostrarModalBloque" (click)="cerrarModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <ion-icon [name]="iconoBloque(nuevoBloque.tipo!)"></ion-icon>
+          <h3>Agregar {{ etiquetaTipo(nuevoBloque.tipo!) }}</h3>
+        </div>
+        <button class="modal-close" (click)="cerrarModal()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" *ngIf="nuevoBloque.tipo !== 'actividad'">
+          <label>Título (opcional)</label>
+          <div class="input-wrap">
+            <ion-icon name="text-outline" class="field-icon"></ion-icon>
+            <input type="text" [(ngModel)]="nuevoBloque.titulo" placeholder="Título del bloque" />
+          </div>
+        </div>
+        <div class="form-group" *ngIf="nuevoBloque.tipo === 'texto'">
+          <label>Contenido</label>
+          <div class="input-wrap textarea-wrap">
+            <textarea [(ngModel)]="nuevoBloque.contenido" rows="5"
+              placeholder="Escribe aquí el texto, indicaciones o explicación..."></textarea>
+          </div>
+        </div>
+        <div class="form-group" *ngIf="['pdf','video','imagen','link'].includes(nuevoBloque.tipo!)">
+          <label>URL
+            <span class="label-hint" *ngIf="nuevoBloque.tipo === 'pdf'">(enlace al PDF)</span>
+            <span class="label-hint" *ngIf="nuevoBloque.tipo === 'video'">(YouTube o URL del video)</span>
+            <span class="label-hint" *ngIf="nuevoBloque.tipo === 'imagen'">(URL de la imagen)</span>
+          </label>
+          <div class="input-wrap">
+            <ion-icon name="link-outline" class="field-icon"></ion-icon>
+            <input type="url" [(ngModel)]="nuevoBloque.contenido" placeholder="https://..." />
+          </div>
+        </div>
+        <div class="form-group" *ngIf="nuevoBloque.tipo === 'actividad'">
+          <label>Instrucciones</label>
+          <div class="input-wrap textarea-wrap">
+            <textarea [(ngModel)]="nuevoBloque.contenido" rows="4"
+              placeholder="Ej: Resuelve los ejercicios 1-5..."></textarea>
+          </div>
+          <div class="input-wrap" style="margin-top: 8px;">
+            <ion-icon name="create-outline" class="field-icon"></ion-icon>
+            <input type="text" [(ngModel)]="nuevoBloque.titulo" placeholder="Título de la actividad (requerido)" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="cerrarModal()">
+          <ion-icon name="close-outline"></ion-icon>
+          Cancelar
+        </button>
+        <button class="btn-save" (click)="guardarBloque()" [disabled]="guardandoBloque">
+          <ion-spinner *ngIf="guardandoBloque" name="crescent" class="btn-spinner"></ion-spinner>
+          <ion-icon *ngIf="!guardandoBloque" name="send-outline"></ion-icon>
+          {{ guardandoBloque ? 'Publicando...' : 'Publicar' }}
+        </button>
+      </div>
+    </div>
+  </div>  
+
+</ion-content>

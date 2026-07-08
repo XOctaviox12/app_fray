@@ -1,0 +1,257 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="detalle-toolbar">
+    <ion-buttons slot="start">
+      <ion-button (click)="volver()" class="back-btn">
+        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="detalle-header-title">
+      {{ asignatura ? asignatura.nombre : grupo ? 'Grupo ' + grupo.nombre : 'Detalle' }}
+    </ion-title>
+  </ion-toolbar>
+  <div class="header-accent-bar"></div>
+</ion-header>
+
+<ion-content class="detalle-content">
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading -->
+  <div class="loading-overlay" *ngIf="cargando">
+    <ion-spinner name="crescent" class="loading-spinner"></ion-spinner>
+    <p class="loading-text">Cargando métricas...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="error && !cargando">
+    <ion-icon name="cloud-offline-outline"></ion-icon>
+    <p>{{ error }}</p>
+    <button class="retry-btn" (click)="cargarTodo()">
+      <ion-icon name="refresh-outline"></ion-icon> Reintentar
+    </button>
+  </div>
+
+  <ng-container *ngIf="!cargando && !error && grupo">
+
+    <!-- ── HERO ─────────────────────────────────── -->
+    <div class="grupo-hero">
+      <div class="grupo-hero-icon">
+        <ion-icon [name]="asignatura ? 'book-outline' : 'school-outline'"></ion-icon>
+      </div>
+      <div class="grupo-hero-info">
+
+        <!-- Con materia: muestra materia + grupo debajo -->
+        <ng-container *ngIf="asignatura">
+          <h1 class="grupo-nombre">{{ asignatura.nombre }}</h1>
+          <div class="grupo-tags">
+            <span class="grupo-tag orange">Grupo {{ grupo.nombre }} · {{ grupo.grado }}° Sem.</span>
+            <span class="grupo-tag blue" *ngIf="asignatura.clave">{{ asignatura.clave }}</span>
+            <span class="grupo-tag gray" *ngIf="grupo.aula">{{ grupo.aula }}</span>
+          </div>
+        </ng-container>
+
+        <!-- Sin materia: muestra solo grupo -->
+        <ng-container *ngIf="!asignatura">
+          <h1 class="grupo-nombre">Grupo {{ grupo.nombre }}</h1>
+          <div class="grupo-tags">
+            <span class="grupo-tag orange">{{ grupo.grado }}° Semestre</span>
+            <span class="grupo-tag blue">Plantel {{ grupo.plantel_id }}</span>
+            <span class="grupo-tag gray" *ngIf="grupo.aula">{{ grupo.aula }}</span>
+          </div>
+        </ng-container>
+
+      </div>
+    </div>
+
+    <!-- ── MÉTRICAS RÁPIDAS ──────────────────────── -->
+    <div class="metrics-row">
+      <div class="metric-card">
+        <span class="metric-num">{{ totalAlumnos }}</span>
+        <span class="metric-lbl">Alumnos</span>
+        <ion-icon name="people-outline" class="metric-icon"></ion-icon>
+      </div>
+      <div class="metric-card">
+        <span class="metric-num">{{ totalTareas }}</span>
+        <span class="metric-lbl">Tareas</span>
+        <ion-icon name="document-text-outline" class="metric-icon"></ion-icon>
+      </div>
+      <div class="metric-card" *ngIf="asignatura && promedioNota != null">
+        <span class="metric-num" [class]="colorPromedio">{{ promedioNota }}</span>
+        <span class="metric-lbl">Promedio</span>
+        <ion-icon name="ribbon-outline" class="metric-icon"></ion-icon>
+      </div>
+      <div class="metric-card" *ngIf="!asignatura || promedioNota == null">
+        <span class="metric-num">{{ grupo.capacidad_maxima }}</span>
+        <span class="metric-lbl">Capacidad</span>
+        <ion-icon name="business-outline" class="metric-icon"></ion-icon>
+      </div>
+    </div>
+
+    <!-- ── PROMEDIO (solo si hay materia) ───────── -->
+    <div class="section-block" *ngIf="asignatura && promedioNota != null">
+      <p class="section-label">Promedio de calificaciones</p>
+      <div class="promedio-card">
+        <div class="promedio-circle" [class]="colorPromedio">
+          <span class="promedio-num">{{ promedioNota }}</span>
+          <span class="promedio-lbl">/10</span>
+        </div>
+        <div class="promedio-info">
+          <p class="promedio-desc">
+            Basado en <strong>{{ totalCalificadas }}</strong>
+            registro{{ totalCalificadas !== 1 ? 's' : '' }} de calificación
+            en {{ asignatura.nombre }}.
+          </p>
+          <div class="promedio-barra-wrap">
+            <div class="promedio-barra" [class]="colorPromedio"
+              [style.width.%]="(promedioNota / 10) * 100"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ASISTENCIA ────────────────────────────── -->
+    <div class="section-block">
+      <p class="section-label">
+        Asistencia {{ asignatura ? 'en ' + asignatura.nombre : 'del grupo' }}
+      </p>
+
+      <div class="asistencia-card">
+        <div class="asist-gauge-wrap">
+          <div class="asist-gauge" [ngClass]="porcentajeColor">
+            <svg viewBox="0 0 36 36" class="gauge-svg">
+              <path class="gauge-bg"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="gauge-fill"
+                [attr.stroke-dasharray]="asistencia.porcentaje + ', 100'"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            </svg>
+            <div class="gauge-label">
+              <span class="gauge-num">{{ asistencia.porcentaje }}</span>
+              <span class="gauge-pct">%</span>
+            </div>
+          </div>
+          <p class="gauge-sub">promedio</p>
+        </div>
+        <div class="asist-breakdown">
+          <div class="asist-row">
+            <span class="asist-dot verde"></span>
+            <span class="asist-tipo">Presentes</span>
+            <span class="asist-num">{{ asistencia.presentes }}</span>
+          </div>
+          <div class="asist-row">
+            <span class="asist-dot naranja"></span>
+            <span class="asist-tipo">Retardos</span>
+            <span class="asist-num">{{ asistencia.retardos }}</span>
+          </div>
+          <div class="asist-row">
+            <span class="asist-dot rojo"></span>
+            <span class="asist-tipo">Ausentes</span>
+            <span class="asist-num">{{ asistencia.ausentes }}</span>
+          </div>
+          <div class="asist-row total-row">
+            <span class="asist-tipo">Total registros</span>
+            <span class="asist-num">{{ asistencia.total }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="asist-bar-wrap" *ngIf="asistencia.total > 0">
+        <div class="asist-bar">
+          <div class="asist-bar-fill verde"
+            [style.width.%]="(asistencia.presentes / asistencia.total) * 100"></div>
+          <div class="asist-bar-fill naranja"
+            [style.width.%]="(asistencia.retardos / asistencia.total) * 100"></div>
+          <div class="asist-bar-fill rojo"
+            [style.width.%]="(asistencia.ausentes / asistencia.total) * 100"></div>
+        </div>
+        <div class="asist-bar-leyenda">
+          <span class="verde">■ Presentes</span>
+          <span class="naranja">■ Retardos</span>
+          <span class="rojo">■ Ausentes</span>
+        </div>
+      </div>
+
+      <div class="empty-metric" *ngIf="asistencia.total === 0">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <p>Sin registros de asistencia aún</p>
+      </div>
+    </div>
+
+    <!-- ── TAREAS ─────────────────────────────────── -->
+    <div class="section-block">
+      <p class="section-label">
+        Entrega de tareas {{ asignatura ? 'en ' + asignatura.nombre : '' }}
+      </p>
+
+      <div class="tareas-card" *ngIf="totalTareas > 0">
+        <div class="tareas-progress-wrap">
+          <div class="tareas-circle">
+            <svg viewBox="0 0 36 36" class="gauge-svg">
+              <path class="gauge-bg"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="gauge-fill naranja"
+                [attr.stroke-dasharray]="porcentajeEntregas + ', 100'"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            </svg>
+            <div class="gauge-label">
+              <span class="gauge-num">{{ porcentajeEntregas }}</span>
+              <span class="gauge-pct">%</span>
+            </div>
+          </div>
+          <p class="gauge-sub">entregadas</p>
+        </div>
+        <div class="tareas-detalle">
+          <div class="tareas-stat">
+            <span class="ts-num">{{ tareasEntregadas }}</span>
+            <span class="ts-lbl">Entregadas</span>
+          </div>
+          <div class="tareas-divider"></div>
+          <div class="tareas-stat">
+            <span class="ts-num">{{ totalTareas - tareasEntregadas }}</span>
+            <span class="ts-lbl">Pendientes</span>
+          </div>
+          <div class="tareas-divider"></div>
+          <div class="tareas-stat">
+            <span class="ts-num">{{ totalTareas }}</span>
+            <span class="ts-lbl">Total</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-metric" *ngIf="totalTareas === 0">
+        <ion-icon name="document-outline"></ion-icon>
+        <p>Sin tareas asignadas {{ asignatura ? 'en ' + asignatura.nombre : 'al grupo' }}</p>
+      </div>
+    </div>
+
+    <!-- ── OCUPACIÓN (sin filtro de materia) ─────── -->
+    <div class="section-block" *ngIf="!asignatura && totalAlumnos > 0 && grupo.capacidad_maxima > 0">
+      <p class="section-label">Ocupación del grupo</p>
+      <div class="ocupacion-card">
+        <div class="ocupacion-nums">
+          <span class="ocup-current">{{ totalAlumnos }}</span>
+          <span class="ocup-sep">/</span>
+          <span class="ocup-max">{{ grupo.capacidad_maxima }}</span>
+          <span class="ocup-lbl">alumnos</span>
+        </div>
+        <div class="ocupacion-bar-outer">
+          <div class="ocupacion-bar-inner"
+            [style.width.%]="(totalAlumnos / grupo.capacidad_maxima) * 100"
+            [ngClass]="{
+              'ocup-ok':   (totalAlumnos / grupo.capacidad_maxima) < 0.8,
+              'ocup-warn': (totalAlumnos / grupo.capacidad_maxima) >= 0.8 && (totalAlumnos / grupo.capacidad_maxima) < 1,
+              'ocup-full': (totalAlumnos / grupo.capacidad_maxima) >= 1
+            }">
+          </div>
+        </div>
+        <p class="ocupacion-pct">
+          {{ ((totalAlumnos / grupo.capacidad_maxima) * 100) | number:'1.0-0' }}% de capacidad utilizada
+        </p>
+      </div>
+    </div>
+
+  </ng-container>
+
+</ion-content>

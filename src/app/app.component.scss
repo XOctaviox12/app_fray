@@ -1,237 +1,332 @@
-/* Fondo general del menú */
-ion-menu {
-  --background: #0a1f44; /* Azul marino */
+// ============================================
+// APP.COMPONENT.SCSS — Menú lateral
+// ============================================
+
+// --- Header del menú ---
+
+ion-toolbar {
+  --background: var(--navy-2);
+  --border-style: none;
+  --min-height: 56px;
 }
 
-/* Header */
-ion-menu ion-toolbar {
-  --background: #0a1f44;
-  --color: #ffffff;
-  border-bottom: 2px solid #ff6b00; /* Naranja */
-}
-
-/* Lista */
-ion-menu ion-list {
-  background: transparent;
-  padding-top: 10px;
-}
-
-/* Items */
-ion-menu ion-item {
-  --background: transparent;
-  --color: #ffffff;
-  margin: 8px 12px;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-}
-
-/* Hover */
-ion-menu ion-item:hover {
-  --background: #ff6b00; /* Naranja */
-  --color: #ffffff;
-  transform: translateX(6px);
-}
-
-/* Activo */
-ion-menu ion-item.router-link-active {
-  --background: #ffffff;
-  --color: #0a1f44; /* Azul marino */
-  font-weight: bold;
-}
-
-/* Línea lateral naranja en activo */
-ion-menu ion-item.router-link-active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  width: 6px;
-  height: 100%;
-  background: #ff6b00;
-  border-radius: 12px 0 0 12px;
-}
-
-
-/* Fondo completo del menú */
-ion-menu {
-  --background: #0a1f44 !important; /* Azul marino */
-}
-
-/* Header */
-ion-menu ion-toolbar {
-  --background: #0a1f44 !important;
-  --color: #ffffff !important;
-  border-bottom: 3px solid #ff6b00; /* Naranja */
-}
-
-/* Título */
-ion-menu ion-title {
-  color: #ffffff !important;
-  text-align: center;
-}
-
-/* Contenido */
-ion-menu ion-content {
-  --background: #0a1f44 !important;
-}
-
-/* Items */
-ion-menu ion-item {
-  --background: transparent !important;
-  --color: #ffffff !important;
-  margin: 8px 12px;
-  border-radius: 12px;
-}
-
-/* Hover */
-ion-menu ion-item:hover {
-  --background: #ff6b00 !important;
-}
-
-/* Activo */
-ion-menu ion-item.router-link-active {
-  --background: #ffffff !important;
-  --color: #0a1f44 !important;
-  font-weight: bold;
-}
-
-
-ion-menu ion-icon {
-  color: #ff6b00; /* Naranja */
-  font-size: 20px;
-}
-
-ion-menu ion-item.router-link-active ion-icon {
-  color: #0a1f44; /* Azul marino cuando está activo */
-}
-
-
-/* Hace que el contenido se distribuya */
-ion-menu ion-content {
+ion-title {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--white);
 }
 
-/* Imagen abajo */
-.menu-footer {
-  text-align: center;
-  padding: 20px;
+.menu-logo-icon {
+  font-size: 20px;
+  color: var(--orange);
 }
 
-/* Imagen */
-.menu-footer img {
-  width: 120px;
-  opacity: 0.8;
+ion-content {
+  --background: var(--navy);
 }
 
-// === USER CARD ===
+ion-list {
+  background: transparent;
+  padding: 8px 0;
+}
+
+// ============================================
+// TARJETA DE USUARIO
+// ============================================
+
 .user-card-container {
-  padding: 16px;
-  border-bottom: 1px solid var(--ion-color-light-shade);
-  margin-bottom: 8px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--white-08);
 }
 
 .user-card {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
 .avatar-section {
   position: relative;
   flex-shrink: 0;
+}
 
-  .user-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--ion-color-primary);
-  }
+.user-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  object-fit: cover;
+  border: 2px solid var(--orange);
+  background: linear-gradient(135deg, var(--navy-3), var(--navy-4));
+  display: block;
+}
 
-  .online-badge {
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 12px;
-    height: 12px;
-    background: #2dd36f;
-    border-radius: 50%;
-    border: 2px solid white;
-  }
+.online-badge {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  background: var(--green);
+  border-radius: 50%;
+  border: 2px solid var(--navy);
 }
 
 .info-section {
   flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--white);
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .user-name {
-    margin: 0 0 2px;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--ion-color-dark);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.user-email {
+  margin: 2px 0 0;
+  font-size: 10px;
+  color: var(--white-35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .user-email {
-    margin: 0 0 4px;
-    font-size: 12px;
-    color: var(--ion-color-medium);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.status-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--green);
+}
 
-  .status-text {
-    font-size: 11px;
-    font-weight: 600;
-    color: #2dd36f;
-    letter-spacing: 0.5px;
-
-    .dot {
-      font-size: 8px;
-    }
-  }
+.status-dot {
+  font-size: 8px;
+  color: var(--green);
 }
 
 .btn-profile {
-  --border-radius: 8px;
-  font-size: 13px;
+  width: 100%;
+  margin-top: 4px;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --background: rgba(255, 255, 255, 0.04);
+  --color: var(--white-60);
+  --border-radius: 10px;
+  --box-shadow: none;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: none;
 }
 
-// === SKELETON ===
 .user-card-skeleton {
   display: flex;
   align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid var(--ion-color-light-shade);
-  margin-bottom: 8px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--white-08);
 }
 
-// === ITEMS ACTIVOS ===
-.active-item {
-  --background: var(--ion-color-primary-tint);
-  --color: var(--ion-color-primary);
-  font-weight: 600;
+// ============================================
+// NAVEGACIÓN
+// ============================================
+
+.nav-section-label {
+  font-size: 8px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 14px 18px 4px;
+  margin: 0;
 }
 
-// === LOGOUT ===
-.logout-item {
-  margin-top: 8px;
+ion-item {
+  --background: transparent;
+  --padding-start: 10px;
+  --inner-padding-end: 10px;
+  --min-height: 44px;
+  --border-style: none;
+  margin: 1px 8px;
+  border-radius: 11px;
+  overflow: hidden;
+  position: relative;
+  --color: var(--white-60);
 }
 
-// === FOOTER ===
-.menu-footer {
+ion-item ion-label {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--white-60);
+  margin: 0;
+}
+
+.nav-icon-wrap {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: rgba(10, 24, 48, 0.9);
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 24px 16px 16px;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--white-60);
+  }
+}
+
+// --- Estado activo ---
+
+ion-item.active-item {
+  --background: rgba(15, 34, 72, 0.9);
+  border: 1px solid rgba(26, 58, 112, 0.8);
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20%;
+    height: 60%;
+    width: 3px;
+    background: var(--orange);
+    border-radius: 0 3px 3px 0;
+  }
+
+  .nav-icon-wrap {
+    background: rgba(22, 47, 96, 0.9);
+    ion-icon { color: var(--orange); }
+  }
+
+  ion-label {
+    color: var(--white);
+    font-weight: 600;
+  }
+}
+
+// --- Cerrar sesión ---
+
+ion-item.logout-item {
+  --background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.12);
+}
+
+.logout-icon-wrap {
+  background: rgba(239, 68, 68, 0.1) !important;
+  ion-icon { color: rgba(239, 68, 68, 0.9) !important; }
+}
+
+.logout-label {
+  color: rgba(239, 68, 68, 0.75) !important;
+}
+
+// ============================================
+// ÍTEMS DESTACADOS
+// ============================================
+
+// --- Tomar Lista (docente) ---
+
+ion-item.asistencia-item {
+  --background: rgba(255, 107, 0, 0.08);
+  --min-height: 50px;
+  border: 1px solid rgba(255, 107, 0, 0.18);
+}
+
+.asistencia-icon-wrap {
+  background: rgba(255, 107, 0, 0.16) !important;
+  ion-icon { color: var(--orange) !important; }
+}
+
+// --- Clase en Vivo (alumno + docente) ---
+
+ion-item.clase-item {
+  --background: rgba(139, 92, 246, 0.08);
+  --min-height: 50px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.clase-icon-wrap {
+  background: rgba(139, 92, 246, 0.15) !important;
+  ion-icon { color: #a78bfa !important; }
+}
+
+// --- Sublabel ---
+
+.nav-sublabel {
+  margin: 1px 0 0;
+  font-size: 9.5px;
+  font-weight: 400;
+  color: var(--white-35);
+}
+
+// --- Badges ---
+
+.nav-badge-hoy {
+  background: var(--orange);
+  color: var(--white);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 3px 7px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+.nav-badge-live {
+  background: #8b5cf6;
+  color: var(--white);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 3px 7px;
+  border-radius: 20px;
+  flex-shrink: 0;
+  animation: pulse-live 2s infinite;
+}
+
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+// ============================================
+// FOOTER
+// ============================================
+
+.menu-footer {
+  padding: 14px 18px;
+  border-top: 1px solid var(--white-08);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
 
   img {
-    max-width: 120px;
-    opacity: 0.7;
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    flex-shrink: 0;
   }
+}
+
+.menu-footer-text {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.18);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: var(--font-display);
+  font-weight: 700;
 }

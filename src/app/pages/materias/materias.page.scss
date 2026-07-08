@@ -1,185 +1,647 @@
-/* Fondo */
-.fondo {
-  --background: #f5f7fb;
+// ============================================
+// MATERIAS.PAGE.SCSS
+// ============================================
+
+.header-toolbar {
+  --background: var(--navy-2);
+  --color: var(--white);
+  --border-style: none;
+  --min-height: 56px;
 }
 
-/* Título */
-.titulo {
-  font-size: 26px;
-  font-weight: bold;
-  color: #0a1f44;
-  margin-bottom: 5px;
-}
-
-/* Subtítulo */
-.subtitulo {
-  color: #666;
-  margin-bottom: 20px;
-}
-
-/* Cards */
-ion-card {
-  border-radius: 16px;
-  margin-bottom: 20px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-}
-
-/* Botones */
-ion-button {
-  margin-top: 10px;
-  --border-radius: 10px;
-  font-weight: bold;
-}
-
-/* ===== COLORES POR MATERIA ===== */
-
-/* Matemáticas */
-.card-mate {
-  border-left: 6px solid #0a1f44;
-}
-
-.card-mate ion-button {
-  --background: #0a1f44;
-  --color: #fff;
-}
-
-/* Español */
-.card-espanol {
-  border-left: 6px solid #d90429;
-}
-
-.card-espanol ion-button {
-  --background: #d90429;
-  --color: #fff;
-}
-
-/* Inglés */
-.card-ingles {
-  border-left: 6px solid #ff6b00;
-}
-
-.card-ingles ion-button {
-  --background: #ff6b00;
-  --color: #fff;
-}
-
-
-/* Toolbar */
-ion-toolbar {
-  --background: #0a1f44; /* azul marino */
-  --color: #ffffff;
-  border-bottom: 3px solid #ff6b00; /* línea naranja */
-}
-
-/* Título */
-ion-title {
-  font-weight: bold;
-  text-align: center;
-  letter-spacing: 1px;
-}
-
-/* Botón del menú */
-ion-menu-button {
-  color: #ffffff;
-}
-
-/* Efecto sutil */
-ion-toolbar::after {
-  content: '';
-  display: block;
-  height: 3px;
-  width: 100%;
-  background: linear-gradient(to right, #ff6b00, #d90429); /* naranja a rojo */
-}
-
-/* Quitar fondo raro */
-ion-segment {
-  background: #0a1f44; /* mismo azul */
-  padding: 5px 10px;
-}
-
-/* Botones */
-ion-segment-button {
-  --color: #ffffff;
-  --color-checked: #ff6b00;
-  font-weight: bold;
-}
-
-/* Indicador (la rayita) */
-ion-segment-button::part(indicator) {
-  background: #ff6b00;
-  height: 3px;
-}
-
-/* Quitar sombra rara */
-ion-header {
-  box-shadow: none !important;
-}
-
-// Quitar la sombra predeterminada de Ionic
-ion-header {
-  --ion-background: #0a1931; // El azul oscuro de tu imagen
-}
-
-.mi-header-custom {
-  --background: #0a1931;
-  --color: white;
-  
-  ion-title {
-    font-weight: bold;
-    letter-spacing: 1px;
-    text-align: center;
-  }
-}
-
-// La línea doble (Naranja y Roja)
-.borde-gradiente {
-  height: 4px; // Grosor total de la línea
-  width: 100%;
-  background: linear-gradient(
-    to bottom, 
-    #ff6600 0%, #ff6600 50%, // Naranja arriba
-    #cc0000 50%, #cc0000 100% // Rojo abajo
-  );
-}
-
-.card-pendiente {
-  --background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin-top: 20px;
-  overflow: hidden; // Importante para que la línea de arriba no se salga de las esquinas redondeadas
-
-  ion-card-title {
-    color: #051630; // El mismo azul del header
-    font-weight: bold;
-  }
-
-  ion-card-subtitle {
-    color: #d90429; // El rojo de la línea para resaltar urgencia
-    font-weight: 600;
-  }
-}
-
-// La misma doble línea pero adaptada a la tarjeta
-.lineas-decorativas-card {
-  height: 6px;
-  width: 100%;
-  background: linear-gradient(
-    to right, // Esta vez de izquierda a derecha para variar el diseño
-    #f25c05 0%, #f25c05 50%, 
-    #d90429 50%, #d90429 100%
-  );
-}
-
-// Estilo para los textos fuera de la tarjeta
-.titulo {
-  color: #051630;
+.header-title {
+  color: var(--white);
+  font-family: var(--font-display);
   font-weight: 800;
-  margin-bottom: 4px;
+  font-size: 1.05rem;
+  letter-spacing: -0.3px;
 }
 
-.subtitulo {
-  color: #666;
-  font-size: 0.9rem;
+.header-action-btn { --color: rgba(255,255,255,0.85); }
+
+.header-accent-bar {
+  height: 3px;
+  background: linear-gradient(90deg, var(--orange), transparent);
+}
+
+.materias-content { --background: var(--navy); }
+
+// ── Segment ───────────────────────────────
+.segment-wrapper {
+  background: var(--navy-2);
+  padding: 0 18px 12px;
+  border-bottom: 1px solid var(--white-08);
+}
+
+ion-segment {
+  --background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 3px;
+}
+
+ion-segment-button {
+  --color: var(--white-35);
+  --color-checked: var(--white);
+  --background-checked: var(--orange);
+  --border-radius: 9px;
+  --indicator-height: 0;
+  --padding-top: 7px;
+  --padding-bottom: 7px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  min-height: 34px;
+
+  ion-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    ion-icon { font-size: 12px; }
+  }
+}
+
+// ── Loading ───────────────────────────────
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 56px 24px;
+  color: var(--white-35);
+  font-size: 12px;
+  ion-spinner { color: var(--orange); }
+}
+
+// ── Hero ──────────────────────────────────
+.section-hero {
+  background: var(--navy-2);
+  padding: 16px 18px 20px;
+}
+
+.section-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -0.5px;
+}
+
+.section-sub {
+  font-size: 11px;
+  color: var(--white-35);
+  margin-top: 3px;
+}
+
+.section-sublabel {
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--white-35);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 16px 18px 6px;
+  margin: 0;
+}
+
+// ── Empty state ───────────────────────────
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 48px 24px;
+  color: var(--white-35);
+
+  ion-icon { font-size: 40px; }
+  h3 { margin: 0; font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--white); }
+  p  { margin: 0; font-size: 11px; line-height: 1.5; }
+}
+
+// ══════════════════════════════════════════
+//  ALUMNO — tarjetas de materia
+// ══════════════════════════════════════════
+
+.materia-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  margin: 10px 18px 0;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+
+  &.orange-accent .materia-top-bar { background: linear-gradient(90deg, var(--orange), #ff9240); }
+  &.blue-accent   .materia-top-bar { background: linear-gradient(90deg, #3b5bdb, #60a5fa); }
+  &.red-accent    .materia-top-bar { background: linear-gradient(90deg, #ef4444, #d90429); }
+  &.green-accent  .materia-top-bar { background: linear-gradient(90deg, #22c55e, #16a34a); }
+  &.purple-accent .materia-top-bar { background: linear-gradient(90deg, #8b5cf6, #6d28d9); }
+}
+
+.materia-top-bar { height: 3px; }
+
+.materia-body { padding: 14px 16px; }
+
+.materia-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.materia-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  ion-icon { font-size: 19px; color: var(--white); }
+
+  &.orange-bg { background: linear-gradient(135deg, var(--orange), #ff9240); }
+  &.blue-bg   { background: linear-gradient(135deg, #3b5bdb, #60a5fa); }
+  &.red-bg    { background: linear-gradient(135deg, #ef4444, #d90429); }
+  &.green-bg  { background: linear-gradient(135deg, #22c55e, #16a34a); }
+  &.purple-bg { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+}
+
+.materia-info { flex: 1; min-width: 0; }
+
+.materia-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--white);
+}
+
+.materia-teacher {
+  font-size: 10px;
+  color: var(--white-35);
+  margin-top: 2px;
+}
+
+.materia-clave {
+  font-size: 9px;
+  color: var(--white-35);
+  margin: 0 0 6px;
+  letter-spacing: 0.5px;
+}
+
+// Chip de calificación en la tarjeta
+.cal-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+
+  .cal-num {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .cal-lbl {
+    font-size: 7px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    opacity: 0.75;
+  }
+
+  &.excelente { background: rgba(34,197,94,0.15);  color: #22c55e; }
+  &.bien      { background: rgba(59,91,219,0.15);  color: #60a5fa; }
+  &.regular   { background: rgba(255,107,0,0.15);  color: var(--orange); }
+  &.reprobado { background: rgba(239,68,68,0.15);  color: #ef4444; }
+  &.sin-nota  { background: rgba(255,255,255,0.05); color: var(--white-35); }
+}
+
+// Indicador de tareas pendientes
+.tareas-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--orange);
+  background: rgba(255,107,0,0.08);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin-bottom: 10px;
+  width: fit-content;
+
+  ion-icon { font-size: 12px; }
+}
+
+.materia-actions {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.btn-materia {
+  --color: var(--orange);
+  --padding-start: 6px;
+  --padding-end: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid rgba(255,107,0,0.18);
+  border-radius: 7px;
+}
+
+// ── Pendientes ────────────────────────────
+.pendiente-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  margin: 10px 18px 0;
+  padding: 14px 16px;
+  backdrop-filter: blur(8px);
+
+  &.urgente { border-left: 3px solid var(--orange); }
+}
+
+.pendiente-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.pendiente-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255,107,0,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  ion-icon { font-size: 18px; color: var(--orange); }
+}
+
+.pendiente-info { flex: 1; min-width: 0; }
+
+.pendiente-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.pendiente-deadline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--orange);
+  margin-top: 3px;
+  ion-icon { font-size: 11px; }
+}
+
+.urgente-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255,107,0,0.12);
+  color: var(--orange);
+  font-size: 9px;
+  font-weight: 700;
+  ion-icon { font-size: 10px; }
+}
+
+.pendiente-footer { display: flex; justify-content: flex-end; }
+.btn-urgente { --color: var(--orange); font-size: 11px; font-weight: 700; }
+
+// ── Calificaciones (alumno y tutor) ───────
+.cal-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  margin: 8px 18px 0;
+  padding: 14px;
+  backdrop-filter: blur(8px);
+}
+
+.cal-card-left { flex-shrink: 0; }
+
+.cal-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  span {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  &.excelente { background: rgba(34,197,94,0.15);  color: #22c55e; border: 2px solid rgba(34,197,94,0.3); }
+  &.bien      { background: rgba(59,91,219,0.15);  color: #60a5fa; border: 2px solid rgba(59,91,219,0.3); }
+  &.regular   { background: rgba(255,107,0,0.15);  color: var(--orange); border: 2px solid rgba(255,107,0,0.3); }
+  &.reprobado { background: rgba(239,68,68,0.15);  color: #ef4444; border: 2px solid rgba(239,68,68,0.3); }
+  &.sin-nota  { background: rgba(255,255,255,0.04); color: var(--white-35); border: 2px solid var(--white-08); }
+}
+
+.cal-card-center { flex: 1; min-width: 0; }
+
+.cal-materia-name {
+  margin: 0 0 3px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.cal-docente {
+  font-size: 10px;
+  color: var(--white-35);
+  margin: 0 0 6px;
+}
+
+.cal-parcial-badge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255,107,0,0.1);
+  color: var(--orange);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.cal-sin-nota {
+  font-size: 10px;
+  color: var(--white-35);
+  font-style: italic;
+}
+
+.cal-card-right { flex-shrink: 0; }
+
+.cal-estado {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon { font-size: 20px; }
+
+  &.excelente, &.bien { ion-icon { color: #22c55e; } }
+  &.regular           { ion-icon { color: var(--orange); } }
+  &.reprobado         { ion-icon { color: #ef4444; } }
+  &.sin-nota          { ion-icon { color: var(--white-35); } }
+}
+
+// ══════════════════════════════════════════
+//  DOCENTE — tarjetas
+// ══════════════════════════════════════════
+
+.docente-materia-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-left: 3px solid var(--orange);
+  border-radius: 16px;
+  margin: 10px 18px 0;
+  padding: 14px 16px;
+  backdrop-filter: blur(8px);
+}
+
+.dm-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.dm-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: rgba(255,107,0,0.12);
+  border: 1px solid rgba(255,107,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  ion-icon { font-size: 18px; color: var(--orange); }
+}
+
+.dm-info { flex: 1; min-width: 0; }
+
+.dm-nombre {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--white);
+}
+
+.dm-clave {
+  font-size: 9px;
+  color: var(--white-35);
+  margin: 2px 0 0;
+  letter-spacing: 0.5px;
+}
+
+.dm-grupos-row {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.dm-grupo-chip {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(59,91,219,0.12);
+  color: #60a5fa;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.dm-stats {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.dm-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--white-35);
+  font-weight: 600;
+
+  ion-icon { font-size: 13px; color: var(--orange); }
+}
+
+.dm-actions {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.dm-btn {
+  --color: var(--orange);
+  --padding-start: 6px;
+  --padding-end: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid rgba(255,107,0,0.18);
+  border-radius: 7px;
+}
+
+// ── Resumen docente ───────────────────────
+.resumen-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 14px 18px 4px;
+}
+
+.resumen-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border-radius: 14px;
+  padding: 16px 10px;
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--card-border);
+
+  ion-icon { font-size: 22px; margin-bottom: 2px; }
+
+  .resumen-num {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--white);
+  }
+
+  .resumen-lbl {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--white-35);
+  }
+
+  &.orange { background: rgba(255,107,0,0.08); ion-icon { color: var(--orange); } }
+  &.blue   { background: rgba(59,91,219,0.1);  ion-icon { color: #60a5fa; } }
+  &.green  { background: rgba(34,197,94,0.08); ion-icon { color: #22c55e; } }
+  &.purple { background: rgba(139,92,246,0.1); ion-icon { color: #8b5cf6; } }
+}
+
+.resumen-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 4px 18px 0;
+  backdrop-filter: blur(8px);
+}
+
+.resumen-row-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--white);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resumen-row-stats {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--white-35);
+
+    ion-icon { font-size: 12px; color: var(--orange); }
+  }
+}
+
+// ══════════════════════════════════════════
+//  TUTOR — promedio card
+// ══════════════════════════════════════════
+
+.promedio-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  margin: 12px 18px;
+  padding: 18px;
+  backdrop-filter: blur(8px);
+}
+
+.promedio-left { flex: 1; }
+
+.promedio-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--white-35);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 4px;
+}
+
+.promedio-num {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 800;
+
+  &.excelente { color: #22c55e; }
+  &.bien      { color: #60a5fa; }
+  &.regular   { color: var(--orange); }
+  &.reprobado { color: #ef4444; }
+}
+
+.promedio-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon { font-size: 26px; }
+
+  &.excelente { background: rgba(34,197,94,0.12);  ion-icon { color: #22c55e; } }
+  &.bien      { background: rgba(59,91,219,0.12);  ion-icon { color: #60a5fa; } }
+  &.regular   { background: rgba(255,107,0,0.12);  ion-icon { color: var(--orange); } }
+  &.reprobado { background: rgba(239,68,68,0.12);  ion-icon { color: #ef4444; } }
+  &.sin-nota  { background: rgba(255,255,255,0.05); ion-icon { color: var(--white-35); } }
 }

@@ -1,45 +1,353 @@
-<ion-header>
-  <ion-toolbar>
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
     <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
+      <ion-menu-button>
+        <ion-icon name="menu-outline"></ion-icon>
+      </ion-menu-button>
     </ion-buttons>
-    <ion-title>COMUNIDAD</ion-title>
+    <ion-title class="header-title">Comunicados</ion-title>
   </ion-toolbar>
+  <div class="header-accent-bar"></div>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="comunidad-content">
 
-  <!-- Título -->
-  <div class="header">
-    <h1>Comunidad Escolar</h1>
-    <p>Comparte ideas con tus compañeros</p>
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- ── Error global ── -->
+  <div *ngIf="error" class="global-error">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    {{ error }}
   </div>
 
-  <!-- Input para comentar -->
-  <ion-card>
-    <ion-item lines="none">
-      <ion-input placeholder="Escribe un comentario..."></ion-input>
-    </ion-item>
-    <ion-button expand="block">
-      Publicar
-    </ion-button>
-  </ion-card>
+  <!-- ════════════════════════════════════ -->
+  <!--  FORMULARIO — solo docente/director -->
+  <!-- ════════════════════════════════════ -->
+  <ng-container *ngIf="esDocente">
 
-  <!-- Lista de comentarios -->
-  <ion-card>
-    <ion-card-content>
-      <h2>Alumno</h2>
-      <p>Este es un comentario de ejemplo.</p>
-      <small>Hoy</small>
-    </ion-card-content>
-  </ion-card>
+    <div class="publish-card">
+      <div class="publish-card-header">
+        <ion-icon name="megaphone-outline" class="publish-icon"></ion-icon>
+        <span class="publish-label">Nuevo comunicado</span>
+      </div>
 
-  <ion-card>
-    <ion-card-content>
-      <h2>Alumno</h2>
-      <p>Otro comentario dentro de la comunidad.</p>
-      <small>Ayer</small>
-    </ion-card-content>
-  </ion-card>
+      <div *ngIf="errorPublicar" class="error-inline">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        {{ errorPublicar }}
+      </div>
+
+      <input
+        type="text"
+        class="input-titulo"
+        placeholder="Título del comunicado"
+        [(ngModel)]="nuevoTitulo"
+      />
+
+      <ion-textarea
+        [(ngModel)]="nuevoCuerpo"
+        placeholder="Escribe el mensaje..."
+        rows="4"
+        autoGrow="true"
+        class="post-textarea"
+      ></ion-textarea>
+
+      <!-- ── Paso 1: audiencia ─────────────────── -->
+      <div class="audiencia-section">
+        <p class="destinatario-label">¿A quién va dirigido?</p>
+        <div class="audiencia-opts">
+          <button class="aud-opt" [class.active]="publico === 'ALUMNOS'" (click)="publico = 'ALUMNOS'">
+            <ion-icon name="school-outline"></ion-icon>
+            Alumnos
+          </button>
+          <button class="aud-opt" [class.active]="publico === 'PADRES'" (click)="publico = 'PADRES'">
+            <ion-icon name="people-outline"></ion-icon>
+            Padres
+          </button>
+          <button class="aud-opt" [class.active]="publico === 'AMBOS'" (click)="publico = 'AMBOS'">
+            <ion-icon name="people-circle-outline"></ion-icon>
+            Ambos
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Paso 2: alcance ───────────────────── -->
+      <div class="destinatario-section">
+        <p class="destinatario-label">¿A qué alcanza?</p>
+        <div class="destinatario-opts">
+
+          <button class="dest-opt"
+            [class.active]="destinatario === 'TODOS'"
+            (click)="onDestinatarioChange('TODOS')">
+            <ion-icon name="people-outline"></ion-icon>
+            <div class="dest-opt-text">
+              <strong>Toda la comunidad</strong>
+              <span>Todos los grupos del plantel</span>
+            </div>
+          </button>
+
+          <button class="dest-opt"
+            [class.active]="destinatario === 'GRUPO'"
+            (click)="onDestinatarioChange('GRUPO')">
+            <ion-icon name="school-outline"></ion-icon>
+            <div class="dest-opt-text">
+              <strong>Uno o varios grupos</strong>
+              <span>Elige tu materia y a qué grupos les llega</span>
+            </div>
+          </button>
+
+        </div>
+
+        <!-- ── Paso 3: materia → grupo(s) ── -->
+        <div class="grupo-selector" *ngIf="destinatario === 'GRUPO'">
+
+          <p class="destinatario-label">
+            Materia <span class="label-opcional">(opcional)</span>
+          </p>
+          <div class="select-wrap" [class.loading-select]="cargandoOpciones">
+            <ion-icon name="book-outline" class="field-icon"></ion-icon>
+            <select [(ngModel)]="materiaSeleccionada" (ngModelChange)="onMateriaChange()"
+                    [disabled]="cargandoOpciones || misMaterias.length === 0">
+              <option [ngValue]="null">
+                {{ misMaterias.length === 0 ? 'Comunicado general' : 'Comunicado general (todas tus materias)' }}
+              </option>
+              <option *ngFor="let m of misMaterias" [ngValue]="m.id">{{ getLabelMateria(m) }}</option>
+            </select>
+            <ion-spinner *ngIf="cargandoOpciones" name="crescent"
+              style="width:14px;height:14px;color:var(--orange);flex-shrink:0">
+            </ion-spinner>
+          </div>
+
+          <p class="destinatario-label" style="margin-top:12px">
+            Grupo(s)
+          </p>
+          <div class="empty-mini" *ngIf="gruposCandidatos.length === 0 && !cargandoOpciones">
+            No tienes grupos para esta materia.
+          </div>
+          <div class="grupos-multi-list">
+            <button class="grupo-chip" *ngFor="let g of gruposCandidatos"
+              [class.active]="gruposSeleccionados.includes(g.id)"
+              (click)="toggleGrupo(g.id)">
+              <ion-icon [name]="gruposSeleccionados.includes(g.id) ? 'checkbox' : 'square-outline'"></ion-icon>
+              {{ g.grado }}° Grupo {{ g.nombre }}
+            </button>
+          </div>
+
+          <p class="grupo-hint">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <ng-container *ngIf="gruposSeleccionados.length === 0">Elige a qué grupo(s) les llegará.</ng-container>
+            <ng-container *ngIf="gruposSeleccionados.length === 1">Se enviará a 1 grupo.</ng-container>
+            <ng-container *ngIf="gruposSeleccionados.length > 1">Se enviará el mismo comunicado a los {{ gruposSeleccionados.length }} grupos elegidos.</ng-container>
+          </p>
+        </div>
+      </div>
+
+      <!-- Adjunto seleccionado -->
+      <div class="adjunto-preview" *ngIf="adjuntoNombre">
+        <ion-icon name="document-attach-outline"></ion-icon>
+        <span>{{ adjuntoNombre }}</span>
+        <div class="adj-progress" *ngIf="subiendoAdj">
+          <div class="adj-progress-fill" [style.width.%]="progresoAdj"></div>
+        </div>
+        <button class="quitar-adjunto" (click)="quitarAdjunto()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <input
+        id="adjuntoInput"
+        type="file"
+        accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
+        style="display:none"
+        (change)="onAdjuntoChange($event)"
+      />
+
+      <div class="publish-actions">
+        <button class="attach-btn" (click)="triggerFileInput()">
+          <ion-icon name="attach-outline"></ion-icon>
+          Adjuntar
+        </button>
+        <button class="publish-btn" (click)="publicarComunicado()" [disabled]="publicando">
+          <ion-spinner *ngIf="publicando" name="crescent" style="width:14px;height:14px"></ion-spinner>
+          <ion-icon *ngIf="!publicando" name="send-outline"></ion-icon>
+          {{ publicando ? 'Publicando…' : 'Publicar' }}
+        </button>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <!-- ════════════════════════════════════ -->
+  <!--  VISTA TUTOR — dos secciones        -->
+  <!-- ════════════════════════════════════ -->
+  <ng-container *ngIf="esTutor">
+
+    <!-- Tabs -->
+    <div class="tabs-row">
+      <button class="tab-btn" [class.active]="tabActiva === 'maestros'" (click)="tabActiva = 'maestros'">
+        <ion-icon name="school-outline"></ion-icon>
+        Maestros
+        <span class="tab-badge" *ngIf="comunicadosMaestros.length">{{ comunicadosMaestros.length }}</span>
+      </button>
+      <button class="tab-btn" [class.active]="tabActiva === 'direccion'" (click)="tabActiva = 'direccion'">
+        <ion-icon name="business-outline"></ion-icon>
+        Dirección
+        <span class="tab-badge dir" *ngIf="comunicadosDireccion.length">{{ comunicadosDireccion.length }}</span>
+      </button>
+    </div>
+
+    <!-- Skeleton -->
+    <ng-container *ngIf="cargando">
+      <div class="skeleton-card" *ngFor="let i of [1,2,3]">
+        <ion-skeleton-text animated style="width:40px;height:40px;border-radius:12px;flex-shrink:0"></ion-skeleton-text>
+        <div style="flex:1;margin-left:10px">
+          <ion-skeleton-text animated style="width:55%;height:13px;margin-bottom:6px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width:90%;height:11px;margin-bottom:4px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width:70%;height:11px"></ion-skeleton-text>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Tab maestros -->
+    <div class="posts-container" *ngIf="!cargando && tabActiva === 'maestros'">
+      <div class="empty-state" *ngIf="comunicadosMaestros.length === 0">
+        <div class="empty-icon-wrap"><ion-icon name="school-outline"></ion-icon></div>
+        <h3 class="empty-title">Sin comunicados de maestros</h3>
+        <p class="empty-sub">Los maestros aún no han publicado nada</p>
+      </div>
+      <div class="post-card maestro-post" *ngFor="let c of comunicadosMaestros">
+        <ng-container *ngTemplateOutlet="tarjetaComunicado; context: { c: c }"></ng-container>
+      </div>
+    </div>
+
+    <!-- Tab dirección -->
+    <div class="posts-container" *ngIf="!cargando && tabActiva === 'direccion'">
+      <div class="empty-state" *ngIf="comunicadosDireccion.length === 0">
+        <div class="empty-icon-wrap dir"><ion-icon name="business-outline"></ion-icon></div>
+        <h3 class="empty-title">Sin comunicados de dirección</h3>
+        <p class="empty-sub">La dirección aún no ha publicado nada</p>
+      </div>
+      <div class="post-card director-post" *ngFor="let c of comunicadosDireccion">
+        <ng-container *ngTemplateOutlet="tarjetaComunicado; context: { c: c }"></ng-container>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <!-- ════════════════════════════════════ -->
+  <!--  VISTA DOCENTE — lista unificada    -->
+  <!-- ════════════════════════════════════ -->
+  <ng-container *ngIf="esDocente">
+
+    <p class="section-label">Comunicados publicados</p>
+
+    <ng-container *ngIf="cargando">
+      <div class="skeleton-card" *ngFor="let i of [1,2]">
+        <ion-skeleton-text animated style="width:40px;height:40px;border-radius:12px;flex-shrink:0"></ion-skeleton-text>
+        <div style="flex:1;margin-left:10px">
+          <ion-skeleton-text animated style="width:55%;height:13px;margin-bottom:6px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width:90%;height:11px"></ion-skeleton-text>
+        </div>
+      </div>
+    </ng-container>
+
+    <div class="posts-container" *ngIf="!cargando">
+      <div class="empty-state"
+        *ngIf="comunicadosMaestros.length === 0 && comunicadosDireccion.length === 0">
+        <div class="empty-icon-wrap"><ion-icon name="chatbubbles-outline"></ion-icon></div>
+        <h3 class="empty-title">Sin comunicados aún</h3>
+        <p class="empty-sub">Publica el primero usando el formulario de arriba</p>
+      </div>
+      <div class="post-card maestro-post" *ngFor="let c of comunicadosMaestros">
+        <ng-container *ngTemplateOutlet="tarjetaComunicado; context: { c: c }"></ng-container>
+      </div>
+      <div class="post-card director-post" *ngFor="let c of comunicadosDireccion">
+        <ng-container *ngTemplateOutlet="tarjetaComunicado; context: { c: c }"></ng-container>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <!-- ════════════════════════════════════ -->
+  <!--  VISTA ALUMNO — solo lee            -->
+  <!-- ════════════════════════════════════ -->
+  <ng-container *ngIf="esAlumno">
+
+    <p class="section-label" style="margin-top:16px">Comunicados</p>
+
+    <ng-container *ngIf="cargando">
+      <div class="skeleton-card" style="margin:0 16px 10px" *ngFor="let i of [1,2,3]">
+        <ion-skeleton-text animated style="width:40px;height:40px;border-radius:12px;flex-shrink:0"></ion-skeleton-text>
+        <div style="flex:1;margin-left:10px">
+          <ion-skeleton-text animated style="width:55%;height:13px;margin-bottom:6px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width:90%;height:11px"></ion-skeleton-text>
+        </div>
+      </div>
+    </ng-container>
+
+    <div class="posts-container" *ngIf="!cargando">
+      <div class="empty-state"
+        *ngIf="comunicadosMaestros.length === 0 && comunicadosDireccion.length === 0">
+        <div class="empty-icon-wrap"><ion-icon name="chatbubbles-outline"></ion-icon></div>
+        <h3 class="empty-title">Sin comunicados</h3>
+        <p class="empty-sub">No hay comunicados publicados aún</p>
+      </div>
+      <div class="post-card maestro-post" *ngFor="let c of comunicadosMaestros">
+        <ng-container *ngTemplateOutlet="tarjetaComunicado; context: { c: c }"></ng-container>
+      </div>
+      <div class="post-card director-post" *ngFor="let c of comunicadosDireccion">
+        <ng-container *ngTemplateOutlet="tarjetaComunicado; context: { c: c }"></ng-container>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <div style="height:32px"></div>
 
 </ion-content>
+
+<!-- ════════════════════════════════════════ -->
+<!--  TEMPLATE reutilizable de comunicado    -->
+<!-- ════════════════════════════════════════ -->
+<ng-template #tarjetaComunicado let-c="c">
+
+  <div class="post-header">
+    <div class="post-avatar" [class.director-avatar]="esDirectivo(c)">
+      <span class="post-initials">{{ getInitials(c) }}</span>
+    </div>
+    <div class="post-author-info">
+      <span class="post-author-name">{{ getNombreAutor(c) }}</span>
+      <span class="post-role" [class.director-role]="esDirectivo(c)">
+        <ion-icon [name]="esDirectivo(c) ? 'business-outline' : 'school-outline'"></ion-icon>
+        {{ getRolLabel(c) }}
+      </span>
+    </div>
+    <span class="post-date-top">{{ formatFecha(c.creado_en) }}</span>
+  </div>
+
+  <div class="dest-chips-row">
+    <span class="dest-chip">
+      <ion-icon name="people-circle-outline"></ion-icon>
+      {{ etiquetaGrupo(c) }}
+    </span>
+    <span class="dest-chip publico" *ngIf="c.publico !== 'AMBOS'">
+      <ion-icon [name]="c.publico === 'ALUMNOS' ? 'school-outline' : 'people-outline'"></ion-icon>
+      {{ etiquetaPublico(c) }}
+    </span>
+    <span class="dest-chip materia" *ngIf="c.materia">
+      <ion-icon name="book-outline"></ion-icon>
+      {{ c.materia.nombre }}
+    </span>
+  </div>
+
+  <h4 class="post-titulo">{{ c.titulo }}</h4>
+  <p class="post-text">{{ c.cuerpo }}</p>
+
+  <!-- Adjunto -->
+  <a *ngIf="c.adjunto" [href]="c.adjunto" target="_blank" rel="noopener" class="adjunto-link">
+    <ion-icon name="document-attach-outline"></ion-icon>
+    Ver adjunto
+  </a>
+
+</ng-template>

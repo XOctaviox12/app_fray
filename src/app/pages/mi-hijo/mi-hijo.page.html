@@ -1,0 +1,272 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button>
+        <ion-icon name="menu-outline"></ion-icon>
+      </ion-menu-button>
+    </ion-buttons>
+    <ion-title class="header-title">Mi Hijo(a)</ion-title>
+  </ion-toolbar>
+  <div class="header-accent-bar"></div>
+</ion-header>
+
+<ion-content class="hijo-content">
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- ── Error ── -->
+  <div *ngIf="error" class="error-state">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- ── Skeleton cargando ── -->
+  <ng-container *ngIf="cargando">
+    <div class="alumno-card skeleton-card">
+      <ion-skeleton-text animated style="width:52px;height:52px;border-radius:50%;flex-shrink:0"></ion-skeleton-text>
+      <div style="flex:1;margin-left:12px">
+        <ion-skeleton-text animated style="width:60%;height:14px;margin-bottom:6px"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width:40%;height:11px"></ion-skeleton-text>
+      </div>
+    </div>
+    <div style="padding:0 16px">
+      <ion-skeleton-text animated style="width:100%;height:80px;border-radius:14px;margin-bottom:10px"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width:100%;height:200px;border-radius:14px"></ion-skeleton-text>
+    </div>
+  </ng-container>
+
+  <!-- ── Contenido principal ── -->
+  <ng-container *ngIf="!cargando && !error && alumno">
+
+    <!-- ─────────────────────────────────── -->
+    <!-- TARJETA DE ALUMNO                  -->
+    <!-- ─────────────────────────────────── -->
+    <div class="alumno-card">
+      <div class="alumno-avatar">
+        <ion-icon name="person-outline"></ion-icon>
+      </div>
+      <div class="alumno-info">
+        <h2 class="alumno-nombre">{{ alumno.nombre }}</h2>
+        <p class="alumno-meta">{{ alumno.carrera }}</p>
+        <p class="alumno-meta">{{ alumno.grupo }} · {{ alumno.plantel }}</p>
+      </div>
+      <div class="alumno-periodo-badge">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span>{{ alumno.periodo }}</span>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────── -->
+    <!-- STATS GLOBALES                      -->
+    <!-- ─────────────────────────────────── -->
+    <div class="stats-row">
+      <div class="stat-card" [class]="'color-' + colorNota(promedioGeneral())">
+        <span class="stat-num">{{ promedioGeneral() ?? '—' }}</span>
+        <span class="stat-lbl">Promedio General</span>
+      </div>
+      <div class="stat-card" [class]="'color-' + colorAsistencia(asistenciaGlobal())">
+        <span class="stat-num">{{ asistenciaGlobal() }}%</span>
+        <span class="stat-lbl">Asistencia</span>
+      </div>
+      <div class="stat-card color-neutro">
+        <span class="stat-num">{{ materias.length }}</span>
+        <span class="stat-lbl">Materias</span>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────── -->
+    <!-- PESTAÑAS DE MATERIAS                -->
+    <!-- ─────────────────────────────────── -->
+    <p class="section-label">Materias</p>
+
+    <div class="tabs-scroll">
+      <button
+        *ngFor="let m of materias; let i = index"
+        class="tab-btn"
+        [class.active]="materiaActiva === i"
+        (click)="setMateria(i)"
+      >
+        {{ m.nombre }}
+      </button>
+    </div>
+
+    <!-- ─────────────────────────────────── -->
+    <!-- DETALLE DE MATERIA ACTIVA           -->
+    <!-- ─────────────────────────────────── -->
+    <ng-container *ngIf="materias[materiaActiva] as m">
+
+      <!-- Encabezado de materia -->
+      <div class="materia-header">
+        <div class="materia-header-left">
+          <span class="materia-nombre">{{ m.nombre }}</span>
+          <span class="materia-clave" *ngIf="m.clave">{{ m.clave }}</span>
+        </div>
+        <div class="docente-chip">
+          <ion-icon name="person-outline"></ion-icon>
+          {{ m.docente }}
+        </div>
+      </div>
+
+      <!-- Mini stats de materia -->
+      <div class="materia-stats">
+        <div class="mstat" [class]="'color-' + colorNota(m.promedio)">
+          <span class="mstat-num">{{ m.promedio ?? '—' }}</span>
+          <span class="mstat-lbl">Promedio</span>
+        </div>
+        <div class="mstat" [class]="'color-' + colorAsistencia(m.asistencias.porcentaje)">
+          <span class="mstat-num">{{ m.asistencias.porcentaje }}%</span>
+          <span class="mstat-lbl">Asistencia</span>
+        </div>
+        <div class="mstat color-neutro">
+          <span class="mstat-num">{{ m.boletas.length }}</span>
+          <span class="mstat-lbl">Parciales</span>
+        </div>
+      </div>
+
+      <!-- ── BOLETAS PARCIALES ── -->
+      <p class="section-label" style="margin-top:18px">Calificaciones por Parcial</p>
+
+      <div *ngIf="m.boletas.length === 0" class="empty-card">
+        <ion-icon name="document-outline"></ion-icon>
+        <p>Sin calificaciones publicadas aún</p>
+      </div>
+
+      <div *ngFor="let b of m.boletas" class="boleta-card">
+
+        <!-- Header parcial -->
+        <div class="boleta-header">
+          <div class="parcial-badge">{{ nombreParcial(b.parcial) }}</div>
+          <div class="nota-final" [class]="'nota-' + colorNota(b.calificacion_final)">
+            {{ b.calificacion_final | number:'1.1-2' }}
+          </div>
+        </div>
+
+        <!-- Desglose de rubros -->
+        <div class="rubros-grid">
+
+          <div class="rubro-item" *ngIf="b.nota_tareas != null">
+            <div class="rubro-icon tareas-icon">
+              <ion-icon name="document-text-outline"></ion-icon>
+            </div>
+            <div class="rubro-info">
+              <span class="rubro-nombre">Tareas</span>
+              <div class="rubro-barra-wrap">
+                <div class="rubro-barra" [style.width.%]="b.nota_tareas * 10" [class]="'bar-' + colorNota(b.nota_tareas)"></div>
+              </div>
+            </div>
+            <span class="rubro-nota" [class]="'nota-' + colorNota(b.nota_tareas)">{{ b.nota_tareas | number:'1.1-1' }}</span>
+          </div>
+
+          <div class="rubro-item" *ngIf="b.nota_actividades != null">
+            <div class="rubro-icon activ-icon">
+              <ion-icon name="checkmark-done-outline"></ion-icon>
+            </div>
+            <div class="rubro-info">
+              <span class="rubro-nombre">Actividades</span>
+              <div class="rubro-barra-wrap">
+                <div class="rubro-barra" [style.width.%]="b.nota_actividades * 10" [class]="'bar-' + colorNota(b.nota_actividades)"></div>
+              </div>
+            </div>
+            <span class="rubro-nota" [class]="'nota-' + colorNota(b.nota_actividades)">{{ b.nota_actividades | number:'1.1-1' }}</span>
+          </div>
+
+          <div class="rubro-item" *ngIf="b.nota_asistencia != null">
+            <div class="rubro-icon asist-icon">
+              <ion-icon name="calendar-outline"></ion-icon>
+            </div>
+            <div class="rubro-info">
+              <span class="rubro-nombre">Asistencia</span>
+              <div class="rubro-barra-wrap">
+                <div class="rubro-barra" [style.width.%]="b.nota_asistencia * 10" [class]="'bar-' + colorNota(b.nota_asistencia)"></div>
+              </div>
+            </div>
+            <span class="rubro-nota" [class]="'nota-' + colorNota(b.nota_asistencia)">{{ b.nota_asistencia | number:'1.1-1' }}</span>
+          </div>
+
+          <div class="rubro-item" *ngIf="b.nota_examen != null">
+            <div class="rubro-icon examen-icon">
+              <ion-icon name="school-outline"></ion-icon>
+            </div>
+            <div class="rubro-info">
+              <span class="rubro-nombre">Examen</span>
+              <div class="rubro-barra-wrap">
+                <div class="rubro-barra" [style.width.%]="b.nota_examen * 10" [class]="'bar-' + colorNota(b.nota_examen)"></div>
+              </div>
+            </div>
+            <span class="rubro-nota" [class]="'nota-' + colorNota(b.nota_examen)">{{ b.nota_examen | number:'1.1-1' }}</span>
+          </div>
+
+          <div class="rubro-item" *ngIf="b.nota_proyecto != null">
+            <div class="rubro-icon proyecto-icon">
+              <ion-icon name="construct-outline"></ion-icon>
+            </div>
+            <div class="rubro-info">
+              <span class="rubro-nombre">Proyecto</span>
+              <div class="rubro-barra-wrap">
+                <div class="rubro-barra" [style.width.%]="b.nota_proyecto * 10" [class]="'bar-' + colorNota(b.nota_proyecto)"></div>
+              </div>
+            </div>
+            <span class="rubro-nota" [class]="'nota-' + colorNota(b.nota_proyecto)">{{ b.nota_proyecto | number:'1.1-1' }}</span>
+          </div>
+
+        </div>
+
+        <p class="boleta-fecha" *ngIf="b.publicada_en">
+          Publicado el {{ b.publicada_en | date:'d MMM yyyy' }}
+        </p>
+      </div>
+
+      <!-- ── ASISTENCIA ── -->
+      <p class="section-label" style="margin-top:18px">Registro de Asistencia</p>
+
+      <div class="asistencia-card">
+
+        <div class="asist-donut-wrap">
+          <svg viewBox="0 0 36 36" class="asist-donut">
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="3"/>
+            <circle
+              cx="18" cy="18" r="15.9" fill="none"
+              [attr.stroke]="m.asistencias.porcentaje >= 90 ? '#22c55e' : m.asistencias.porcentaje >= 75 ? '#f97316' : '#ef4444'"
+              stroke-width="3"
+              [attr.stroke-dasharray]="m.asistencias.porcentaje + ', 100'"
+              stroke-linecap="round"
+              transform="rotate(-90 18 18)"
+            />
+          </svg>
+          <span class="asist-donut-label">{{ m.asistencias.porcentaje }}%</span>
+        </div>
+
+        <div class="asist-detalle">
+          <div class="asist-row">
+            <div class="asist-dot green"></div>
+            <span class="asist-tipo">Presentes</span>
+            <span class="asist-val">{{ m.asistencias.presentes }}</span>
+          </div>
+          <div class="asist-row">
+            <div class="asist-dot red"></div>
+            <span class="asist-tipo">Ausentes</span>
+            <span class="asist-val">{{ m.asistencias.ausentes }}</span>
+          </div>
+          <div class="asist-row">
+            <div class="asist-dot orange"></div>
+            <span class="asist-tipo">Retardos</span>
+            <span class="asist-val">{{ m.asistencias.retardos }}</span>
+          </div>
+          <div class="asist-row total-row">
+            <div class="asist-dot grey"></div>
+            <span class="asist-tipo">Total clases</span>
+            <span class="asist-val">{{ m.asistencias.total }}</span>
+          </div>
+        </div>
+
+      </div>
+
+    </ng-container>
+
+    <div style="height: 32px"></div>
+
+  </ng-container>
+
+</ion-content>

@@ -1,286 +1,917 @@
-/* ===== HEADER ===== */
+// ============================================
+// TAREAS.PAGE.SCSS
+// ============================================
+
+// --- Header ---
+
 .header-toolbar {
-  --background: #0a1f44;
-  --color: #ffffff;
-  border-bottom: 3px solid #ff6b00;
+  --background: var(--navy-2);
+  --color: var(--white);
+  --border-style: none;
+  --min-height: 56px;
 }
 
 .header-title {
-  font-weight: bold;
-  text-align: center;
+  color: var(--white);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: -0.3px;
 }
 
-.add-btn {
-  --color: #ffffff;
+.header-add-btn {
+  --color: #{rgba(255, 255, 255, 0.85)};
 }
 
-/* ===== FONDO ===== */
+.header-accent-bar {
+  height: 3px;
+  background: linear-gradient(90deg, var(--orange), transparent);
+}
+
 .tareas-content {
-  --background: #f5f7fb;
+  --background: var(--navy);
 }
 
-/* ===== FORMULARIO ===== */
-.new-task-card {
-  background: #ffffff;
-  padding: 15px;
-  border-radius: 15px;
-  margin-bottom: 20px;
-  border-left: 5px solid #ff6b00;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+// --- Hero + stats ---
+
+.tareas-hero {
+  background: var(--navy-2);
+  padding: 18px 18px 22px;
+}
+
+.hero-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -0.4px;
+}
+
+.hero-sub {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--white-35);
+}
+
+.stats-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.stat-chip {
+  flex: 1;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+
+  .stat-num {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--white);
+  }
+
+  &.orange .stat-num {
+    color: var(--orange);
+  }
+
+  &.red .stat-num {
+    color: #ef4444;
+  }
+}
+
+.stat-lbl {
+  font-size: 8px;
+  color: var(--white-35);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+// ============================================
+// FORMULARIO NUEVA TAREA
+// ============================================
+
+.new-task-form {
+  margin: 14px 18px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-top: 2px solid var(--orange);
+  border-radius: 16px;
+  padding: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
 }
 
 .form-title {
-  color: #0a1f44;
-  margin-bottom: 10px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--white);
 }
 
-/* Inputs */
-.input-group {
-  margin-bottom: 10px;
-}
-
-.input-group label {
-  font-size: 13px;
-  color: #555;
-}
-
-.input-group input,
-.input-group textarea {
-  width: 100%;
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  margin-top: 5px;
-}
-
-/* Upload */
-.file-upload-zone {
-  border: 2px dashed #ff6b00;
-  padding: 15px;
-  text-align: center;
-  border-radius: 10px;
-  margin-top: 10px;
+.form-close-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--white-35);
+  }
+}
+
+.input-group {
+  margin-bottom: 12px;
+}
+
+.input-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--white-35);
+  margin-bottom: 5px;
+}
+
+.input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0 10px;
+  transition: border-color 0.2s;
+
+  &:focus-within {
+    border-color: var(--orange);
+  }
+
+  input,
+  textarea,
+  select {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 13px;
+    color: var(--white);
+    padding: 10px 0;
+    font-family: var(--font);
+
+    &::placeholder {
+      color: var(--white-35);
+    }
+  }
+
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+
+    option {
+      background: var(--navy-2);
+      color: var(--white);
+    }
+  }
+}
+
+.select-wrap {
+  &:has(select:disabled) {
+    opacity: 0.5;
+  }
+}
+
+.opciones-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -4px 0 12px;
+  padding: 8px 10px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 10px;
+  font-size: 11px;
+  color: #ef4444;
+
+  ion-icon { font-size: 15px; flex-shrink: 0; }
+}
+
+.textarea-wrap {
+  align-items: flex-start;
+
+  textarea {
+    resize: none;
+  }
+}
+
+.field-icon {
+  font-size: 15px;
+  color: var(--white-35);
+  flex-shrink: 0;
+}
+
+// --- Zona de archivos ---
+
+.file-upload-zone {
+  border: 1.5px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 18px 12px;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: border-color 0.2s, background 0.2s;
+
+  &:hover,
+  &.dragging {
+    border-color: var(--orange);
+    background: rgba(255, 107, 0, 0.04);
+  }
 }
 
 .upload-icon {
-  font-size: 30px;
-  color: #ff6b00;
+  font-size: 24px;
+  color: var(--white-35);
+  margin-bottom: 6px;
 }
 
-.upload-text span {
-  color: #0a1f44;
-  font-weight: bold;
+.upload-text {
+  margin: 0;
+  font-size: 12px;
+  color: var(--white-60);
+
+  span {
+    color: var(--orange);
+    font-weight: 700;
+  }
 }
 
-/* Archivos */
+.upload-hint {
+  margin: 4px 0 0;
+  font-size: 10px;
+  color: var(--white-35);
+}
+
+.files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
 .file-chip {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f1f1f1;
-  padding: 6px;
-  border-radius: 8px;
-  margin-top: 5px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 8px 10px;
+
+  &.error {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.06);
+  }
 }
 
-.file-icon {
-  color: #ff6b00;
+.file-type-icon {
+  font-size: 15px;
+  color: var(--orange);
+  flex-shrink: 0;
+}
+
+.file-chip-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.file-name {
+  font-size: 11px;
+  color: var(--white);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-size {
+  font-size: 10px;
+  color: var(--white-35);
+}
+
+.file-progress-text {
+  font-size: 10px;
+  color: var(--orange);
+  font-weight: 600;
+}
+
+.file-error-text {
+  font-size: 10px;
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.file-progress-bar {
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.file-progress-fill {
+  height: 100%;
+  background: var(--orange);
+  transition: width 0.15s ease;
+}
+
+.retry-file {
+  font-size: 16px;
+  color: var(--orange);
+  flex-shrink: 0;
+  cursor: pointer;
 }
 
 .remove-file {
-  color: #d90429;
-  margin-left: auto;
+  font-size: 16px;
+  color: var(--white-35);
+  flex-shrink: 0;
+  cursor: pointer;
+
+  &:hover {
+    color: #ef4444;
+  }
 }
 
-/* Botones form */
 .form-actions {
   display: flex;
-  justify-content: space-between;
-  margin-top: 15px;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.btn-cancel,
+.btn-save {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px;
+  border-radius: 10px;
+  border: none;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 15px;
+  }
+  ion-spinner {
+    width: 15px;
+    height: 15px;
+  }
+
+  &[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
 .btn-cancel {
-  background: #ddd;
-  padding: 8px 12px;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--white-60);
 }
 
 .btn-save {
-  background: #0a1f44;
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 8px;
+  background: var(--orange);
+  color: var(--white);
+  box-shadow: 0 4px 14px var(--orange-glow);
 }
 
-/* ===== STATS ===== */
-.stats-bar {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
+// ============================================
+// LISTA DE TAREAS
+// ============================================
+
+.tasks-list {
+  padding: 4px 18px 100px;
 }
 
-.stat-pill {
-  background: #0a1f44;
-  color: #fff;
-  padding: 8px;
-  border-radius: 10px;
-  text-align: center;
-  flex: 1;
-  margin: 0 3px;
-}
-
-.stat-pill.pendiente {
-  background: #ff6b00;
-}
-
-.stat-pill.completada {
-  background: #d90429;
-}
-
-/* ===== TARJETAS ===== */
 .task-card {
-  background: #ffffff;
-  border-radius: 15px;
-  padding: 12px;
-  margin-bottom: 15px;
-  border-left: 5px solid #0a1f44;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-left: 3px solid var(--orange);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+  backdrop-filter: blur(8px);
+  transition: opacity 0.2s;
+
+  &.completed {
+    border-left-color: var(--green);
+    opacity: 0.6;
+
+    .task-title {
+      text-decoration: line-through;
+    }
+  }
 }
 
-/* Completada */
-.task-card.completed {
-  opacity: 0.7;
-  border-left: 5px solid #d90429;
-}
-
-/* Header tarea */
 .task-header {
   display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.task-materia-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255, 107, 0, 0.12);
+  display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--orange);
+  }
 }
 
-/* Check */
-.task-check ion-icon {
-  font-size: 24px;
-  color: #ff6b00;
+.task-info {
+  flex: 1;
+  min-width: 0;
 }
 
-.task-check ion-icon.checked {
-  color: #d90429;
-}
-
-/* Info */
 .task-title {
-  font-size: 16px;
-  font-weight: bold;
-  color: #0a1f44;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.task-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.meta-icon {
+  font-size: 11px;
+  color: var(--orange);
+}
+
+.task-meta-dot {
+  font-size: 11px;
+  color: var(--white-35);
 }
 
 .task-materia {
-  font-size: 12px;
-  color: #666;
+  font-size: 11px;
+  color: var(--white-35);
 }
 
-/* Botón eliminar */
-.action-btn.delete {
+.task-delete-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
   background: transparent;
-  color: #d90429;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--white-35);
+  }
+
+  &:active {
+    background: rgba(239, 68, 68, 0.12);
+
+    ion-icon {
+      color: #ef4444;
+    }
+  }
 }
 
-/* Descripción */
 .task-desc {
-  margin-top: 5px;
-  font-size: 14px;
-  color: #444;
+  font-size: 11.5px;
+  color: var(--white-60);
+  margin: 8px 0 0;
+  line-height: 1.4;
 }
 
-/* Archivos adjuntos */
+.task-files {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 8px;
+}
+
 .attached-file {
   display: flex;
-  gap: 5px;
-  font-size: 13px;
-  color: #555;
-  margin-top: 5px;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  color: var(--white-35);
 }
 
-/* Footer */
+.file-attach-icon {
+  font-size: 13px;
+  color: var(--orange);
+}
+
 .task-footer {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   margin-top: 10px;
-  font-size: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--white-08);
 }
 
 .task-date {
-  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  color: var(--white-35);
+
+  ion-icon {
+    font-size: 12px;
+  }
 }
 
 .task-status {
-  font-weight: bold;
-  color: #ff6b00;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--orange);
+
+  ion-icon {
+    font-size: 13px;
+  }
+
+  &.done {
+    color: var(--green);
+  }
+
+  &.vencida {
+    color: #ef4444;
+  }
 }
 
-.task-status.done {
-  color: #d90429;
-}
+// ============================================
+// ESTADO VACÍO
+// ============================================
 
-/* ===== EMPTY ===== */
 .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  margin-top: 40px;
-  color: #888;
+  padding: 56px 24px;
 }
 
-.empty-state ion-icon {
-  font-size: 40px;
-  color: #0a1f44;
+.empty-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--orange-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+
+  ion-icon {
+    font-size: 32px;
+    color: var(--orange);
+  }
 }
+
+.empty-title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.empty-sub {
+  margin: 0;
+  font-size: 12px;
+  color: var(--white-35);
+
+  strong {
+    color: var(--orange);
+  }
+}
+
+// ============================================
+// FAB
+// ============================================
 
 .fab-agregar {
-  // 1. Fondo del botón (Azul marino de tu app)
-  --background: #051630; 
-  --color: white;
-  --box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-  
-  // Crítico para que el borde blanco fino no se corte
-  overflow: visible; 
+  --background: var(--orange);
+  --color: var(--white);
+  --box-shadow: 0 6px 18px var(--orange-glow);
+}
 
-  // 2. Ocultamos el icono de '+' original
+// ============================================
+// CARGA / ERROR DE LA LISTA
+// ============================================
+
+.loading-tareas,
+.error-tareas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 24px;
+  gap: 10px;
+
   ion-icon {
-    display: none;
+    font-size: 34px;
+    color: var(--white-35);
   }
 
-  // 3. Creamos la 'U' Varsity perfectamente centrada
-  &::after {
-    content: 'U'; 
-    // Usamos la fuente Graduate que importamos en global.scss
-    font-family: 'Graduate', 'Georgia', serif; 
-    font-weight: 900;
-    // Tamaño grande para que llene el botón
-    font-size: 34px; 
-    // Color de la letra: Naranja de tu app
-    color: #f25c05; 
-    
-    // CENTRADO ABSOLUTO (No tocar)
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%); 
-    
-    // EFECTO DE BORDE FINO BLANCO (Múltiples sombras compactas)
-    // Esto recrea el contorno limpio de la 'U' de tu imagen.
-    text-shadow: 
-      -1px -1px 0 #fff,  
-       1px -1px 0 #fff,
-      -1px  1px 0 #fff,
-       1px  1px 0 #fff;
+  p {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--white-35);
   }
 }
 
-// Efecto de presión
-.fab-agregar:active {
-  transform: scale(0.9);
-  transition: 0.1s;
+.retry-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 107, 0, 0.3);
+  background: rgba(255, 107, 0, 0.08);
+  color: var(--orange);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+
+  ion-icon { font-size: 15px; }
+}
+
+// ============================================
+// BARRA DE BÚSQUEDA Y FILTROS
+// ============================================
+
+.filters-bar {
+  padding: 0 18px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0 12px;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 10px 0;
+    font-size: 13px;
+    color: var(--white);
+    font-family: var(--font);
+
+    &::placeholder { color: var(--white-35); }
+  }
+}
+.clear-search {
+  font-size: 16px;
+  color: var(--white-35);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.filter-chips-row {
+  display: flex;
+  gap: 8px;
+}
+.filter-chip {
+  flex: 1;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--white-60);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+
+  &.active {
+    background: rgba(255, 107, 0, 0.12);
+    border-color: rgba(255, 107, 0, 0.35);
+    color: var(--orange);
+  }
+}
+
+.filter-selects-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.filter-select-wrap {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0 10px;
+
+  select {
+    width: 100%;
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 9px 0;
+    font-size: 11.5px;
+    color: var(--white);
+    font-family: var(--font);
+    appearance: none;
+    -webkit-appearance: none;
+
+    option { background: var(--navy-2); color: var(--white); }
+  }
+}
+.clear-filters-btn {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--white-60);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  ion-icon { font-size: 16px; }
+}
+
+.input-hint {
+  margin: -6px 0 12px;
+  font-size: 10.5px;
+  color: var(--orange);
+  font-style: italic;
+}
+
+// ============================================
+// PUBLICAR / BORRADOR (toggle en el formulario)
+// ============================================
+
+.publish-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+.publish-toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.publish-toggle-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--white);
+}
+.publish-toggle-sub {
+  font-size: 10.5px;
+  color: var(--white-35);
+}
+
+// ============================================
+// TARJETA DE TAREA — extras (título+borrador, acciones, publicar)
+// ============================================
+
+.task-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.draft-badge {
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--white-60);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.task-card.draft {
+  border-left-color: var(--white-35);
+  opacity: 0.85;
+}
+
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.task-action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 15px;
+    color: var(--white-35);
+  }
+
+  &:active {
+    background: rgba(255, 255, 255, 0.06);
+    ion-icon { color: var(--orange); }
+  }
+}
+
+.task-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.publish-mini-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--white-60);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+
+  ion-icon { font-size: 12px; }
+
+  &.is-published {
+    border-color: rgba(34, 197, 94, 0.3);
+    background: rgba(34, 197, 94, 0.08);
+    color: var(--green);
+  }
 }

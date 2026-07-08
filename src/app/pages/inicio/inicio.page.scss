@@ -1,170 +1,316 @@
-/* Fondo general */
-.fondo {
-  --background: #ffffff;
+// ============================================
+// INICIO.PAGE.SCSS
+// ============================================
+
+.header-toolbar {
+  --background: var(--navy-2);
+  --color: var(--white);
+  --border-style: none;
+  --min-height: 56px;
 }
 
-/* Contenedor principal */
-.container {
-  padding: 20px;
-  text-align: center;
+.header-title {
+  color: var(--white);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: -0.3px;
 }
 
-/* Título principal */
-.titulo {
-  font-size: 28px;
-  font-weight: bold;
-  color: #0a1f44; /* Azul marino */
-  margin-bottom: 10px;
+.header-notif-btn {
+  --color: #{rgba(255, 255, 255, 0.85)};
 }
 
-/* Subtítulo */
-.subtitulo {
-  font-size: 16px;
-  color: #555;
-  margin-bottom: 25px;
+.header-accent-bar {
+  height: 3px;
+  background: linear-gradient(90deg, var(--orange), transparent);
 }
 
-/* Tarjetas */
-.card {
-  background: #ffffff;
-  border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 15px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-  border-left: 6px solid #ff6b00; /* Naranja */
-  transition: transform 0.2s ease;
+.inicio-content {
+  --background: var(--navy);
 }
 
-/* Hover bonito */
-.card:hover {
-  transform: translateY(-5px);
-  border-left: 6px solid #d90429; /* Rojo */
+// ── Hero ──────────────────────────────────────
+.hero-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 18px 18px 20px;
 }
 
-/* Títulos de card */
-.card h2 {
-  color: #0a1f44; /* Azul marino */
-  margin-bottom: 8px;
+.hero-text { flex: 1; min-width: 0; }
+
+.hero-greeting {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--white-35);
+  letter-spacing: 0.5px;
 }
 
-/* Texto de card */
-.card p {
-  color: #666;
+.hero-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
 }
 
-/* Botón principal */
-.btn-primary {
-  --background: #0a1f44; /* Azul marino */
-  --color: #ffffff;
-  margin-top: 20px;
-  border-radius: 12px;
-  font-weight: bold;
+.hero-name { color: var(--orange); }
+
+.hero-sub {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--white-35);
 }
 
-/* Hover botón */
-.btn-primary:hover {
-  --background: #ff6b00; /* Naranja */
+.hero-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid var(--orange);
+  padding: 2px;
 }
 
-/* Toolbar (header) */
-ion-toolbar {
-  --background: #0a1f44; /* Azul marino */
-  --color: #ffffff;
+.hero-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
 }
 
-/* Título del header */
-ion-title {
-  font-weight: bold;
-  text-align: center;
+// Avatar tutor (ícono en lugar de imagen)
+.tutor-avatar-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,107,0,0.12);
 }
 
-
-
-
-/* Toolbar */
-ion-toolbar {
-  --background: #0a1f44; /* azul marino */
-  --color: #ffffff;
-  border-bottom: 3px solid #ff6b00; /* línea naranja */
+.tutor-avatar-icon {
+  font-size: 26px;
+  color: var(--orange);
 }
 
-/* Título */
-ion-title {
-  font-weight: bold;
-  text-align: center;
+// ── Card hijo destacada ───────────────────────
+.hijo-highlight-card {
+  margin: 0 18px 14px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(255,107,0,0.15), rgba(255,107,0,0.05));
+  border: 1px solid rgba(255,107,0,0.3);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--orange);
+    border-radius: 0 2px 2px 0;
+  }
+}
+
+.hijo-highlight-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.hijo-avatar-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255,107,0,0.2);
+  border: 2px solid var(--orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 20px;
+    color: var(--orange);
+  }
+}
+
+.hijo-info { min-width: 0; }
+
+.hijo-label {
+  margin: 0 0 2px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: rgba(255,107,0,0.7);
+  text-transform: uppercase;
   letter-spacing: 1px;
 }
 
-/* Botón del menú */
-ion-menu-button {
-  color: #ffffff;
+.hijo-nombre {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Efecto sutil */
-ion-toolbar::after {
-  content: '';
-  display: block;
-  height: 3px;
-  width: 100%;
-  background: linear-gradient(to right, #ff6b00, #d90429); /* naranja a rojo */
-}
-
-/* Contenedor de la imagen */
-.menu-footer {
+.hijo-highlight-right {
   display: flex;
-  justify-content: center;
   align-items: center;
-  height: 100; /* ocupa toda la pantalla */
-  margin-top: 40px;
+  gap: 4px;
+  flex-shrink: 0;
+
+  ion-icon { color: var(--orange); font-size: 16px; }
 }
 
-/* Imagen */
-.menu-footer img {
-  width: 100px;
-  opacity: 0.7;
-  filter: drop-shadow(0 0 5px #ff6b00);
+.ver-detalle-btn {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--orange);
 }
 
-.footer-container {
-  position: relative;
-  width: 100%;
-  height: 200px; /* Ajusta según el alto que desees */
+// ── Stats ─────────────────────────────────────
+.stats-row {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: visible; /* Permite que el logo sobresalga si es necesario */
+  gap: 8px;
+  padding: 0 18px;
+  margin-bottom: 20px;
 }
 
-.background-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
+.stat-card {
+  flex: 1;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 12px 10px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--white);
+    display: block;
+  }
+
+  &.orange .stat-num { color: var(--orange); }
 }
 
-.background-layer img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Asegura que el fondo cubra todo el espacio */
-  border-radius: 15px; /* Opcional: bordes redondeados */
-}
-
-.floating-logo {
-  position: relative;
-  z-index: 2; /* Siempre por encima del fondo */
-  filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.3)); /* Sombra para efecto 3D */
-  transition: transform 0.3s ease;
-}
-
-.floating-logo img {
-  width: 120px; /* Ajusta el tamaño de tu logo */
-  height: auto;
+.stat-lbl {
+  font-size: 9px;
+  color: var(--white-35);
   display: block;
+  margin-top: 2px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
-/* Efecto opcional: se mueve un poco al pasar el mouse */
-.floating-logo:hover {
-  transform: scale(1.1) translateY(-5px);
+// ── Section label ─────────────────────────────
+.section-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--white-35);
+  padding: 0 18px;
+  margin: 0 0 10px;
+}
+
+// ── Quick cards ───────────────────────────────
+.quick-card {
+  margin: 0 18px 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--orange);
+    border-radius: 0 2px 2px 0;
+  }
+}
+
+.quick-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 19px;
+
+  &.orange-icon {
+    background: var(--orange-subtle);
+    border: 1px solid var(--orange-glow);
+    color: var(--orange);
+  }
+
+  &.blue-icon {
+    background: rgba(59, 91, 219, 0.12);
+    border: 1px solid rgba(59, 91, 219, 0.3);
+    color: #60a5fa;
+  }
+}
+
+.quick-card-text { flex: 1; min-width: 0; }
+
+.quick-card-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.quick-card-sub {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--white-35);
+}
+
+.quick-card-arrow {
+  margin-left: auto;
+  color: var(--white-35);
+  flex-shrink: 0;
+}
+
+// ── Botón explorar ────────────────────────────
+.btn-explore {
+  margin: 14px 18px 24px;
+  --border-color: rgba(255, 107, 0, 0.3);
+  --color: var(--orange);
+  --border-radius: 14px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
 }

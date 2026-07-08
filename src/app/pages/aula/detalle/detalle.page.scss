@@ -1,0 +1,275 @@
+@import "src/theme/variables";
+
+// ── HEADER ──────────────────────────────────────────────
+.detalle-toolbar    { --background: #{$navy-2}; --border-style: none; }
+.detalle-header-title { font-size: 17px; font-weight: 800; color: $white; letter-spacing: -0.3px; }
+.back-btn           { --color: #{$orange}; }
+.header-accent-bar  { height: 3px; background: linear-gradient(90deg, $orange, transparent); }
+
+// ── CONTENT ─────────────────────────────────────────────
+.detalle-content { --background: #{$navy}; }
+
+// ── LOADING / ERROR ─────────────────────────────────────
+.loading-overlay {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 60px 24px; gap: 16px;
+}
+.loading-spinner { color: $orange; width: 40px; height: 40px; }
+.loading-text    { font-size: 14px; color: $white-35; margin: 0; }
+
+.error-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 60px 24px; text-align: center; gap: 12px;
+  ion-icon { font-size: 48px; color: $white-35; }
+  p        { font-size: 14px; color: $white-35; margin: 0; }
+}
+.retry-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: $orange-subtle; border: 1px solid $orange-glow;
+  border-radius: 10px; padding: 10px 18px;
+  color: $orange; font-size: 13px; font-weight: 700; cursor: pointer;
+}
+
+// ── HERO ────────────────────────────────────────────────
+.grupo-hero {
+  display: flex; align-items: center; gap: 14px;
+  padding: 20px 18px 18px;
+  background: $navy-2;
+  border-bottom: 1px solid $card-border;
+}
+.grupo-hero-icon {
+  width: 52px; height: 52px; border-radius: 15px; flex-shrink: 0;
+  background: $orange-subtle; border: 2px solid $orange-glow;
+  display: flex; align-items: center; justify-content: center;
+  ion-icon { font-size: 26px; color: $orange; }
+}
+.grupo-nombre { font-size: 20px; font-weight: 800; color: $white; margin: 0 0 8px; letter-spacing: -0.5px; }
+.grupo-tags   { display: flex; gap: 6px; flex-wrap: wrap; }
+.grupo-tag {
+  padding: 3px 9px; border-radius: 6px; font-size: 10px; font-weight: 700;
+  &.orange { background: rgba(255,107,0,0.12); color: $orange; }
+  &.blue   { background: rgba(22,47,96,0.5);  color: #4a7ab5; }
+  &.gray   { background: rgba(255,255,255,0.07); color: $white-60; }
+}
+
+// ── MÉTRICAS RÁPIDAS ────────────────────────────────────
+.metrics-row {
+  display: flex; gap: 10px; padding: 14px 18px;
+}
+.metric-card {
+  flex: 1; background: $card-bg; border: 1px solid $card-border;
+  border-radius: 14px; padding: 14px 10px; text-align: center; position: relative;
+}
+.metric-num  { display: block; font-size: 22px; font-weight: 800; color: $white; }
+.metric-lbl  { display: block; font-size: 10px; color: $white-35; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+.metric-icon { position: absolute; top: 8px; right: 8px; font-size: 14px; color: $white-08; }
+
+// ── SECCIÓN GENERAL ─────────────────────────────────────
+.section-block  { padding: 0 18px 20px; }
+.section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: $white-35; margin: 0 0 10px;
+}
+
+// ── TARJETA DE ASISTENCIA ───────────────────────────────
+.asistencia-card {
+  display: flex; gap: 16px; align-items: center;
+  background: $card-bg; border: 1px solid $card-border;
+  border-radius: 16px; padding: 16px;
+}
+
+// Gauge SVG circular
+.asist-gauge-wrap { text-align: center; flex-shrink: 0; }
+.asist-gauge      { width: 80px; height: 80px; position: relative; }
+.gauge-svg        { width: 100%; height: 100%; transform: rotate(-90deg); }
+.gauge-bg   { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 3; }
+.gauge-fill {
+  fill: none; stroke-width: 3; stroke-linecap: round;
+  transition: stroke-dasharray 0.6s ease;
+  stroke: $orange; // default
+}
+.asist-gauge.verde  .gauge-fill { stroke: #22c55e; }
+.asist-gauge.naranja .gauge-fill { stroke: $orange; }
+.asist-gauge.rojo   .gauge-fill { stroke: #ef4444; }
+
+.gauge-label {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  text-align: center;
+}
+.gauge-num { font-size: 18px; font-weight: 800; color: $white; }
+.gauge-pct { font-size: 10px; color: $white-35; }
+.gauge-sub { font-size: 11px; color: $white-35; margin: 4px 0 0; }
+
+// Desglose
+.asist-breakdown { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.asist-row {
+  display: flex; align-items: center; gap: 8px;
+  &.total-row { border-top: 1px solid $card-border; padding-top: 8px; margin-top: 2px; }
+}
+.asist-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  &.verde   { background: #22c55e; }
+  &.naranja { background: $orange; }
+  &.rojo    { background: #ef4444; }
+}
+.asist-tipo { font-size: 12px; color: $white-60; flex: 1; }
+.asist-num  { font-size: 13px; font-weight: 700; color: $white; }
+
+// Barra horizontal
+.asist-bar-wrap { margin-top: 12px; }
+.asist-bar {
+  display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.05);
+}
+.asist-bar-fill {
+  height: 100%; transition: width 0.5s ease;
+  &.verde   { background: #22c55e; }
+  &.naranja { background: $orange; }
+  &.rojo    { background: #ef4444; }
+}
+.asist-bar-leyenda {
+  display: flex; gap: 12px; margin-top: 6px;
+  font-size: 10px;
+  .verde   { color: #22c55e; }
+  .naranja { color: $orange; }
+  .rojo    { color: #ef4444; }
+}
+
+// ── TAREAS ──────────────────────────────────────────────
+.tareas-card {
+  display: flex; gap: 16px; align-items: center;
+  background: $card-bg; border: 1px solid $card-border;
+  border-radius: 16px; padding: 16px;
+}
+.tareas-circle { width: 80px; height: 80px; position: relative; flex-shrink: 0; }
+.gauge-fill.naranja { stroke: $orange; }
+.tareas-detalle { flex: 1; display: flex; gap: 0; }
+.tareas-stat {
+  flex: 1; text-align: center;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.ts-num  { font-size: 20px; font-weight: 800; color: $white; }
+.ts-lbl  { font-size: 10px; color: $white-35; text-transform: uppercase; letter-spacing: 0.5px; }
+.tareas-divider { width: 1px; background: $card-border; margin: 4px 0; }
+
+// ── OCUPACIÓN ───────────────────────────────────────────
+.ocupacion-card {
+  background: $card-bg; border: 1px solid $card-border;
+  border-radius: 16px; padding: 16px;
+}
+.ocupacion-nums {
+  display: flex; align-items: baseline; gap: 4px; margin-bottom: 12px;
+}
+.ocup-current { font-size: 28px; font-weight: 800; color: $white; }
+.ocup-sep     { font-size: 20px; color: $white-35; }
+.ocup-max     { font-size: 20px; font-weight: 600; color: $white-60; }
+.ocup-lbl     { font-size: 12px; color: $white-35; margin-left: 6px; }
+
+.ocupacion-bar-outer {
+  height: 8px; border-radius: 4px; background: rgba(255,255,255,0.06); overflow: hidden; margin-bottom: 8px;
+}
+.ocupacion-bar-inner {
+  height: 100%; border-radius: 4px; transition: width 0.5s ease;
+  &.ocup-ok   { background: #22c55e; }
+  &.ocup-warn { background: $orange; }
+  &.ocup-full { background: #ef4444; }
+}
+.ocupacion-pct { font-size: 12px; color: $white-35; margin: 0; }
+
+// ── CARD PRESIONABLE (lista) ─────────────────────────────
+// Estos estilos aplican también en aula.page.html
+.pressable { cursor: pointer; transition: transform 0.12s ease, box-shadow 0.12s ease; }
+.pressable:active { transform: scale(0.97); box-shadow: 0 0 0 2px rgba(255,107,0,0.25); }
+
+.card-tap-hint {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  border-top: 1px solid $card-border;
+  font-size: 11px; color: $orange;
+  ion-icon:first-child { font-size: 14px; }
+  span { flex: 1; font-weight: 600; }
+  ion-icon:last-child  { font-size: 14px; color: $white-35; }
+}
+
+// ── EMPTY METRIC ────────────────────────────────────────
+.empty-metric {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 28px 16px; text-align: center; gap: 8px;
+  background: $card-bg; border: 1px solid $card-border; border-radius: 14px;
+  ion-icon { font-size: 36px; color: $white-35; }
+  p        { font-size: 13px; color: $white-35; margin: 0; }
+}
+
+// ── PROMEDIO CARD ─────────────────────────────
+.promedio-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+}
+
+.promedio-circle {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+
+  &.verde  { border-color: rgba(34,197,94,0.3);  background: rgba(34,197,94,0.08); }
+  &.naranja{ border-color: rgba(249,115,22,0.3); background: rgba(249,115,22,0.08); }
+  &.rojo   { border-color: rgba(239,68,68,0.3);  background: rgba(239,68,68,0.08); }
+}
+
+.promedio-num {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--white);
+
+  .verde  & { color: #22c55e; }
+  .naranja & { color: #f97316; }
+  .rojo   & { color: #ef4444; }
+}
+
+.promedio-lbl {
+  font-size: 12px;
+  color: var(--white-35);
+  font-weight: 600;
+}
+
+.promedio-info { flex: 1; min-width: 0; }
+
+.promedio-desc {
+  font-size: 11.5px;
+  color: var(--white-35);
+  margin: 0 0 10px;
+  line-height: 1.45;
+  strong { color: var(--white); }
+}
+
+.promedio-barra-wrap {
+  height: 5px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.promedio-barra {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.5s ease;
+  &.verde  { background: #22c55e; }
+  &.naranja{ background: #f97316; }
+  &.rojo   { background: #ef4444; }
+}
+
+// Color helpers para metric-num
+.verde  { color: #22c55e !important; }
+.naranja{ color: #f97316 !important; }
+.rojo   { color: #ef4444 !important; }

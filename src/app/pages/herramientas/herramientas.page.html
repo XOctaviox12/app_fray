@@ -1,175 +1,332 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar class="herramientas-toolbar">
+  <ion-toolbar class="header-toolbar">
     <ion-buttons slot="start">
-      <ion-menu-button color="light"></ion-menu-button>
+      <ion-menu-button>
+        <ion-icon name="menu-outline"></ion-icon>
+      </ion-menu-button>
     </ion-buttons>
-    <ion-title>HERRAMIENTAS DIGITALES</ion-title>
+    <ion-title class="header-title">
+      {{ esDocente ? 'Material de Apoyo' : 'Recursos Educativos' }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button class="header-action-btn" *ngIf="esDocente" (click)="abrirNuevo()">
+        <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
+  <div class="header-accent-bar"></div>
 </ion-header>
+
 <ion-content class="herramientas-content">
 
-  <!-- Hero -->
+  <!-- ── Hero ──────────────────────────────────────────────── -->
   <div class="hero-section">
-    <div class="hero-info">
-      <span class="hero-emoji">🛠️</span>
-      <h1>Centro de Recursos</h1>
-      <p>Materiales, tareas y contenido educativo en un solo lugar.</p>
+    <div class="hero-text">
+      <h2 class="hero-title">
+        {{ esDocente ? 'Centro de Recursos' : 'Material de tus Maestros' }}
+      </h2>
+      <p class="hero-sub">
+        {{ esDocente
+          ? 'Sube y gestiona materiales para tus grupos'
+          : 'Accede a todo el material compartido en tu grupo' }}
+      </p>
     </div>
-    <div class="hero-decoration"></div>
+    <div class="hero-icon-wrap">
+      <ion-icon name="construct-outline"></ion-icon>
+    </div>
   </div>
 
-  <!-- Accesos rápidos -->
-  <div class="quick-access">
+  <!-- ── Accesos rápidos ───────────────────────────────────── -->
+  <div class="quick-access-row">
     <div class="access-card" (click)="scrollTo('materiales')">
-      <div class="access-icon materiales-bg">📚</div>
-      <span>Materiales</span>
+      <div class="access-icon-wrap materiales-bg">
+        <ion-icon name="library-outline"></ion-icon>
+      </div>
+      <span class="access-label">Materiales</span>
     </div>
     <div class="access-card" (click)="goToTareas()">
-      <div class="access-icon tareas-bg">📝</div>
-      <span>Tareas</span>
+      <div class="access-icon-wrap tareas-bg">
+        <ion-icon name="document-text-outline"></ion-icon>
+      </div>
+      <span class="access-label">Tareas</span>
     </div>
     <div class="access-card" (click)="scrollTo('contenido')">
-      <div class="access-icon contenido-bg">🎓</div>
-      <span>Contenido</span>
+      <div class="access-icon-wrap contenido-bg">
+        <ion-icon name="school-outline"></ion-icon>
+      </div>
+      <span class="access-label">Contenido</span>
     </div>
   </div>
 
-  <!-- SECCIÓN: Materiales -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!--  SECCIÓN: Materiales                                  -->
+  <!-- ══════════════════════════════════════════════════════ -->
   <section class="resource-section" id="materiales">
+
     <div class="section-header">
-      <h2>📚 Materiales de Estudio</h2>
-      <button class="btn-add" (click)="toggleAddMaterial()">
-        <ion-icon name="add-outline"></ion-icon> Agregar
+      <h3 class="section-title">
+        <ion-icon name="library-outline"></ion-icon>
+        {{ esDocente ? 'Mis Materiales' : 'Materiales del Grupo' }}
+      </h3>
+      <button class="btn-add" *ngIf="esDocente" (click)="abrirNuevo()">
+        <ion-icon name="add-outline"></ion-icon>
+        Subir
       </button>
     </div>
 
-    <!-- Form agregar material -->
-    <div class="add-form" *ngIf="showAddMaterial">
-      <div class="form-group">
-        <label>Nombre del material</label>
-        <input type="text" [(ngModel)]="newMaterial.name" placeholder="Ej: Guía de Álgebra" />
+    <!-- Buscador y filtro tipo -->
+    <div class="search-filter-row" *ngIf="materials.length > 0 || searchTerm">
+      <div class="search-wrap">
+        <ion-icon name="search-outline" class="field-icon"></ion-icon>
+        <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar material..." />
+        <ion-icon *ngIf="searchTerm" name="close-circle" class="clear-btn" (click)="searchTerm = ''"></ion-icon>
       </div>
-      <div class="form-row">
-        <div class="half">
-          <label>Materia</label>
-          <select [(ngModel)]="newMaterial.subject">
-            <option value="Matemáticas">Matemáticas</option>
-            <option value="Español">Español</option>
-            <option value="Ciencias">Ciencias</option>
-            <option value="Historia">Historia</option>
-            <option value="Inglés">Inglés</option>
-          </select>
+      <div class="tipo-filter-row">
+        <button class="tipo-chip-btn" [class.active]="filtroTipo === 'TODOS'" (click)="filtroTipo = 'TODOS'">Todos</button>
+        <button class="tipo-chip-btn" [class.active]="filtroTipo === 'PDF'"   (click)="filtroTipo = 'PDF'">PDF</button>
+        <button class="tipo-chip-btn" [class.active]="filtroTipo === 'VIDEO'" (click)="filtroTipo = 'VIDEO'">Video</button>
+        <button class="tipo-chip-btn" [class.active]="filtroTipo === 'LINK'"  (click)="filtroTipo = 'LINK'">Enlace</button>
+        <button class="tipo-chip-btn" [class.active]="filtroTipo === 'IMAGEN'"(click)="filtroTipo = 'IMAGEN'">Imagen</button>
+      </div>
+    </div>
+
+    <!-- ── Formulario nuevo/editar (solo docente) ─────────── -->
+    <div class="mat-form" *ngIf="esDocente && showForm">
+
+      <div class="form-header-row">
+        <h4 class="form-title">{{ editingId ? 'Editar Material' : 'Nuevo Material' }}</h4>
+        <button class="form-close-btn" (click)="solicitarCierre()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <!-- Título -->
+      <div class="form-group">
+        <label>Título del material</label>
+        <div class="input-wrap">
+          <ion-icon name="create-outline" class="field-icon"></ion-icon>
+          <input type="text" [(ngModel)]="newMaterial.titulo" placeholder="Ej: Guía de ecuaciones lineales" />
         </div>
-        <div class="half">
-          <label>Tipo</label>
-          <select [(ngModel)]="newMaterial.type">
-            <option value="PDF">PDF</option>
-            <option value="Video">Video</option>
-            <option value="Enlace">Enlace</option>
-            <option value="Documento">Documento</option>
+      </div>
+
+      <!-- Descripción -->
+      <div class="form-group">
+        <label>Descripción (opcional)</label>
+        <div class="input-wrap textarea-wrap">
+          <textarea [(ngModel)]="newMaterial.descripcion" rows="2" placeholder="De qué trata..."></textarea>
+        </div>
+      </div>
+
+      <!-- Tipo -->
+      <div class="form-group">
+        <label>Tipo de contenido</label>
+        <div class="tipo-selector-form">
+          <button class="tipo-opt" [class.selected]="newMaterial.tipo === 'PDF'"    (click)="newMaterial.tipo = 'PDF'">
+            <ion-icon name="document-text-outline"></ion-icon> PDF
+          </button>
+          <button class="tipo-opt" [class.selected]="newMaterial.tipo === 'VIDEO'"  (click)="newMaterial.tipo = 'VIDEO'">
+            <ion-icon name="videocam-outline"></ion-icon> Video
+          </button>
+          <button class="tipo-opt" [class.selected]="newMaterial.tipo === 'IMAGEN'" (click)="newMaterial.tipo = 'IMAGEN'">
+            <ion-icon name="image-outline"></ion-icon> Imagen
+          </button>
+          <button class="tipo-opt" [class.selected]="newMaterial.tipo === 'LINK'"   (click)="newMaterial.tipo = 'LINK'">
+            <ion-icon name="link-outline"></ion-icon> Enlace
+          </button>
+          <button class="tipo-opt" [class.selected]="newMaterial.tipo === 'OTRO'"   (click)="newMaterial.tipo = 'OTRO'">
+            <ion-icon name="attach-outline"></ion-icon> Otro
+          </button>
+        </div>
+      </div>
+
+      <!-- URL externa (para LINK o VIDEO de YouTube) -->
+      <div class="form-group" *ngIf="newMaterial.tipo === 'LINK' || newMaterial.tipo === 'VIDEO'">
+        <label>URL del contenido</label>
+        <div class="input-wrap">
+          <ion-icon name="link-outline" class="field-icon"></ion-icon>
+          <input type="url" [(ngModel)]="newMaterial.url_externa"
+            placeholder="{{ newMaterial.tipo === 'VIDEO' ? 'https://youtube.com/...' : 'https://...' }}" />
+        </div>
+      </div>
+
+      <!-- Archivo (PDF, imagen, otro) -->
+      <div class="form-group" *ngIf="newMaterial.tipo !== 'LINK'">
+        <label>Archivo{{ newMaterial.tipo === 'VIDEO' ? ' (opcional si usas URL)' : '' }}</label>
+
+        <div class="uploaded-file" *ngIf="archivoExistente && !archivoSeleccionado">
+          <ion-icon name="document-outline" class="file-icon"></ion-icon>
+          <span>Archivo ya guardado</span>
+          <button class="remove-btn" (click)="quitarArchivo()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="file-drop-zone"
+             [class.drag-active]="isDragging"
+             (dragover)="onDragOver($event)"
+             (dragleave)="onDragLeave($event)"
+             (drop)="onDrop($event)"
+             (click)="fileInput.click()"
+             *ngIf="!archivoSeleccionado && !archivoExistente">
+          <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+          <p>Arrastra un archivo o <span>haz clic aquí</span></p>
+          <input #fileInput type="file" hidden (change)="onFileSelected($event)" />
+        </div>
+
+        <div class="uploaded-file" *ngIf="archivoSeleccionado">
+          <ion-icon name="document-outline" class="file-icon"></ion-icon>
+          <span>{{ archivoSeleccionado.name }} ({{ formatSize(archivoSeleccionado.size) }})</span>
+          <button class="remove-btn" (click)="quitarArchivo()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <!-- Progreso de subida -->
+        <div class="upload-progress-wrap" *ngIf="subiendoArchivo">
+          <div class="upload-progress-bar" [style.width.%]="progresoArchivo"></div>
+          <span>Subiendo... {{ progresoArchivo }}%</span>
+        </div>
+      </div>
+
+      <!-- Materia -->
+      <div class="form-group">
+        <label>Materia</label>
+        <div class="select-wrap">
+          <ion-icon name="book-outline" class="field-icon"></ion-icon>
+          <select [(ngModel)]="newMaterial.materiaId" (ngModelChange)="onMateriaChange()"
+            [disabled]="materias.length === 0">
+            <option [ngValue]="null" disabled>Elige una materia</option>
+            <option *ngFor="let m of materias" [ngValue]="m.id">{{ m.nombre }}</option>
           </select>
         </div>
       </div>
 
-      <!-- Zona de archivo -->
-      <div class="file-drop-zone"
-           (dragover)="onDragOver($event)"
-           (dragleave)="onDragLeave($event)"
-           (drop)="onDrop($event)"
-           [class.drag-active]="isDragging"
-           (click)="fileInput.click()">
-        <ion-icon name="cloud-upload-outline"></ion-icon>
-        <p>Arrastra un archivo o <span>haz clic aquí</span></p>
-        <input #fileInput type="file" hidden (change)="onFileSelected($event)" />
-      </div>
-      <div class="uploaded-file" *ngIf="newMaterial.file">
-        <ion-icon name="document-outline"></ion-icon>
-        <span>{{ newMaterial.file.name }} ({{ formatSize(newMaterial.file.size) }})</span>
-        <button (click)="newMaterial.file = null">✕</button>
+      <!-- Grupo -->
+      <div class="form-group" *ngIf="newMaterial.materiaId">
+        <label>Grupo</label>
+        <div class="select-wrap">
+          <ion-icon name="people-outline" class="field-icon"></ion-icon>
+          <select [(ngModel)]="newMaterial.grupoId" [disabled]="cargandoOpts || gruposDeMateria.length === 0">
+            <option [ngValue]="null" disabled>
+              {{ gruposDeMateria.length === 0 ? 'Sin grupos' : 'Elige un grupo' }}
+            </option>
+            <option *ngFor="let g of gruposDeMateria" [ngValue]="g.id">
+              {{ g.grado }}° {{ g.nombre }}
+            </option>
+          </select>
+        </div>
       </div>
 
       <div class="form-actions">
-        <button class="btn-cancel" (click)="showAddMaterial = false">Cancelar</button>
-        <button class="btn-save" (click)="saveMaterial()">Guardar</button>
+        <button class="btn-cancel" (click)="solicitarCierre()">
+          <ion-icon name="close-outline"></ion-icon> Cancelar
+        </button>
+        <button class="btn-save" (click)="guardarMaterial()" [disabled]="guardando">
+          <ion-spinner *ngIf="guardando" name="crescent"></ion-spinner>
+          <ion-icon *ngIf="!guardando" name="checkmark-outline"></ion-icon>
+          {{ guardando ? 'Guardando...' : (editingId ? 'Actualizar' : 'Publicar') }}
+        </button>
       </div>
+
     </div>
 
-    <!-- Lista de materiales -->
-    <div class="material-card" *ngFor="let mat of materials; let i = index">
-      <div class="material-icon" [ngClass]="mat.type.toLowerCase()">
-        {{ getTypeIcon(mat.type) }}
+    <!-- ── Cargando ────────────────────────────────────────── -->
+    <div class="loading-mini" *ngIf="cargando">
+      <ion-spinner name="dots"></ion-spinner>
+    </div>
+
+    <!-- ── Lista de materiales ────────────────────────────── -->
+    <ng-container *ngIf="!cargando">
+
+      <div class="empty-mini" *ngIf="materialesFiltrados.length === 0">
+        <ion-icon name="folder-open-outline"></ion-icon>
+        <p *ngIf="searchTerm || filtroTipo !== 'TODOS'">Sin resultados para este filtro.</p>
+        <p *ngIf="!searchTerm && filtroTipo === 'TODOS' && esDocente">No has subido materiales aún. Toca <strong>Subir</strong> para comenzar.</p>
+        <p *ngIf="!searchTerm && filtroTipo === 'TODOS' && !esDocente">Tus maestros aún no han compartido materiales.</p>
       </div>
-      <div class="material-info">
-        <h4>{{ mat.name }}</h4>
-        <div class="material-meta">
-          <span class="subject-tag" [style.background]="getSubjectColor(mat.subject)">{{ mat.subject }}</span>
-          <span class="type-badge">{{ mat.type }}</span>
+
+      <div class="material-card" *ngFor="let mat of materialesFiltrados">
+        <div class="material-type-icon" [ngClass]="mat.tipo.toLowerCase()">
+          <ion-icon [name]="getTypeIcon(mat.tipo)"></ion-icon>
+        </div>
+        <div class="material-info" (click)="abrirMaterial(mat)">
+          <h4 class="material-name">{{ mat.titulo }}</h4>
+          <p class="material-desc" *ngIf="mat.descripcion">{{ mat.descripcion }}</p>
+          <div class="material-meta">
+            <span class="subject-tag" [style.background]="getTypeColor(mat.tipo)">{{ mat.tipo }}</span>
+            <span class="group-tag">{{ mat.asignatura }}</span>
+            <span class="group-tag muted">{{ mat.grupo }}</span>
+          </div>
+        </div>
+        <div class="material-actions">
+          <button class="mat-action-btn open" (click)="abrirMaterial(mat)"
+            *ngIf="mat.archivo_url || mat.url_externa">
+            <ion-icon name="open-outline"></ion-icon>
+          </button>
+          <button class="mat-action-btn edit" (click)="abrirEditar(mat)" *ngIf="esDocente">
+            <ion-icon name="create-outline"></ion-icon>
+          </button>
+          <button class="mat-action-btn delete" (click)="eliminarMaterial(mat)" *ngIf="esDocente">
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
         </div>
       </div>
-      <div class="material-actions">
-        <button class="btn-action download" (click)="downloadMaterial(mat)">
-          <ion-icon name="download-outline"></ion-icon>
-        </button>
-        <button class="btn-action delete" (click)="deleteMaterial(i)">
-          <ion-icon name="trash-outline"></ion-icon>
-        </button>
-      </div>
-    </div>
 
-    <div class="empty-mini" *ngIf="materials.length === 0">
-      <p>📂 No hay materiales aún. ¡Agrega el primero!</p>
-    </div>
+    </ng-container>
+
   </section>
 
-  <!-- SECCIÓN: Tareas (vinculada) -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!--  SECCIÓN: Tareas vinculadas                           -->
+  <!-- ══════════════════════════════════════════════════════ -->
   <section class="resource-section" id="tareas">
     <div class="section-header">
-      <h2>📝 Tareas Pendientes</h2>
+      <h3 class="section-title">
+        <ion-icon name="document-text-outline"></ion-icon>
+        Tareas
+      </h3>
       <button class="btn-link" (click)="goToTareas()">
         Ver todas <ion-icon name="arrow-forward-outline"></ion-icon>
       </button>
     </div>
-
-    <div class="task-preview-card" *ngFor="let task of recentTasks">
-      <div class="task-status-dot" [ngClass]="task.status"></div>
-      <div class="task-preview-info">
-        <h4>{{ task.title }}</h4>
-        <span class="task-date">
-          <ion-icon name="calendar-outline"></ion-icon> {{ task.date }}
-        </span>
-      </div>
-      <span class="status-badge" [ngClass]="task.status">{{ getStatusLabel(task.status) }}</span>
-    </div>
-
     <div class="go-tasks-banner" (click)="goToTareas()">
-      <div class="banner-content">
-        <ion-icon name="rocket-outline"></ion-icon>
+      <div class="banner-left">
+        <div class="banner-icon-wrap">
+          <ion-icon name="rocket-outline"></ion-icon>
+        </div>
         <div>
-          <h4>Gestiona tus tareas</h4>
-          <p>Crea, edita y organiza todas tus actividades</p>
+          <h4 class="banner-title">{{ esDocente ? 'Gestiona tus tareas' : 'Ver mis tareas' }}</h4>
+          <p class="banner-sub">{{ esDocente ? 'Crea, edita y organiza todas las tareas' : 'Revisa tus entregas pendientes' }}</p>
         </div>
       </div>
       <ion-icon name="chevron-forward-outline" class="banner-arrow"></ion-icon>
     </div>
   </section>
 
-  <!-- SECCIÓN: Contenido Educativo -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!--  SECCIÓN: Contenido Educativo (herramientas externas) -->
+  <!-- ══════════════════════════════════════════════════════ -->
   <section class="resource-section" id="contenido">
     <div class="section-header">
-      <h2>🎓 Contenido Educativo</h2>
+      <h3 class="section-title">
+        <ion-icon name="school-outline"></ion-icon>
+        Herramientas Digitales
+      </h3>
     </div>
-
     <div class="content-grid">
       <div class="content-card" *ngFor="let item of educationalContent" (click)="openContent(item)">
-        <div class="content-thumbnail" [style.background]="item.gradient">
-          <span class="content-emoji">{{ item.icon }}</span>
+        <div class="content-thumbnail">
+          <ion-icon [name]="item.icon" class="content-thumb-icon"></ion-icon>
         </div>
         <div class="content-details">
           <span class="content-category">{{ item.category }}</span>
-          <h4>{{ item.title }}</h4>
-          <p>{{ item.description }}</p>
+          <h4 class="content-title">{{ item.title }}</h4>
+          <p class="content-desc">{{ item.description }}</p>
           <div class="content-footer">
-            <span class="duration"><ion-icon name="time-outline"></ion-icon> {{ item.duration }}</span>
+            <span class="duration">
+              <ion-icon name="time-outline"></ion-icon>
+              {{ item.duration }}
+            </span>
             <span class="level-badge" [ngClass]="item.level">{{ item.level }}</span>
           </div>
         </div>
@@ -178,4 +335,3 @@
   </section>
 
 </ion-content>
-
