@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { SesionService } from '../../services/sesion.service';
 import { CloudinaryService } from '../../services/cloudinary.service';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { environment } from '../../../environments/environment';
+
 
 export type Publico = 'ALUMNOS' | 'PADRES' | 'AMBOS';
 export type Alcance  = 'TODOS' | 'GRUPO' | 'DOCENTES';
@@ -30,7 +33,7 @@ interface MateriaOpt { id: number; nombre: string; clave?: string; }
 })
 
 export class ComunidadPage implements OnInit {
-
+  private supabase: SupabaseClient;
   get esTutor():   boolean { return this.sesion.esTutor(); }
   get esDocente(): boolean { return this.sesion.esDocente(); }
   get esAlumno():  boolean { return this.sesion.esAlumno(); }
@@ -81,7 +84,11 @@ export class ComunidadPage implements OnInit {
   constructor(
     private sesion:     SesionService,
     private cloudinary: CloudinaryService,
-  ) {}
+  ) {
+    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+    });
+  }
 
   ngOnInit() { this.inicializar(); }
 
@@ -453,4 +460,26 @@ export class ComunidadPage implements OnInit {
   doRefresh(event: any) {
     this.cargarComunicados().then(() => event.target.complete());
   }
+  urlArchivo(raw: string | null | undefined): string {
+  if (!raw) return '';
+
+  const idx = raw.indexOf('http');
+  if (idx === 0) return raw;
+  if (idx > 0)  return raw.slice(idx);
+
+  // No trae "http": es un public_id guardado directo (sin resource_type)
+  const cloudName = (environment as any).cloudinaryCloudName;
+  if (!cloudName) return raw;
+
+  const rutaLimpia = raw.replace(/^\/+/, '');
+
+  // Si ya viene con el segmento resource_type/upload incluido, se usa tal cual
+  if (/^(image|raw|video)\/upload\//.test(rutaLimpia)) {
+    return `https://res.cloudinary.com/${cloudName}/${rutaLimpia}`;
+  }
+
+  // Los adjuntos de comunicados se suben todos como resource_type=raw
+  // (confirmado en Cloudinary), así que se asume ese prefijo por defecto
+  return `https://res.cloudinary.com/${cloudName}/raw/upload/${rutaLimpia}`;
+}
 }

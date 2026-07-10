@@ -368,7 +368,7 @@
   <p class="post-text">{{ c.cuerpo }}</p>
 
   <!-- Adjunto -->
-  <a *ngIf="c.adjunto" [href]="c.adjunto" target="_blank" rel="noopener" class="adjunto-link">
+<a *ngIf="c.adjunto" [href]="urlArchivo(c.adjunto)" target="_blank" rel="noopener" class="adjunto-link">
     <ion-icon name="document-attach-outline"></ion-icon>
     Ver adjunto
   </a>
