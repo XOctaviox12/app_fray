@@ -2,6 +2,7 @@
 // CLASE.PAGE.SCSS — Clase en Vivo
 // ============================================
 
+// ── Header ─────────────────────────────────
 .header-toolbar {
   --background: var(--navy-2);
   --color: var(--white);
@@ -22,7 +23,6 @@
   background: linear-gradient(90deg, #ef4444, var(--orange));
 }
 
-// ── Indicador LIVE (header) ───────────────
 .live-badge {
   display: flex;
   align-items: center;
@@ -44,6 +44,23 @@
   background: #ef4444;
   border-radius: 50%;
   animation: pulse-dot 1.2s infinite;
+}
+
+// Badge de borrador en el header
+.borrador-badge-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 20px;
+  padding: 4px 10px;
+
+  ion-icon { font-size: 13px; }
 }
 
 @keyframes pulse-dot {
@@ -147,6 +164,13 @@
   letter-spacing: 0;
 }
 
+.input-hint {
+  font-size: 10px;
+  color: var(--white-35);
+  margin: 6px 0 0;
+  line-height: 1.4;
+}
+
 .input-wrap,
 .select-wrap {
   display: flex;
@@ -192,7 +216,35 @@
   flex-shrink: 0;
 }
 
-// ── Botón iniciar ─────────────────────────
+.no-materias-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 6px 0 0;
+  font-size: 10.5px;
+  color: #f97316;
+  font-weight: 600;
+  ion-icon { font-size: 13px; flex-shrink: 0; }
+}
+
+select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+// ── Acciones del formulario (iniciar / borrador) ──
+.form-actions-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+
+  .btn-iniciar,
+  .btn-borrador {
+    flex: 1;
+    margin-top: 0;
+  }
+}
+
 .btn-iniciar {
   width: 100%;
   display: flex;
@@ -218,6 +270,154 @@
   &[disabled] { opacity: 0.5; cursor: not-allowed; }
 }
 
+.btn-borrador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--white-08);
+  background: transparent;
+  color: var(--white-60);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+
+  ion-icon { font-size: 15px; }
+
+  ion-spinner {
+    width: 16px;
+    height: 16px;
+    --color: var(--orange);
+  }
+
+  &:active {
+    border-color: var(--orange);
+    color: var(--orange);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// ── Borradores guardados ───────────────────
+.borradores-section {
+  margin: 20px 18px 0;
+}
+
+.borradores-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 10px;
+
+  ion-icon { font-size: 15px; color: var(--orange); }
+}
+
+.borrador-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-left: 3px solid #f59e0b;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  backdrop-filter: blur(8px);
+}
+
+.borrador-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.borrador-badge {
+  align-self: flex-start;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin-bottom: 2px;
+}
+
+.borrador-titulo {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--white);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.borrador-meta {
+  font-size: 10.5px;
+  color: var(--white-35);
+  margin: 0;
+}
+
+.borrador-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-borrador-iniciar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+
+  ion-icon { font-size: 14px; }
+
+  ion-spinner {
+    width: 14px;
+    height: 14px;
+    --color: #f59e0b;
+  }
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.btn-borrador-eliminar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #ef4444;
+  cursor: pointer;
+
+  ion-icon { font-size: 17px; }
+}
+
 // ── Barra de control (docente) ────────────
 .control-bar {
   display: flex;
@@ -226,6 +426,11 @@
   background: rgba(239, 68, 68, 0.08);
   border-bottom: 1px solid rgba(239, 68, 68, 0.2);
   padding: 10px 18px;
+
+  &.control-bar-borrador {
+    background: rgba(245, 158, 11, 0.08);
+    border-bottom-color: rgba(245, 158, 11, 0.25);
+  }
 }
 
 .control-bar-info {
@@ -235,6 +440,8 @@
   font-size: 11px;
   font-weight: 600;
   color: #ef4444;
+
+  .control-bar-borrador & { color: #f59e0b; }
 
   ion-icon { font-size: 14px; }
 }
@@ -253,6 +460,80 @@
   cursor: pointer;
 
   ion-icon { font-size: 14px; }
+}
+
+.control-bar-borrador-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-salir-borrador {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--white-08);
+  background: transparent;
+  color: var(--white-60);
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+
+  ion-icon { font-size: 13px; }
+}
+
+.btn-publicar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: var(--white);
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+
+  ion-icon { font-size: 13px; }
+
+  ion-spinner {
+    width: 14px;
+    height: 14px;
+    --color: var(--white);
+  }
+
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+// ── Reutilizar última clase ───────────────
+.btn-reutilizar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: calc(100% - 36px);
+  margin: 12px 18px 0;
+  padding: 11px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed var(--card-border);
+  border-radius: 12px;
+  color: var(--white-35);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+
+  ion-icon { font-size: 15px; }
+
+  ion-spinner {
+    width: 14px;
+    height: 14px;
+    --color: var(--white-35);
+  }
+
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 
 // ── Botones de tipo de bloque ─────────────
@@ -328,11 +609,11 @@
   padding: 14px;
 
   // Colores por tipo
-  &.bloque-texto    { border-left: 3px solid var(--orange); }
-  &.bloque-pdf      { border-left: 3px solid #ef4444; }
-  &.bloque-video    { border-left: 3px solid #8b5cf6; }
-  &.bloque-imagen   { border-left: 3px solid #3b82f6; }
-  &.bloque-link     { border-left: 3px solid #06b6d4; }
+  &.bloque-texto     { border-left: 3px solid var(--orange); }
+  &.bloque-pdf       { border-left: 3px solid #ef4444; }
+  &.bloque-video     { border-left: 3px solid #8b5cf6; }
+  &.bloque-imagen    { border-left: 3px solid #3b82f6; }
+  &.bloque-link      { border-left: 3px solid #06b6d4; }
   &.bloque-actividad { border-left: 3px solid #22c55e; }
 }
 
@@ -341,6 +622,11 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 10px;
+}
+
+.bloque-header-actions {
+  display: flex;
+  gap: 6px;
 }
 
 .bloque-tipo-badge {
@@ -356,6 +642,7 @@
   ion-icon { font-size: 13px; }
 }
 
+.bloque-edit-btn,
 .bloque-delete-btn {
   background: transparent;
   border: none;
@@ -365,11 +652,16 @@
   transition: background 0.2s;
 
   ion-icon { font-size: 16px; color: var(--white-35); }
+}
 
-  &:active {
-    background: rgba(239, 68, 68, 0.1);
-    ion-icon { color: #ef4444; }
-  }
+.bloque-edit-btn:active {
+  background: rgba(255, 107, 0, 0.1);
+  ion-icon { color: var(--orange); }
+}
+
+.bloque-delete-btn:active {
+  background: rgba(239, 68, 68, 0.1);
+  ion-icon { color: #ef4444; }
 }
 
 .bloque-titulo {
@@ -460,6 +752,7 @@
   border: 1px solid rgba(34, 197, 94, 0.2);
   border-radius: 10px;
   padding: 12px;
+  flex-direction: column;
 
   .act-icon {
     font-size: 22px;
@@ -469,11 +762,242 @@
   }
 
   .act-instrucciones {
-    margin: 0;
+    margin: 0 0 4px;
     font-size: 13px;
     color: var(--white-60);
     line-height: 1.5;
   }
+}
+
+// ── Preguntas (vista lectura) ─────────────
+.pregunta-card,
+.pregunta-form-card {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+}
+
+.pregunta-header,
+.pregunta-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.pregunta-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--orange-subtle);
+  color: var(--orange);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pregunta-tipo-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--white-35);
+  font-weight: 700;
+}
+
+.pregunta-texto {
+  font-size: 13px;
+  color: var(--white);
+  margin: 4px 0 8px;
+}
+
+.pregunta-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.opcion-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--white-35);
+}
+
+.opcion-letra {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.pregunta-respuesta-corta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--white-35);
+}
+
+// ── Editor de actividad (modal) ───────────
+.modo-toggle-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.modo-toggle-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: transparent;
+  color: var(--white-35);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.active {
+    background: var(--orange-subtle);
+    border-color: var(--orange-glow);
+    color: var(--orange);
+  }
+}
+
+.opciones-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.opcion-editor-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.agregar-opcion-btn,
+.agregar-pregunta-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  background: transparent;
+  border: 1px dashed var(--card-border);
+  border-radius: 8px;
+  color: var(--orange);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.agregar-pregunta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.vf-editor {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.vf-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--white);
+}
+
+.quitar-pregunta-btn,
+.quitar-opcion-btn {
+  background: transparent;
+  border: none;
+  color: var(--white-35);
+  cursor: pointer;
+}
+
+// ── Subida de archivo (PDF / video / imagen) ──
+.file-upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 28px 16px;
+  border: 1.5px dashed var(--card-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+
+  &:active {
+    border-color: var(--orange);
+    background: rgba(255, 107, 0, 0.05);
+  }
+}
+
+.upload-icon {
+  font-size: 28px;
+  color: var(--orange);
+}
+
+.upload-text {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--white);
+  word-break: break-all;
+}
+
+.upload-hint {
+  margin: 0;
+  font-size: 10px;
+  color: var(--white-35);
+}
+
+.file-progress-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.file-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--orange), #ef4444);
+  transition: width 0.2s ease;
+}
+
+.opciones-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ef4444;
+
+  ion-icon { font-size: 14px; flex-shrink: 0; }
 }
 
 // ── Vista alumno ──────────────────────────
@@ -550,11 +1074,6 @@
   color: var(--white-35);
   text-align: center;
   margin: 0;
-}
-
-@keyframes pulse-ring {
-  0%   { transform: scale(0.8); opacity: 1; }
-  100% { transform: scale(1.6); opacity: 0; }
 }
 
 // ── Empty / Error states ──────────────────
@@ -678,23 +1197,12 @@
   height: 16px;
   --color: var(--white);
 }
-// ── Hint sin materias ─────────────────────
-.no-materias-hint {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin: 6px 0 0;
-  font-size: 10.5px;
-  color: #f97316;
-  font-weight: 600;
-  ion-icon { font-size: 13px; flex-shrink: 0; }
-}
-
-select:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 // ── Animaciones ───────────────────────────
+@keyframes pulse-ring {
+  0%   { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
 @keyframes fade-in  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slide-up { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }

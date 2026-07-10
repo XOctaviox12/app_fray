@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { SesionService } from '../../services/sesion.service';
+import { CloudinaryService } from '../../services/cloudinary.service';
 import { createClient, SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
 import { environment } from 'src/environments/environment';
 
@@ -18,6 +19,7 @@ export interface BloqueClase {
 
 export const ESTADO_SESION_ACTIVA = 'ACTIVA';
 export const ESTADO_SESION_FINALIZADA = 'FINALIZADA';
+export const ESTADO_SESION_BORRADOR = 'BORRADOR';
 
 export interface SesionClase {
   id?: number;
@@ -25,9 +27,16 @@ export interface SesionClase {
   grupo_id: number;
   asignatura_id: number;
   titulo: string;
-  estado: string;      // ← antes: activa: boolean
+  estado: string;
   fecha: string;
   creada_en?: string;
+}
+
+// Borrador con nombres resueltos para mostrar en la lista, sin tener que
+// volver a cruzar tablas cada vez que se pinta la card.
+export interface SesionBorrador extends SesionClase {
+  grupo_nombre?: string;
+  asignatura_nombre?: string;
 }
 
 export type PeriodoTipo = 'SEMANA' | 'QUINCENA' | 'MES' | 'BIMESTRE' | 'SEMESTRE' | 'ANUAL';
@@ -47,7 +56,6 @@ export interface PlanClase {
   publicado: boolean;
   creado_en?: string;
   actualizado_en?: string;
-  // campos calculados para mostrar en la lista (no existen en la tabla)
   asignatura_nombre?: string;
   grupo_nombre?: string;
   totalTemas?: number;
@@ -68,6 +76,22 @@ export interface TemaClase {
   notas_docente: string;
 }
 
+// ── Actividad estructurada (se guarda como JSON dentro de `contenido`) ──
+export type TipoPregunta = 'opcion_multiple' | 'verdadero_falso' | 'respuesta_corta';
+
+export interface PreguntaActividad {
+  id: string;
+  tipo: TipoPregunta;
+  pregunta: string;
+  opciones?: string[];        // solo opcion_multiple
+  respuestaCorrecta?: number | boolean | string | null;
+}
+
+export interface ActividadContenido {
+  instrucciones: string;
+  preguntas: PreguntaActividad[];
+}
+
 @Component({
   standalone: false,
   selector: 'app-clase',
@@ -79,24 +103,42 @@ export class ClasePage implements OnInit, OnDestroy {
   cargando    = true;
   error: string | null = null;
 
-  // Segmento principal (solo docente): 'planes' | 'vivo'
   segmento: 'planes' | 'vivo' = 'planes';
 
   // ── EN VIVO ─────────────────────────────────────────
   sesionActiva: SesionClase | null = null;
   bloques: BloqueClase[] = [];
 
-  // Selector docente (compartido: se usa tanto para iniciar sesión en vivo
-  // como para crear/editar un plan — ambos necesitan grupo + materia)
   misGrupos:      any[] = [];
   misAsignaturas: any[] = [];
   grupoSeleccionado:      number | null = null;
   asignaturaSeleccionada: number | null = null;
   tituloSesion = '';
 
+  // ── Reutilizar clase anterior ──
+  cargandoReutilizar = false;
+
+  // ── Borradores de clase ──
+  misBorradores: SesionBorrador[] = [];
+  guardandoBorrador = false;
+  publicandoBorrador = false;
+
+  // ── Modal de bloque (crear / editar) ──
   mostrarModalBloque = false;
+  editandoBloque: BloqueClase | null = null;
   nuevoBloque: Partial<BloqueClase> = { tipo: 'texto', contenido: '', titulo: '', activo: true };
   guardandoBloque = false;
+
+  // Subida de archivo (pdf/video/imagen)
+  modoUrlExterna = false;   // false = subir archivo, true = pegar URL
+  archivoSeleccionado: File | null = null;
+  subiendoArchivo = false;
+  progresoArchivo = 0;
+  errorArchivo = '';
+
+  // Preguntas de actividad (estado editable del modal)
+  actividadInstrucciones = '';
+  preguntasActividad: PreguntaActividad[] = [];
 
   private canal: RealtimeChannel | null = null;
   private supabase: SupabaseClient;
@@ -125,7 +167,10 @@ export class ClasePage implements OnInit, OnDestroy {
     { value: 'ANUAL',    label: 'Anual' },
   ];
 
-  constructor(public sesion: SesionService) {
+  constructor(
+    public sesion: SesionService,
+    private cloudinary: CloudinaryService,
+  ) {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
     });
@@ -137,11 +182,23 @@ export class ClasePage implements OnInit, OnDestroy {
   get esDocente(): boolean { return this.sesion.esDocente(); }
   get esAlumno():  boolean { return this.sesion.esAlumno(); }
 
+  // El panel de bloques (tipo-btns-row + bloques-container) se muestra igual
+  // para una clase EN VIVO y para un borrador en edición — la diferencia es
+  // solo de estado interno; los alumnos jamás ven un borrador porque su
+  // consulta filtra siempre por estado = ACTIVA.
+  get claseEnVivo(): boolean {
+    return this.sesionActiva?.estado === ESTADO_SESION_ACTIVA;
+  }
+  get esBorradorEnEdicion(): boolean {
+    return this.sesionActiva?.estado === ESTADO_SESION_BORRADOR;
+  }
+
   async inicializar() {
     this.cargando = true;
     if (this.esDocente) {
       await this.cargarGruposDocente();
       await this.buscarSesionActivaDocente();
+      await this.cargarBorradores();
       await this.cargarPlanes();
     } else {
       await this.buscarSesionActivaAlumno();
@@ -155,51 +212,46 @@ export class ClasePage implements OnInit, OnDestroy {
   }
 
   // ═══════════════════════════════════════════════════
-  //  DOCENTE — grupos y asignaturas (compartido)
+  //  DOCENTE — grupos y asignaturas
   // ═══════════════════════════════════════════════════
 
-async cargarGruposDocente() {
-  const docenteId = this.sesion.usuario?.id;
-  if (!docenteId) return;
+  async cargarGruposDocente() {
+    const docenteId = this.sesion.usuario?.id;
+    if (!docenteId) return;
 
-  // 1. Materias que realmente imparte el docente
-  const { data: relAsig } = await this.supabase
-    .from('academic_asignatura_docentes')
-    .select('asignatura_id')
-    .eq('user_id', docenteId);
+    const { data: relAsig } = await this.supabase
+      .from('academic_asignatura_docentes')
+      .select('asignatura_id')
+      .eq('user_id', docenteId);
 
-  this.asignaturasDocente = (relAsig || []).map((r: any) => r.asignatura_id);
-  if (!this.asignaturasDocente.length) { this.misGrupos = []; return; }
+    this.asignaturasDocente = (relAsig || []).map((r: any) => r.asignatura_id);
+    if (!this.asignaturasDocente.length) { this.misGrupos = []; return; }
 
-  // 2. Grupos donde se imparte alguna de esas materias
-  const { data: relGM } = await this.supabase
-    .from('academic_asignatura_grupos')
-    .select('grupo_id')
-    .in('asignatura_id', this.asignaturasDocente);
+    const { data: relGM } = await this.supabase
+      .from('academic_asignatura_grupos')
+      .select('grupo_id')
+      .in('asignatura_id', this.asignaturasDocente);
 
-  const grupoIdsPorMateria = [...new Set((relGM || []).map((r: any) => r.grupo_id))];
-  if (!grupoIdsPorMateria.length) { this.misGrupos = []; return; }
+    const grupoIdsPorMateria = [...new Set((relGM || []).map((r: any) => r.grupo_id))];
+    if (!grupoIdsPorMateria.length) { this.misGrupos = []; return; }
 
-  // 3. Intersección con los grupos formalmente asignados al docente
-  //    (academic_grupo_docentes), para no mostrar grupos donde la materia
-  //    se imparte pero él no está asignado como docente de ese grupo.
-  const { data: relGrupos } = await this.supabase
-    .from('academic_grupo_docentes')
-    .select('grupo_id')
-    .eq('user_id', docenteId)
-    .in('grupo_id', grupoIdsPorMateria);
+    const { data: relGrupos } = await this.supabase
+      .from('academic_grupo_docentes')
+      .select('grupo_id')
+      .eq('user_id', docenteId)
+      .in('grupo_id', grupoIdsPorMateria);
 
-  const grupoIdsFinal = [...new Set((relGrupos || []).map((r: any) => r.grupo_id))];
-  if (!grupoIdsFinal.length) { this.misGrupos = []; return; }
+    const grupoIdsFinal = [...new Set((relGrupos || []).map((r: any) => r.grupo_id))];
+    if (!grupoIdsFinal.length) { this.misGrupos = []; return; }
 
-  const { data: grupos } = await this.supabase
-    .from('academic_grupo')
-    .select('id, nombre, grado')
-    .in('id', grupoIdsFinal)
-    .order('grado');
+    const { data: grupos } = await this.supabase
+      .from('academic_grupo')
+      .select('id, nombre, grado')
+      .in('id', grupoIdsFinal)
+      .order('grado');
 
-  this.misGrupos = grupos || [];
-}
+    this.misGrupos = grupos || [];
+  }
 
   async onGrupoChange() {
     this.asignaturaSeleccionada = null;
@@ -234,95 +286,309 @@ async cargarGruposDocente() {
   //  EN VIVO — sesión activa
   // ═══════════════════════════════════════════════════
 
-async buscarSesionActivaDocente() {
-  const docenteId = this.sesion.usuario?.id;
-  const { data } = await this.supabase
-    .from('academic_sesionclase')
-    .select('*')
-    .eq('docente_id', docenteId)
-    .eq('estado', ESTADO_SESION_ACTIVA)
-    .order('creada_en', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  async buscarSesionActivaDocente() {
+    const docenteId = this.sesion.usuario?.id;
+    const { data } = await this.supabase
+      .from('academic_sesionclase')
+      .select('*')
+      .eq('docente_id', docenteId)
+      .eq('estado', ESTADO_SESION_ACTIVA)
+      .order('creada_en', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-  if (data) {
+    if (data) {
+      this.sesionActiva = data;
+      await this.cargarBloques();
+      this.suscribirRealtime();
+    }
+  }
+
+  async buscarSesionActivaAlumno() {
+    const alumnoId = this.sesion.usuario?.id;
+
+    const { data: usu } = await this.supabase
+      .from('users_user')
+      .select('alumno_grupo_id')
+      .eq('id', alumnoId)
+      .single();
+
+    const grupoId = (usu as any)?.alumno_grupo_id;
+    if (!grupoId) { this.error = 'No tienes grupo asignado.'; return; }
+
+    const { data } = await this.supabase
+      .from('academic_sesionclase')
+      .select('*')
+      .eq('grupo_id', grupoId)
+      .eq('estado', ESTADO_SESION_ACTIVA)
+      .order('creada_en', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (data) {
+      this.sesionActiva = data;
+      await this.cargarBloques();
+      this.suscribirRealtime();
+    }
+  }
+
+  async iniciarSesion() {
+    if (!this.grupoSeleccionado || !this.asignaturaSeleccionada || !this.tituloSesion.trim()) return;
+
+    const nueva: Omit<SesionClase, 'id' | 'creada_en'> = {
+      docente_id:    this.sesion.usuario!.id,
+      grupo_id:      this.grupoSeleccionado,
+      asignatura_id: this.asignaturaSeleccionada,
+      titulo:        this.tituloSesion.trim(),
+      estado:        ESTADO_SESION_ACTIVA,
+      fecha:         new Date().toISOString().split('T')[0],
+    };
+
+    const { data, error } = await this.supabase
+      .from('academic_sesionclase')
+      .insert(nueva)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error insertando sesión:', error.message);
+      return;
+    }
+
     this.sesionActiva = data;
+    this.bloques = [];
+    this.suscribirRealtime();
+  }
+
+  async terminarSesion() {
+    if (!this.sesionActiva?.id) return;
+    await this.supabase
+      .from('academic_sesionclase')
+      .update({ estado: ESTADO_SESION_FINALIZADA })
+      .eq('id', this.sesionActiva.id);
+
+    this.desuscribir();
+    this.sesionActiva = null;
+    this.bloques = [];
+    this.tituloSesion = '';
+    this.grupoSeleccionado = null;
+    this.asignaturaSeleccionada = null;
+    this.misAsignaturas = [];
+  }
+
+  // ─────────────────────────────────────────────
+  // BORRADORES (guardar la configuración de una clase para iniciarla después)
+  // ─────────────────────────────────────────────
+
+  async cargarBorradores() {
+    const docenteId = this.sesion.usuario?.id;
+    if (!docenteId) return;
+
+    const { data, error } = await this.supabase
+      .from('academic_sesionclase')
+      .select('*')
+      .eq('docente_id', docenteId)
+      .eq('estado', ESTADO_SESION_BORRADOR)
+      .order('creada_en', { ascending: false });
+
+    if (error) {
+      console.error('Error cargando borradores:', error.message);
+      this.misBorradores = [];
+      return;
+    }
+
+    const borradores = data || [];
+    if (!borradores.length) { this.misBorradores = []; return; }
+
+    const grupoIds = [...new Set(borradores.map((b: any) => b.grupo_id))];
+    const asigIds  = [...new Set(borradores.map((b: any) => b.asignatura_id))];
+
+    let grupoMap: Record<number, string> = {};
+    let asigMap:  Record<number, string> = {};
+
+    if (grupoIds.length) {
+      const { data: grupos } = await this.supabase
+        .from('academic_grupo')
+        .select('id, nombre, grado')
+        .in('id', grupoIds);
+      (grupos || []).forEach((g: any) => { grupoMap[g.id] = `${g.grado}° — Grupo ${g.nombre}`; });
+    }
+    if (asigIds.length) {
+      const { data: asigs } = await this.supabase
+        .from('academic_asignatura')
+        .select('id, nombre')
+        .in('id', asigIds);
+      (asigs || []).forEach((a: any) => { asigMap[a.id] = a.nombre; });
+    }
+
+    this.misBorradores = borradores.map((b: any) => ({
+      ...b,
+      grupo_nombre:      grupoMap[b.grupo_id]       || 'Grupo no encontrado',
+      asignatura_nombre: asigMap[b.asignatura_id]   || 'Materia no encontrada',
+    }));
+  }
+
+  // Guarda la configuración actual del formulario (grupo, materia, título)
+  // como borrador, sin activarla ni notificar a los alumnos.
+  async guardarBorrador() {
+    if (!this.grupoSeleccionado || !this.asignaturaSeleccionada || !this.tituloSesion.trim()) return;
+    this.guardandoBorrador = true;
+
+    const nuevo: Omit<SesionClase, 'id' | 'creada_en'> = {
+      docente_id:    this.sesion.usuario!.id,
+      grupo_id:      this.grupoSeleccionado,
+      asignatura_id: this.asignaturaSeleccionada,
+      titulo:        this.tituloSesion.trim(),
+      estado:        ESTADO_SESION_BORRADOR,
+      fecha:         new Date().toISOString().split('T')[0],
+    };
+
+    const { error } = await this.supabase
+      .from('academic_sesionclase')
+      .insert(nuevo);
+
+    this.guardandoBorrador = false;
+
+    if (error) {
+      console.error('Error guardando borrador:', error.message);
+      alert('No se pudo guardar el borrador: ' + error.message);
+      return;
+    }
+
+    // Limpiar el formulario y refrescar la lista
+    this.tituloSesion = '';
+    this.grupoSeleccionado = null;
+    this.asignaturaSeleccionada = null;
+    this.misAsignaturas = [];
+    await this.cargarBorradores();
+  }
+
+  // Abre el borrador en el MISMO panel que una clase en vivo (botones de
+  // texto/pdf/video/imagen/link/actividad + lista de bloques) para que el
+  // docente pueda preparar el contenido con calma. El estado sigue siendo
+  // BORRADOR, así que los alumnos no ven nada todavía — su consulta solo
+  // trae sesiones con estado = ACTIVA.
+  async abrirBorrador(b: SesionBorrador) {
+    if (!b.id || this.sesionActiva) return;
+
+    this.sesionActiva = { ...b };
+    this.bloques = [];
     await this.cargarBloques();
     this.suscribirRealtime();
   }
-}
 
-async buscarSesionActivaAlumno() {
-  const alumnoId = this.sesion.usuario?.id;
+  // Convierte el borrador que se está editando en sesión ACTIVA — a partir
+  // de este momento los alumnos sí ven el título y el contenido ya cargado.
+  async publicarBorrador() {
+    if (!this.sesionActiva?.id || this.sesionActiva.estado !== ESTADO_SESION_BORRADOR) return;
+    this.publicandoBorrador = true;
 
-  const { data: usu } = await this.supabase
-    .from('users_user')
-    .select('alumno_grupo_id')
-    .eq('id', alumnoId)
-    .single();
+    const { data, error } = await this.supabase
+      .from('academic_sesionclase')
+      .update({
+        estado: ESTADO_SESION_ACTIVA,
+        fecha: new Date().toISOString().split('T')[0],
+      })
+      .eq('id', this.sesionActiva.id)
+      .select()
+      .single();
 
-  const grupoId = (usu as any)?.alumno_grupo_id;
-  if (!grupoId) { this.error = 'No tienes grupo asignado.'; return; }
+    this.publicandoBorrador = false;
 
-  const { data } = await this.supabase
-    .from('academic_sesionclase')
-    .select('*')
-    .eq('grupo_id', grupoId)
-    .eq('estado', ESTADO_SESION_ACTIVA)
-    .order('creada_en', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    if (error) {
+      console.error('Error publicando borrador:', error.message);
+      alert('No se pudo publicar la clase: ' + error.message);
+      return;
+    }
 
-  if (data) {
     this.sesionActiva = data;
-    await this.cargarBloques();
-    this.suscribirRealtime();
-  }
-}
-
-async iniciarSesion() {
-  if (!this.grupoSeleccionado || !this.asignaturaSeleccionada || !this.tituloSesion.trim()) return;
-
-  const nueva: Omit<SesionClase, 'id' | 'creada_en'> = {
-    docente_id:    this.sesion.usuario!.id,
-    grupo_id:      this.grupoSeleccionado,
-    asignatura_id: this.asignaturaSeleccionada,
-    titulo:        this.tituloSesion.trim(),
-    estado:        ESTADO_SESION_ACTIVA,
-    fecha:         new Date().toISOString().split('T')[0],
-  };
-
-  const { data, error } = await this.supabase
-    .from('academic_sesionclase')
-    .insert(nueva)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error insertando sesión:', error.message, error.details, error.hint, error.code);
-    return;
+    this.misBorradores = this.misBorradores.filter(x => x.id !== data.id);
   }
 
-  this.sesionActiva = data;
-  this.bloques = [];
-  this.suscribirRealtime();
-}
+  // Sale del modo edición sin publicar. El borrador y todo lo que ya se
+  // agregó (bloques) quedan guardados tal cual para retomarlos después.
+  salirDeBorrador() {
+    this.desuscribir();
+    this.sesionActiva = null;
+    this.bloques = [];
+  }
 
-async terminarSesion() {
-  if (!this.sesionActiva?.id) return;
-  await this.supabase
-    .from('academic_sesionclase')
-    .update({ estado: ESTADO_SESION_FINALIZADA })
-    .eq('id', this.sesionActiva.id);
+  async eliminarBorrador(b: SesionBorrador) {
+    if (!b.id) return;
+    const { error } = await this.supabase
+      .from('academic_sesionclase')
+      .delete()
+      .eq('id', b.id);
 
-  this.desuscribir();
-  this.sesionActiva = null;
-  this.bloques = [];
-  this.tituloSesion = '';
-  this.grupoSeleccionado = null;
-  this.asignaturaSeleccionada = null;
-  this.misAsignaturas = [];
-}
+    if (error) {
+      console.error('Error eliminando borrador:', error.message);
+      return;
+    }
+    this.misBorradores = this.misBorradores.filter(x => x.id !== b.id);
+  }
+
+  // ─────────────────────────────────────────────
+  // REUTILIZAR ÚLTIMA CLASE (sin tabla nueva)
+  // ─────────────────────────────────────────────
+  async reutilizarUltimaClase() {
+    if (!this.sesionActiva?.id) return;
+    this.cargandoReutilizar = true;
+
+    try {
+      const { data: anterior, error: eAnt } = await this.supabase
+        .from('academic_sesionclase')
+        .select('id')
+        .eq('docente_id', this.sesion.usuario!.id)
+        .eq('grupo_id', this.sesionActiva.grupo_id)
+        .eq('asignatura_id', this.sesionActiva.asignatura_id)
+        .eq('estado', ESTADO_SESION_FINALIZADA)
+        .neq('id', this.sesionActiva.id)
+        .order('creada_en', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (eAnt) throw eAnt;
+      if (!anterior) {
+        alert('No hay una clase anterior de este grupo y materia para reutilizar.');
+        return;
+      }
+
+      const { data: bloquesAnteriores, error: eBloq } = await this.supabase
+        .from('academic_bloqueclase')
+        .select('*')
+        .eq('sesion_id', anterior.id)
+        .eq('activo', true)
+        .order('orden');
+
+      if (eBloq) throw eBloq;
+      if (!bloquesAnteriores?.length) {
+        alert('La clase anterior no tenía contenido guardado.');
+        return;
+      }
+
+      const copias = bloquesAnteriores.map((b: any) => ({
+        sesion_id: this.sesionActiva!.id,
+        tipo: b.tipo,
+        contenido: b.contenido,
+        orden: b.orden,
+        titulo: b.titulo || '',
+        activo: true,
+        creado_en: new Date().toISOString(),
+      }));
+
+      const { error: eIns } = await this.supabase
+        .from('academic_bloqueclase')
+        .insert(copias);
+
+      if (eIns) throw eIns;
+      await this.cargarBloques();
+    } catch (e: any) {
+      console.error('Error reutilizando clase anterior:', e.message);
+      alert('No se pudo reutilizar la clase anterior: ' + e.message);
+    } finally {
+      this.cargandoReutilizar = false;
+    }
+  }
 
   // ═══════════════════════════════════════════════════
   //  BLOQUES (en vivo)
@@ -340,7 +606,9 @@ async terminarSesion() {
     this.bloques = data || [];
   }
 
+  // ── Abrir modal para CREAR ──
   abrirModalBloque(tipo: BloqueType = 'texto') {
+    this.editandoBloque = null;
     this.nuevoBloque = {
       tipo,
       contenido: '',
@@ -349,25 +617,208 @@ async terminarSesion() {
       orden: this.bloques.length + 1,
       sesion_id: this.sesionActiva!.id!,
     };
+    this.resetEstadoArchivo();
+    this.resetEstadoActividad();
     this.mostrarModalBloque = true;
   }
 
-  cerrarModal() { this.mostrarModalBloque = false; }
+  // ── Abrir modal para EDITAR ──
+  editarBloque(b: BloqueClase) {
+    this.editandoBloque = b;
+    this.nuevoBloque = { ...b };
+    this.resetEstadoArchivo();
 
+    if (b.tipo === 'actividad') {
+      this.cargarActividadEnFormulario(b.contenido);
+    } else {
+      this.resetEstadoActividad();
+      // Si el contenido ya es una URL (viene de una subida previa o link externo),
+      // lo mostramos en modo "URL externa" para que se pueda editar como texto.
+      if (['pdf', 'video', 'imagen'].includes(b.tipo)) {
+        this.modoUrlExterna = true;
+      }
+    }
+    this.mostrarModalBloque = true;
+  }
+
+  cerrarModal() {
+    this.mostrarModalBloque = false;
+    this.editandoBloque = null;
+    this.resetEstadoArchivo();
+    this.resetEstadoActividad();
+  }
+
+  private resetEstadoArchivo() {
+    this.modoUrlExterna = false;
+    this.archivoSeleccionado = null;
+    this.subiendoArchivo = false;
+    this.progresoArchivo = 0;
+    this.errorArchivo = '';
+  }
+
+  private resetEstadoActividad() {
+    this.actividadInstrucciones = '';
+    this.preguntasActividad = [];
+  }
+
+  toggleModoUrl() {
+    this.modoUrlExterna = !this.modoUrlExterna;
+    this.archivoSeleccionado = null;
+    this.errorArchivo = '';
+  }
+
+  // ── Selección y subida de archivo (pdf/video/imagen) ──
+  onArchivoSeleccionado(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const maxMB = this.nuevoBloque.tipo === 'video' ? 100 : 20;
+    if (file.size / 1048576 > maxMB) {
+      this.errorArchivo = `El archivo supera ${maxMB}MB.`;
+      input.value = '';
+      return;
+    }
+
+    this.archivoSeleccionado = file;
+    this.errorArchivo = '';
+  }
+
+  quitarArchivoSeleccionado() {
+    this.archivoSeleccionado = null;
+  }
+
+  // ── Preguntas de actividad ──
+  agregarPregunta(tipo: TipoPregunta) {
+    const nueva: PreguntaActividad = {
+      id: `p${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      tipo,
+      pregunta: '',
+      opciones: tipo === 'opcion_multiple' ? ['', ''] : undefined,
+      respuestaCorrecta: tipo === 'verdadero_falso' ? true : (tipo === 'opcion_multiple' ? 0 : ''),
+    };
+    this.preguntasActividad.push(nueva);
+  }
+
+  quitarPregunta(i: number) {
+    this.preguntasActividad.splice(i, 1);
+  }
+
+  agregarOpcion(pregunta: PreguntaActividad) {
+    if (!pregunta.opciones) pregunta.opciones = [];
+    pregunta.opciones.push('');
+  }
+
+  quitarOpcion(pregunta: PreguntaActividad, i: number) {
+    pregunta.opciones?.splice(i, 1);
+    if (typeof pregunta.respuestaCorrecta === 'number' && pregunta.respuestaCorrecta >= (pregunta.opciones?.length || 0)) {
+      pregunta.respuestaCorrecta = 0;
+    }
+  }
+
+  private cargarActividadEnFormulario(contenidoRaw: string) {
+    try {
+      const parsed: ActividadContenido = JSON.parse(contenidoRaw);
+      this.actividadInstrucciones = parsed.instrucciones || '';
+      this.preguntasActividad = parsed.preguntas || [];
+    } catch {
+      // Contenido viejo en texto plano (antes de este cambio): lo tratamos
+      // como instrucciones sin preguntas, para no perder el dato existente.
+      this.actividadInstrucciones = contenidoRaw || '';
+      this.preguntasActividad = [];
+    }
+  }
+
+  private serializarActividad(): string {
+    const data: ActividadContenido = {
+      instrucciones: this.actividadInstrucciones.trim(),
+      preguntas: this.preguntasActividad
+        .filter(p => p.pregunta.trim())
+        .map(p => ({
+          ...p,
+          opciones: p.opciones?.map(o => o.trim()).filter(Boolean),
+        })),
+    };
+    return JSON.stringify(data);
+  }
+
+  actividadValida(): boolean {
+    if (!this.actividadInstrucciones.trim() && this.preguntasActividad.length === 0) return false;
+    for (const p of this.preguntasActividad) {
+      if (!p.pregunta.trim()) return false;
+      if (p.tipo === 'opcion_multiple') {
+        const validas = (p.opciones || []).filter(o => o.trim());
+        if (validas.length < 2) return false;
+      }
+    }
+    return true;
+  }
+
+  // ── Guardar (crear o actualizar) ──
   async guardarBloque() {
-    if (!this.nuevoBloque.contenido?.trim() && this.nuevoBloque.tipo !== 'actividad') return;
+    const tipo = this.nuevoBloque.tipo!;
+
+    // Validaciones por tipo
+    if (tipo === 'texto' && !this.nuevoBloque.contenido?.trim()) return;
+    if (tipo === 'link' && !this.nuevoBloque.contenido?.trim()) return;
+    if (tipo === 'actividad' && !this.actividadValida()) return;
+    if (['pdf', 'video', 'imagen'].includes(tipo)) {
+      const hayUrl = this.modoUrlExterna && this.nuevoBloque.contenido?.trim();
+      const hayArchivoNuevo = !this.modoUrlExterna && this.archivoSeleccionado;
+      const hayContenidoPrevio = !!this.editandoBloque && !hayArchivoNuevo && !!this.nuevoBloque.contenido;
+      if (!hayUrl && !hayArchivoNuevo && !hayContenidoPrevio) return;
+    }
+
     this.guardandoBloque = true;
 
-    const { error } = await this.supabase
-      .from('academic_bloqueclase')
-      .insert({ ...this.nuevoBloque });
+    try {
+      let contenidoFinal = this.nuevoBloque.contenido || '';
 
-    this.guardandoBloque = false;
-    if (!error) {
+      if (tipo === 'actividad') {
+        contenidoFinal = this.serializarActividad();
+      } else if (['pdf', 'video', 'imagen'].includes(tipo) && !this.modoUrlExterna && this.archivoSeleccionado) {
+        this.subiendoArchivo = true;
+        const subido = await this.cloudinary.subirArchivo(
+          this.archivoSeleccionado,
+          pct => this.progresoArchivo = pct
+        );
+        contenidoFinal = subido.url;
+        this.subiendoArchivo = false;
+      }
+
+      if (this.editandoBloque) {
+        const { error } = await this.supabase
+          .from('academic_bloqueclase')
+          .update({
+            titulo: this.nuevoBloque.titulo || '',
+            contenido: contenidoFinal,
+          })
+          .eq('id', this.editandoBloque.id!);
+        if (error) throw error;
+      } else {
+        const { error } = await this.supabase
+          .from('academic_bloqueclase')
+          .insert({
+            sesion_id: this.nuevoBloque.sesion_id,
+            tipo,
+            contenido: contenidoFinal,
+            titulo: this.nuevoBloque.titulo || '',
+            orden: this.nuevoBloque.orden,
+            activo: true,
+            creado_en: new Date().toISOString(),
+          });
+        if (error) throw error;
+      }
+
       this.mostrarModalBloque = false;
+      this.editandoBloque = null;
       await this.cargarBloques();
-    } else {
-      console.error('Error guardando bloque:', error.message);
+    } catch (e: any) {
+      console.error('Error guardando bloque:', e.message);
+      this.errorArchivo = 'No se pudo guardar: ' + e.message;
+    } finally {
+      this.guardandoBloque = false;
+      this.subiendoArchivo = false;
     }
   }
 
@@ -379,34 +830,52 @@ async terminarSesion() {
     this.bloques = this.bloques.filter(b => b.id !== bloque.id);
   }
 
+  // ── Helpers para render de actividad en la lista de bloques ──
+  parsearActividad(contenidoRaw: string): ActividadContenido {
+    try {
+      return JSON.parse(contenidoRaw);
+    } catch {
+      return { instrucciones: contenidoRaw || '', preguntas: [] };
+    }
+  }
+
+  etiquetaTipoPregunta(tipo: TipoPregunta): string {
+    const map: Record<TipoPregunta, string> = {
+      opcion_multiple: 'Opción múltiple',
+      verdadero_falso: 'Verdadero / Falso',
+      respuesta_corta: 'Respuesta corta',
+    };
+    return map[tipo];
+  }
+
   // ═══════════════════════════════════════════════════
   //  REALTIME
   // ═══════════════════════════════════════════════════
 
-suscribirRealtime() {
-  if (!this.sesionActiva?.id) return;
-  this.desuscribir();
+  suscribirRealtime() {
+    if (!this.sesionActiva?.id) return;
+    this.desuscribir();
 
-  this.canal = this.supabase
-    .channel(`clase-${this.sesionActiva.id}`)
-    .on('postgres_changes', {
-      event: '*', schema: 'public',
-      table: 'academic_bloqueclase',
-      filter: `sesion_id=eq.${this.sesionActiva.id}`,
-    }, () => { this.cargarBloques(); })
-    .on('postgres_changes', {
-      event: 'UPDATE', schema: 'public',
-      table: 'academic_sesionclase',
-      filter: `id=eq.${this.sesionActiva!.id}`,
-    }, (payload: any) => {
-      if (payload.new?.estado !== ESTADO_SESION_ACTIVA) {
-        this.sesionActiva = null;
-        this.bloques = [];
-        this.desuscribir();
-      }
-    })
-    .subscribe();
-}
+    this.canal = this.supabase
+      .channel(`clase-${this.sesionActiva.id}`)
+      .on('postgres_changes', {
+        event: '*', schema: 'public',
+        table: 'academic_bloqueclase',
+        filter: `sesion_id=eq.${this.sesionActiva.id}`,
+      }, () => { this.cargarBloques(); })
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public',
+        table: 'academic_sesionclase',
+        filter: `id=eq.${this.sesionActiva!.id}`,
+      }, (payload: any) => {
+        if (payload.new?.estado !== ESTADO_SESION_ACTIVA) {
+          this.sesionActiva = null;
+          this.bloques = [];
+          this.desuscribir();
+        }
+      })
+      .subscribe();
+  }
 
   desuscribir() {
     if (this.canal) {
@@ -476,8 +945,6 @@ suscribirRealtime() {
   periodoLabel(tipo: PeriodoTipo): string {
     return this.periodos.find(p => p.value === tipo)?.label || tipo;
   }
-
-  // ── Crear / editar plan ──────────────────────────────
 
   abrirNuevoPlan() {
     this.modoEdicionPlan = false;
@@ -549,23 +1016,21 @@ suscribirRealtime() {
     else this.vistaPlanes = 'lista';
   }
 
-async togglePublicadoPlan(p: PlanClase) {
-  const nuevo = !p.publicado;
-  await this.supabase.from('academic_planclase').update({ publicado: nuevo }).eq('id', p.id!);
-  p.publicado = nuevo;
-  const seleccionado = this.planSeleccionado;
-  if (seleccionado && seleccionado.id === p.id) {
-    seleccionado.publicado = nuevo;
+  async togglePublicadoPlan(p: PlanClase) {
+    const nuevo = !p.publicado;
+    await this.supabase.from('academic_planclase').update({ publicado: nuevo }).eq('id', p.id!);
+    p.publicado = nuevo;
+    const seleccionado = this.planSeleccionado;
+    if (seleccionado && seleccionado.id === p.id) {
+      seleccionado.publicado = nuevo;
+    }
   }
-}
 
   async eliminarPlan(p: PlanClase) {
     await this.supabase.from('academic_planclase').delete().eq('id', p.id!);
     this.planes = this.planes.filter(x => x.id !== p.id);
     this.volverALista();
   }
-
-  // ── Detalle plan + temas ─────────────────────────────
 
   async abrirDetallePlan(p: PlanClase) {
     this.planSeleccionado = p;
@@ -634,7 +1099,7 @@ async togglePublicadoPlan(p: PlanClase) {
 
   async toggleTemaCompletado(t: TemaClase) {
     const nuevo = !t.completado;
-    t.completado = nuevo; // optimista
+    t.completado = nuevo;
     await this.supabase.from('academic_temaclase').update({ completado: nuevo }).eq('id', t.id!);
     await this.cargarPlanes();
   }
@@ -683,6 +1148,7 @@ async togglePublicadoPlan(p: PlanClase) {
   trackBloque(_: number, b: BloqueClase) { return b.id; }
   trackPlan(_: number, p: PlanClase)     { return p.id; }
   trackTema(_: number, t: TemaClase)     { return t.id; }
+  trackBorrador(_: number, b: SesionBorrador) { return b.id; }
 
   doRefresh(event: any) {
     this.inicializar().then(() => event.target.complete());

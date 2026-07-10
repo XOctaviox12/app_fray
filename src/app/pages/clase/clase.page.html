@@ -9,9 +9,13 @@
       {{ sesionActiva ? sesionActiva.titulo : 'Clase en Vivo' }}
     </ion-title>
     <ion-buttons slot="end">
-      <div class="live-badge" *ngIf="sesionActiva">
+      <div class="live-badge" *ngIf="claseEnVivo">
         <span class="live-dot"></span>
         EN VIVO
+      </div>
+      <div class="borrador-badge-header" *ngIf="esBorradorEnEdicion">
+        <ion-icon name="create-outline"></ion-icon>
+        BORRADOR
       </div>
     </ion-buttons>
   </ion-toolbar>
@@ -86,14 +90,26 @@
           </p>
         </div>
 
-        <button
-          class="btn-iniciar"
-          (click)="iniciarSesion()"
-          [disabled]="!grupoSeleccionado || !asignaturaSeleccionada || !tituloSesion.trim()"
-        >
-          <ion-icon name="radio-outline"></ion-icon>
-          Iniciar clase ahora
-        </button>
+        <div class="form-actions-row">
+          <button
+            class="btn-iniciar"
+            (click)="iniciarSesion()"
+            [disabled]="!grupoSeleccionado || !asignaturaSeleccionada || !tituloSesion.trim()"
+          >
+            <ion-icon name="radio-outline"></ion-icon>
+            Iniciar clase ahora
+          </button>
+
+          <button
+            class="btn-borrador"
+            (click)="guardarBorrador()"
+            [disabled]="!grupoSeleccionado || !asignaturaSeleccionada || !tituloSesion.trim() || guardandoBorrador"
+          >
+            <ion-spinner *ngIf="guardandoBorrador" name="crescent"></ion-spinner>
+            <ion-icon *ngIf="!guardandoBorrador" name="save-outline"></ion-icon>
+            {{ guardandoBorrador ? 'Guardando...' : 'Guardar como borrador' }}
+          </button>
+        </div>
 
       </div>
 
@@ -103,21 +119,67 @@
         <p>Solicita al administrador que te asigne grupos.</p>
       </div>
 
+      <!-- Borradores guardados -->
+      <div class="borradores-section" *ngIf="misBorradores.length > 0">
+        <h3 class="borradores-title">
+          <ion-icon name="document-text-outline"></ion-icon>
+          Borradores guardados
+        </h3>
+
+        <div class="borrador-card" *ngFor="let b of misBorradores; trackBy: trackBorrador">
+          <div class="borrador-info">
+            <span class="borrador-badge">BORRADOR</span>
+            <h4 class="borrador-titulo">{{ b.titulo }}</h4>
+            <p class="borrador-meta">{{ b.grupo_nombre }} — {{ b.asignatura_nombre }}</p>
+          </div>
+          <div class="borrador-actions">
+            <button class="btn-borrador-iniciar" (click)="abrirBorrador(b)">
+              <ion-icon name="create-outline"></ion-icon>
+              Abrir
+            </button>
+            <button class="btn-borrador-eliminar" (click)="eliminarBorrador(b)">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
     </ng-container>
 
     <!-- DOCENTE con sesión activa -->
     <ng-container *ngIf="esDocente && sesionActiva">
 
-      <div class="control-bar">
+      <div class="control-bar" [class.control-bar-borrador]="esBorradorEnEdicion">
         <div class="control-bar-info">
-          <ion-icon name="people-outline"></ion-icon>
-          <span>Sesión activa para el grupo</span>
+          <ion-icon [name]="esBorradorEnEdicion ? 'create-outline' : 'people-outline'"></ion-icon>
+          <span *ngIf="claseEnVivo">Sesión activa para el grupo</span>
+          <span *ngIf="esBorradorEnEdicion">Editando borrador — los alumnos aún no ven esto</span>
         </div>
-        <button class="btn-terminar" (click)="terminarSesion()">
+
+        <button *ngIf="claseEnVivo" class="btn-terminar" (click)="terminarSesion()">
           <ion-icon name="stop-circle-outline"></ion-icon>
           Terminar
         </button>
+
+        <div class="control-bar-borrador-actions" *ngIf="esBorradorEnEdicion">
+          <button class="btn-salir-borrador" (click)="salirDeBorrador()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+            Guardar y salir
+          </button>
+          <button class="btn-publicar" [disabled]="publicandoBorrador" (click)="publicarBorrador()">
+            <ion-spinner *ngIf="publicandoBorrador" name="crescent"></ion-spinner>
+            <ion-icon *ngIf="!publicandoBorrador" name="radio-outline"></ion-icon>
+            {{ publicandoBorrador ? 'Publicando...' : 'Publicar clase ahora' }}
+          </button>
+        </div>
       </div>
+
+      <!-- Reutilizar clase anterior -->
+      <button class="btn-reutilizar" *ngIf="bloques.length === 0" [disabled]="cargandoReutilizar" (click)="reutilizarUltimaClase()">
+        <ion-spinner *ngIf="cargandoReutilizar" name="crescent"></ion-spinner>
+        <ion-icon *ngIf="!cargandoReutilizar" name="copy-outline"></ion-icon>
+        {{ cargandoReutilizar ? 'Cargando...' : 'Reutilizar última clase de este grupo' }}
+      </button>
 
       <div class="tipo-btns-row">
         <button class="tipo-btn" (click)="abrirModalBloque('texto')">
@@ -148,8 +210,9 @@
 
       <div class="bloques-container">
         <div class="empty-bloques" *ngIf="bloques.length === 0">
-          <ion-icon name="radio-outline"></ion-icon>
-          <p>La sesión está activa. Agrega contenido para que los alumnos lo vean.</p>
+          <ion-icon [name]="claseEnVivo ? 'radio-outline' : 'create-outline'"></ion-icon>
+          <p *ngIf="claseEnVivo">La sesión está activa. Agrega contenido para que los alumnos lo vean.</p>
+          <p *ngIf="esBorradorEnEdicion">Estás preparando este borrador. Los alumnos no verán nada hasta que publiques la clase.</p>
         </div>
 
         <div class="bloque-card" *ngFor="let b of bloques; trackBy: trackBloque" [ngClass]="'bloque-' + b.tipo">
@@ -158,9 +221,14 @@
               <ion-icon [name]="iconoBloque(b.tipo)"></ion-icon>
               {{ etiquetaTipo(b.tipo) }}
             </div>
-            <button class="bloque-delete-btn" (click)="eliminarBloque(b)">
-              <ion-icon name="trash-outline"></ion-icon>
-            </button>
+            <div class="bloque-header-actions">
+              <button class="bloque-edit-btn" (click)="editarBloque(b)">
+                <ion-icon name="create-outline"></ion-icon>
+              </button>
+              <button class="bloque-delete-btn" (click)="eliminarBloque(b)">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
           </div>
           <h4 class="bloque-titulo" *ngIf="b.titulo">{{ b.titulo }}</h4>
           <p class="bloque-texto" *ngIf="b.tipo === 'texto'">{{ b.contenido }}</p>
@@ -183,9 +251,36 @@
             <ion-icon name="link-outline"></ion-icon>
             {{ b.contenido }}
           </a>
+
+          <!-- Actividad estructurada -->
           <div class="bloque-actividad" *ngIf="b.tipo === 'actividad'">
-            <ion-icon name="checkmark-done-circle-outline" class="act-icon"></ion-icon>
-            <p class="act-instrucciones">{{ b.contenido }}</p>
+            <ng-container *ngIf="parsearActividad(b.contenido) as act">
+              <p class="act-instrucciones" *ngIf="act.instrucciones">{{ act.instrucciones }}</p>
+
+              <div class="pregunta-card" *ngFor="let p of act.preguntas; let i = index">
+                <div class="pregunta-header">
+                  <span class="pregunta-num">{{ i + 1 }}</span>
+                  <span class="pregunta-tipo-tag">{{ etiquetaTipoPregunta(p.tipo) }}</span>
+                </div>
+                <p class="pregunta-texto">{{ p.pregunta }}</p>
+
+                <div class="pregunta-opciones" *ngIf="p.tipo === 'opcion_multiple'">
+                  <div class="opcion-item" *ngFor="let op of p.opciones; let oi = index">
+                    <span class="opcion-letra">{{ ['A','B','C','D','E','F'][oi] }}</span>
+                    <span>{{ op }}</span>
+                  </div>
+                </div>
+
+                <div class="pregunta-opciones" *ngIf="p.tipo === 'verdadero_falso'">
+                  <div class="opcion-item"><span class="opcion-letra">V</span> Verdadero</div>
+                  <div class="opcion-item"><span class="opcion-letra">F</span> Falso</div>
+                </div>
+
+                <div class="pregunta-respuesta-corta" *ngIf="p.tipo === 'respuesta_corta'">
+                  <ion-icon name="create-outline"></ion-icon> Respuesta abierta
+                </div>
+              </div>
+            </ng-container>
           </div>
         </div>
       </div>
@@ -256,9 +351,36 @@
             <ion-icon name="link-outline"></ion-icon>
             Abrir enlace
           </a>
+
+          <!-- Actividad estructurada -->
           <div class="bloque-actividad" *ngIf="b.tipo === 'actividad'">
-            <ion-icon name="checkmark-done-circle-outline" class="act-icon"></ion-icon>
-            <p class="act-instrucciones">{{ b.contenido }}</p>
+            <ng-container *ngIf="parsearActividad(b.contenido) as act">
+              <p class="act-instrucciones" *ngIf="act.instrucciones">{{ act.instrucciones }}</p>
+
+              <div class="pregunta-card" *ngFor="let p of act.preguntas; let i = index">
+                <div class="pregunta-header">
+                  <span class="pregunta-num">{{ i + 1 }}</span>
+                  <span class="pregunta-tipo-tag">{{ etiquetaTipoPregunta(p.tipo) }}</span>
+                </div>
+                <p class="pregunta-texto">{{ p.pregunta }}</p>
+
+                <div class="pregunta-opciones" *ngIf="p.tipo === 'opcion_multiple'">
+                  <div class="opcion-item" *ngFor="let op of p.opciones; let oi = index">
+                    <span class="opcion-letra">{{ ['A','B','C','D','E','F'][oi] }}</span>
+                    <span>{{ op }}</span>
+                  </div>
+                </div>
+
+                <div class="pregunta-opciones" *ngIf="p.tipo === 'verdadero_falso'">
+                  <div class="opcion-item"><span class="opcion-letra">V</span> Verdadero</div>
+                  <div class="opcion-item"><span class="opcion-letra">F</span> Falso</div>
+                </div>
+
+                <div class="pregunta-respuesta-corta" *ngIf="p.tipo === 'respuesta_corta'">
+                  <ion-icon name="create-outline"></ion-icon> Respuesta abierta
+                </div>
+              </div>
+            </ng-container>
           </div>
         </div>
       </div>
@@ -266,19 +388,22 @@
 
   </ng-container>
 
-  <!-- MODAL nuevo bloque -->
+  <!-- MODAL nuevo / editar bloque -->
   <div class="modal-overlay" *ngIf="mostrarModalBloque" (click)="cerrarModal()">
     <div class="modal-card" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <div class="modal-header-left">
           <ion-icon [name]="iconoBloque(nuevoBloque.tipo!)"></ion-icon>
-          <h3>Agregar {{ etiquetaTipo(nuevoBloque.tipo!) }}</h3>
+          <h3>{{ editandoBloque ? 'Editar' : 'Agregar' }} {{ etiquetaTipo(nuevoBloque.tipo!) }}</h3>
         </div>
         <button class="modal-close" (click)="cerrarModal()">
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
+
       <div class="modal-body">
+
+        <!-- Título (todos excepto actividad, que tiene su propio flujo) -->
         <div class="form-group" *ngIf="nuevoBloque.tipo !== 'actividad'">
           <label>Título (opcional)</label>
           <div class="input-wrap">
@@ -286,6 +411,8 @@
             <input type="text" [(ngModel)]="nuevoBloque.titulo" placeholder="Título del bloque" />
           </div>
         </div>
+
+        <!-- TEXTO -->
         <div class="form-group" *ngIf="nuevoBloque.tipo === 'texto'">
           <label>Contenido</label>
           <div class="input-wrap textarea-wrap">
@@ -293,29 +420,133 @@
               placeholder="Escribe aquí el texto, indicaciones o explicación..."></textarea>
           </div>
         </div>
-        <div class="form-group" *ngIf="['pdf','video','imagen','link'].includes(nuevoBloque.tipo!)">
-          <label>URL
-            <span class="label-hint" *ngIf="nuevoBloque.tipo === 'pdf'">(enlace al PDF)</span>
-            <span class="label-hint" *ngIf="nuevoBloque.tipo === 'video'">(YouTube o URL del video)</span>
-            <span class="label-hint" *ngIf="nuevoBloque.tipo === 'imagen'">(URL de la imagen)</span>
-          </label>
+
+        <!-- LINK (sigue siendo solo URL, no aplica subida de archivo) -->
+        <div class="form-group" *ngIf="nuevoBloque.tipo === 'link'">
+          <label>URL del enlace</label>
           <div class="input-wrap">
             <ion-icon name="link-outline" class="field-icon"></ion-icon>
             <input type="url" [(ngModel)]="nuevoBloque.contenido" placeholder="https://..." />
           </div>
         </div>
-        <div class="form-group" *ngIf="nuevoBloque.tipo === 'actividad'">
-          <label>Instrucciones</label>
-          <div class="input-wrap textarea-wrap">
-            <textarea [(ngModel)]="nuevoBloque.contenido" rows="4"
-              placeholder="Ej: Resuelve los ejercicios 1-5..."></textarea>
+
+        <!-- PDF / VIDEO / IMAGEN: subir archivo o pegar URL -->
+        <div class="form-group" *ngIf="['pdf','video','imagen'].includes(nuevoBloque.tipo!)">
+          <div class="modo-toggle-row">
+            <button class="modo-toggle-btn" [class.active]="!modoUrlExterna" (click)="modoUrlExterna && toggleModoUrl()">
+              <ion-icon name="cloud-upload-outline"></ion-icon> Subir archivo
+            </button>
+            <button class="modo-toggle-btn" [class.active]="modoUrlExterna" (click)="!modoUrlExterna && toggleModoUrl()">
+              <ion-icon name="link-outline"></ion-icon> Usar URL
+            </button>
           </div>
-          <div class="input-wrap" style="margin-top: 8px;">
+
+          <!-- Modo: subir archivo -->
+          <ng-container *ngIf="!modoUrlExterna">
+            <div class="file-upload-zone" (click)="archivoInput.click()">
+              <input #archivoInput type="file" hidden
+                [accept]="nuevoBloque.tipo === 'pdf' ? 'application/pdf' : (nuevoBloque.tipo === 'video' ? 'video/*' : 'image/*')"
+                (change)="onArchivoSeleccionado($event)" />
+              <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+              <p class="upload-text" *ngIf="!archivoSeleccionado">Toca para elegir tu archivo</p>
+              <p class="upload-text" *ngIf="archivoSeleccionado">{{ archivoSeleccionado.name }}</p>
+              <p class="upload-hint">Máximo {{ nuevoBloque.tipo === 'video' ? '100MB' : '20MB' }}</p>
+            </div>
+
+            <p class="input-hint" *ngIf="editandoBloque && !archivoSeleccionado && nuevoBloque.contenido">
+              Ya hay un archivo guardado. Elige uno nuevo solo si quieres reemplazarlo.
+            </p>
+
+            <div class="file-progress-bar" *ngIf="subiendoArchivo">
+              <div class="file-progress-fill" [style.width.%]="progresoArchivo"></div>
+            </div>
+          </ng-container>
+
+          <!-- Modo: URL externa -->
+          <div class="input-wrap" *ngIf="modoUrlExterna">
+            <ion-icon name="link-outline" class="field-icon"></ion-icon>
+            <input type="url" [(ngModel)]="nuevoBloque.contenido"
+              [placeholder]="nuevoBloque.tipo === 'video' ? 'https://youtube.com/... o URL directa' : 'https://...'" />
+          </div>
+
+          <div class="opciones-error" *ngIf="errorArchivo">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <span>{{ errorArchivo }}</span>
+          </div>
+        </div>
+
+        <!-- ACTIVIDAD -->
+        <div class="form-group" *ngIf="nuevoBloque.tipo === 'actividad'">
+          <div class="input-wrap" style="margin-bottom: 8px;">
             <ion-icon name="create-outline" class="field-icon"></ion-icon>
             <input type="text" [(ngModel)]="nuevoBloque.titulo" placeholder="Título de la actividad (requerido)" />
           </div>
+
+          <label>Instrucciones generales (opcional)</label>
+          <div class="input-wrap textarea-wrap">
+            <textarea [(ngModel)]="actividadInstrucciones" rows="3"
+              placeholder="Ej: Resuelve las siguientes preguntas..."></textarea>
+          </div>
+
+          <div class="preguntas-lista">
+            <div class="pregunta-form-card" *ngFor="let p of preguntasActividad; let i = index">
+              <div class="pregunta-form-header">
+                <span class="pregunta-tipo-tag">{{ etiquetaTipoPregunta(p.tipo) }}</span>
+                <button class="quitar-pregunta-btn" (click)="quitarPregunta(i)">
+                  <ion-icon name="close-circle-outline"></ion-icon>
+                </button>
+              </div>
+
+              <div class="input-wrap">
+                <input type="text" [(ngModel)]="p.pregunta" [placeholder]="'Pregunta ' + (i+1)" />
+              </div>
+
+              <!-- Opción múltiple -->
+              <div class="opciones-editor" *ngIf="p.tipo === 'opcion_multiple'">
+                <div class="opcion-editor-row" *ngFor="let op of p.opciones; let oi = index">
+                  <input type="radio" [name]="'correcta_' + p.id" [checked]="p.respuestaCorrecta === oi" (change)="p.respuestaCorrecta = oi" />
+                  <input type="text" [(ngModel)]="p.opciones![oi]" [placeholder]="'Opción ' + (oi+1)" />
+                  <button class="quitar-opcion-btn" (click)="quitarOpcion(p, oi)" *ngIf="p.opciones!.length > 2">
+                    <ion-icon name="close-outline"></ion-icon>
+                  </button>
+                </div>
+                <button class="agregar-opcion-btn" (click)="agregarOpcion(p)">
+                  <ion-icon name="add-outline"></ion-icon> Agregar opción
+                </button>
+                <p class="input-hint">Marca con el círculo cuál es la respuesta correcta</p>
+              </div>
+
+              <!-- Verdadero / Falso -->
+              <div class="vf-editor" *ngIf="p.tipo === 'verdadero_falso'">
+                <label class="vf-option">
+                  <input type="radio" [name]="'vf_' + p.id" [checked]="p.respuestaCorrecta === true" (change)="p.respuestaCorrecta = true" />
+                  Verdadero
+                </label>
+                <label class="vf-option">
+                  <input type="radio" [name]="'vf_' + p.id" [checked]="p.respuestaCorrecta === false" (change)="p.respuestaCorrecta = false" />
+                  Falso
+                </label>
+              </div>
+
+              <!-- Respuesta corta: no necesita más campos, es abierta -->
+            </div>
+          </div>
+
+          <div class="agregar-pregunta-row">
+            <button class="agregar-pregunta-btn" (click)="agregarPregunta('opcion_multiple')">
+              <ion-icon name="list-outline"></ion-icon> Opción múltiple
+            </button>
+            <button class="agregar-pregunta-btn" (click)="agregarPregunta('verdadero_falso')">
+              <ion-icon name="checkmark-circle-outline"></ion-icon> Verdadero/Falso
+            </button>
+            <button class="agregar-pregunta-btn" (click)="agregarPregunta('respuesta_corta')">
+              <ion-icon name="chatbox-outline"></ion-icon> Respuesta corta
+            </button>
+          </div>
         </div>
+
       </div>
+
       <div class="modal-footer">
         <button class="btn-cancel" (click)="cerrarModal()">
           <ion-icon name="close-outline"></ion-icon>
@@ -324,7 +555,7 @@
         <button class="btn-save" (click)="guardarBloque()" [disabled]="guardandoBloque">
           <ion-spinner *ngIf="guardandoBloque" name="crescent" class="btn-spinner"></ion-spinner>
           <ion-icon *ngIf="!guardandoBloque" name="send-outline"></ion-icon>
-          {{ guardandoBloque ? 'Publicando...' : 'Publicar' }}
+          {{ guardandoBloque ? (subiendoArchivo ? progresoArchivo + '%' : 'Guardando...') : (editandoBloque ? 'Guardar cambios' : 'Publicar') }}
         </button>
       </div>
     </div>
