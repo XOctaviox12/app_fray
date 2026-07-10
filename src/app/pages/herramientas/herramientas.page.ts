@@ -481,7 +481,12 @@ export class HerramientasPage implements OnInit {
         grupo_id:     f.grupoId,
         docente_id:   this.sesion.usuario?.id,
         activo:       true,
+        orden:        0,
       };
+
+      if (!this.editingId) {
+        payload.creado_en = new Date().toISOString();
+      }
 
       if (this.editingId) {
         const { data, error } = await this.supabase
