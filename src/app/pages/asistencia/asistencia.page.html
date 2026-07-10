@@ -134,13 +134,13 @@
       </div>
 
       <!-- Banner: lista ya guardada en esta fecha -->
-      <div class="banner-guardada" *ngIf="yaGuardada && !hayComosGuardar">
+      <div class="banner-guardada" *ngIf="yaGuardada && !hayCambiosSinGuardar">
         <ion-icon name="checkmark-circle-outline"></ion-icon>
         <span>Lista de este día ya registrada. Puedes editarla y volver a guardar.</span>
       </div>
 
       <!-- Banner: cambios sin guardar -->
-      <div class="banner-sin-guardar" *ngIf="hayComosGuardar">
+      <div class="banner-sin-guardar" *ngIf="hayCambiosSinGuardar">
         <ion-icon name="alert-circle-outline"></ion-icon>
         <span>Tienes cambios sin guardar.</span>
       </div>
@@ -207,6 +207,9 @@
       <div class="acciones-rapidas" *ngIf="!filtroAlumno">
         <button class="accion-btn verde" (click)="confirmarMarcarTodos('P')">
           <ion-icon name="checkmark-circle-outline"></ion-icon> Todos presentes
+        </button>
+        <button class="accion-btn naranja" (click)="confirmarMarcarTodos('R')">
+          <ion-icon name="time-outline"></ion-icon> Todos con retardo
         </button>
         <button class="accion-btn rojo" (click)="confirmarMarcarTodos('A')">
           <ion-icon name="close-circle-outline"></ion-icon> Todos ausentes

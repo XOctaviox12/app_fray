@@ -30,6 +30,48 @@
   --background: var(--navy);
 }
 
+// ── Error global ──────────────────────────
+.global-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 10px 16px;
+  margin: 12px 18px 0;
+  border-radius: 10px;
+
+  ion-icon {
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+}
+
+// ── Rol sin vista soportada ────────────────
+.rol-no-soportado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--white-35);
+
+  ion-icon {
+    font-size: 32px;
+    color: var(--white-35);
+  }
+
+  p {
+    margin: 0;
+    font-size: 12px;
+    max-width: 260px;
+  }
+}
+
 // ── Hero ──────────────────────────────────
 .hero-section {
   background: linear-gradient(135deg, var(--navy-2), #0d1e40);
@@ -213,8 +255,144 @@
   }
 }
 
-// ── Add form ──────────────────────────────
-.add-form {
+// ── Búsqueda y filtro por tipo ─────────────
+.search-filter-row {
+  margin-bottom: 14px;
+}
+
+.search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0 10px;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+
+  &:focus-within {
+    border-color: var(--orange);
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 12px;
+    color: var(--white);
+    padding: 10px 0;
+
+    &::placeholder {
+      color: var(--white-35);
+    }
+  }
+}
+
+.clear-btn {
+  font-size: 16px;
+  color: var(--white-35);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.tipo-filter-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.tipo-chip-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--white-60);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+
+  &.active {
+    background: rgba(255, 107, 0, 0.1);
+    border-color: rgba(255, 107, 0, 0.3);
+    color: var(--orange);
+  }
+}
+
+.tipo-count {
+  font-size: 9px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+  padding: 1px 5px;
+  color: inherit;
+}
+
+.tipo-chip-btn.active .tipo-count {
+  background: rgba(255, 107, 0, 0.18);
+}
+
+// ── Filtro por materia ──────────────────────
+.materia-filter-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin-top: 8px;
+  padding-bottom: 2px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.materia-chip-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  background: rgba(59, 91, 219, 0.06);
+  border: 1px solid rgba(59, 91, 219, 0.15);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--white-60);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+
+  .tipo-count {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  &.active {
+    background: rgba(59, 91, 219, 0.15);
+    border-color: rgba(59, 91, 219, 0.4);
+    color: #60a5fa;
+
+    .tipo-count {
+      background: rgba(59, 91, 219, 0.22);
+    }
+  }
+}
+
+// ── Formulario nuevo/editar ────────────────
+.mat-form {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-top: 2px solid var(--orange);
@@ -222,6 +400,35 @@
   padding: 14px;
   margin-bottom: 14px;
   backdrop-filter: blur(8px);
+}
+
+.form-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.form-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.form-close-btn {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--white-35);
+  }
 }
 
 .form-row {
@@ -281,10 +488,64 @@
   }
 }
 
+.textarea-wrap {
+  align-items: flex-start;
+  padding: 8px 10px;
+
+  textarea {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    outline: none;
+    resize: vertical;
+    font-size: 12px;
+    font-family: inherit;
+    color: var(--white);
+    padding: 2px 0;
+
+    &::placeholder {
+      color: var(--white-35);
+    }
+  }
+}
+
 .field-icon {
   font-size: 15px;
   color: var(--white-35);
   flex-shrink: 0;
+}
+
+// ── Selector de tipo dentro del formulario ─
+.tipo-selector-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tipo-opt {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--white-60);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  &.selected {
+    background: rgba(255, 107, 0, 0.1);
+    border-color: rgba(255, 107, 0, 0.3);
+    color: var(--orange);
+  }
 }
 
 // ── File drop zone ────────────────────────
@@ -354,6 +615,36 @@
   }
 }
 
+// ── Progreso de subida ─────────────────────
+.upload-progress-wrap {
+  position: relative;
+  height: 26px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+
+  span {
+    position: relative;
+    z-index: 1;
+    margin: 0 auto;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--white);
+  }
+}
+
+.upload-progress-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, var(--orange), #ff9a44);
+  transition: width 0.2s ease;
+}
+
 .form-actions {
   display: flex;
   gap: 10px;
@@ -387,6 +678,22 @@
   background: var(--orange);
   color: var(--white);
   box-shadow: 0 4px 14px rgba(255, 107, 0, 0.3);
+
+  &[disabled] {
+    opacity: 0.6;
+    box-shadow: none;
+  }
+}
+
+// ── Cargando (spinner de sección) ──────────
+.loading-mini {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+
+  ion-spinner {
+    --color: var(--orange);
+  }
 }
 
 // ── Material cards ────────────────────────
@@ -417,27 +724,42 @@
     color: var(--orange);
   }
 
-  &.pdf    { background: rgba(239, 68, 68, 0.1);  ion-icon { color: #ef4444; } }
-  &.video  { background: rgba(255, 107, 0, 0.1);  ion-icon { color: var(--orange); } }
-  &.enlace { background: rgba(59, 91, 219, 0.12); ion-icon { color: #60a5fa; } }
-  &.documento { background: rgba(34, 197, 94, 0.1); ion-icon { color: #22c55e; } }
+  // Nombres alineados con mat.tipo.toLowerCase() del HTML: pdf, video, imagen, link, otro
+  &.pdf    { background: rgba(239, 68, 68, 0.1);   ion-icon { color: #ef4444; } }
+  &.video  { background: rgba(255, 107, 0, 0.1);   ion-icon { color: var(--orange); } }
+  &.imagen { background: rgba(59, 130, 246, 0.1);  ion-icon { color: #3b82f6; } }
+  &.link   { background: rgba(139, 92, 246, 0.12); ion-icon { color: #8b5cf6; } }
+  &.otro   { background: rgba(100, 116, 139, 0.12); ion-icon { color: #64748b; } }
 }
 
 .material-info {
   flex: 1;
   min-width: 0;
+  cursor: pointer;
 }
 
 .material-name {
+  margin: 0;
   font-size: 12px;
   font-weight: 600;
   color: var(--white);
 }
 
+.material-desc {
+  font-size: 10px;
+  color: var(--white-35);
+  margin: 3px 0 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .material-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .subject-tag {
@@ -447,6 +769,21 @@
   font-weight: 700;
   color: var(--white);
   letter-spacing: 0.3px;
+}
+
+.group-tag {
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--white-60);
+  background: rgba(255, 255, 255, 0.06);
+  letter-spacing: 0.3px;
+
+  &.muted {
+    color: var(--white-35);
+    background: rgba(255, 255, 255, 0.03);
+  }
 }
 
 .type-badge {
@@ -462,6 +799,7 @@
 .material-actions {
   display: flex;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .mat-action-btn {
@@ -478,11 +816,17 @@
 
   ion-icon {
     font-size: 15px;
+    color: var(--white-35);
   }
+
+  &.open ion-icon { color: #60a5fa; }
+  &.open:active { background: rgba(59, 91, 219, 0.1); }
+
+  &.edit ion-icon { color: var(--orange); }
+  &.edit:active { background: rgba(255, 107, 0, 0.1); }
 
   &.download ion-icon { color: var(--orange); }
 
-  &.delete ion-icon { color: var(--white-35); }
   &.delete:active {
     background: rgba(239, 68, 68, 0.1);
     ion-icon { color: #ef4444; }
@@ -509,7 +853,15 @@
   }
 }
 
-// ── Task preview cards ────────────────────
+// ── Cargar más ─────────────────────────────
+.cargar-mas-btn {
+  --color: var(--orange);
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+// ── Task preview cards (si se usan en otra vista) ──
 .task-preview-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);

@@ -39,6 +39,11 @@ export class MateriasPage implements OnInit {
   sinCalificaciones      = true;
   tareasPendientesTotal  = 0;
 
+  // Total de alumnos únicos del docente (para el resumen).
+  // No usar sumField sobre materiasDocente.totalAlumnos: cada materia
+  // ya trae su propio conteo (puede repetir alumnos entre materias).
+  totalAlumnosUnicos = 0;
+
   private supabase: SupabaseClient;
 
   constructor(public sesion: SesionService) {
@@ -171,37 +176,60 @@ export class MateriasPage implements OnInit {
       .from('academic_asignatura').select('id, nombre, clave').in('id', asiIds).order('nombre');
     if (!asignaturas?.length) return;
 
+    // Grupos donde el docente da clase (en general)
     const { data: relGrupos } = await this.supabase
       .from('academic_grupo_docentes').select('grupo_id').eq('user_id', docenteId);
-    const grupoIds = [...new Set((relGrupos || []).map((r: any) => r.grupo_id))] as number[];
+    const grupoIdsDocente = [...new Set((relGrupos || []).map((r: any) => r.grupo_id))] as number[];
 
     let grupoNombres: Record<number, string> = {};
-    if (grupoIds.length) {
+    if (grupoIdsDocente.length) {
       const { data: grupos } = await this.supabase
-        .from('academic_grupo').select('id, nombre, grado').in('id', grupoIds);
+        .from('academic_grupo').select('id, nombre, grado').in('id', grupoIdsDocente);
       (grupos || []).forEach((g: any) => { grupoNombres[g.id] = `${g.grado}°${g.nombre}`; });
     }
+
+    // Grupos por asignatura (para saber en cuáles grupos se imparte CADA materia,
+    // y así no mezclar los grupos de una materia con los de otra)
+    const { data: relAsiGrupos } = await this.supabase
+      .from('academic_asignatura_grupos').select('asignatura_id, grupo_id').in('asignatura_id', asiIds);
 
     const { data: tareas } = await this.supabase
       .from('academic_tarea').select('asignatura_id').eq('docente_id', docenteId).eq('publicada', true);
     const { data: acts } = await this.supabase
       .from('academic_actividad').select('asignatura_id').eq('docente_id', docenteId).eq('publicada', true);
 
-    let totalAlumnos = 0;
-    if (grupoIds.length) {
-      const { count } = await this.supabase
-        .from('users_user').select('*', { count: 'exact', head: true })
-        .in('alumno_grupo_id', grupoIds).eq('rol', 'ALUMNO');
-      totalAlumnos = count || 0;
+    // Alumnos de TODOS los grupos donde da clase el docente (una sola consulta,
+    // luego se filtra en memoria por materia y se cuenta lo único para el resumen)
+    let alumnosPorGrupo: Record<number, number> = {};
+    let alumnosUnicosSet = new Set<number>();
+    if (grupoIdsDocente.length) {
+      const { data: alumnos } = await this.supabase
+        .from('users_user').select('id, alumno_grupo_id')
+        .in('alumno_grupo_id', grupoIdsDocente).eq('rol', 'ALUMNO');
+      (alumnos || []).forEach((a: any) => {
+        alumnosPorGrupo[a.alumno_grupo_id] = (alumnosPorGrupo[a.alumno_grupo_id] || 0) + 1;
+        alumnosUnicosSet.add(a.id);
+      });
     }
+    this.totalAlumnosUnicos = alumnosUnicosSet.size;
 
-    this.materiasDocente = (asignaturas as any[]).map(asi => ({
-      id: asi.id, nombre: asi.nombre, clave: asi.clave || '',
-      grupos:         grupoIds.map(id => grupoNombres[id]).filter(Boolean),
-      totalAlumnos,
-      tareasPub:      (tareas || []).filter((t: any) => t.asignatura_id === asi.id).length,
-      actividadesPub: (acts   || []).filter((a: any) => a.asignatura_id === asi.id).length,
-    } as MateriaDocente));
+    this.materiasDocente = (asignaturas as any[]).map(asi => {
+      // Grupos específicos de ESTA materia, intersectados con los grupos del docente
+      const gruposAsiIds = (relAsiGrupos || [])
+        .filter((r: any) => r.asignatura_id === asi.id)
+        .map((r: any) => r.grupo_id)
+        .filter((gid: number) => grupoIdsDocente.includes(gid));
+
+      const totalAlumnosMateria = gruposAsiIds.reduce((s, gid) => s + (alumnosPorGrupo[gid] || 0), 0);
+
+      return {
+        id: asi.id, nombre: asi.nombre, clave: asi.clave || '',
+        grupos:         gruposAsiIds.map(id => grupoNombres[id]).filter(Boolean),
+        totalAlumnos:   totalAlumnosMateria,
+        tareasPub:      (tareas || []).filter((t: any) => t.asignatura_id === asi.id).length,
+        actividadesPub: (acts   || []).filter((a: any) => a.asignatura_id === asi.id).length,
+      } as MateriaDocente;
+    });
   }
 
   // ══════════════════════════════════════════════════════

@@ -34,9 +34,17 @@ export class TareasHijoPage implements OnInit {
   error = '';
 
   tareas: TareaHijo[] = [];
-  filtro: 'TODAS' | 'PENDIENTE' | 'ENTREGADA' | 'CALIFICADA' | 'TARDE' = 'TODAS';
+  // Se agrega 'TARDE' y 'NO_ENTREGADA' como filtros seleccionables
+  filtro: 'TODAS' | 'PENDIENTE' | 'ENTREGADA' | 'CALIFICADA' | 'TARDE' | 'NO_ENTREGADA' = 'TODAS';
 
   alumnoNombre = '';
+
+  // ── Detalle expandible ──
+  expandidoId: number | null = null;
+
+  // ── Paginación ──
+  pageSize = 10;
+  paginaActual = 1;
 
   constructor(private sesion: SesionService) {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
@@ -51,6 +59,8 @@ export class TareasHijoPage implements OnInit {
   async cargarTareas() {
     this.cargando = true;
     this.error = '';
+    this.paginaActual = 1;
+    this.expandidoId = null;
 
     const alumnoId = this.sesion.tutor?.alumno_id;
     if (!alumnoId) {
@@ -134,17 +144,47 @@ export class TareasHijoPage implements OnInit {
   }
 
   // ── Filtros ──────────────────────────────
+  // 'NO_ENTREGADA' = vencida sin entrega (antes se contaba mal dentro de PENDIENTE)
   get tareasFiltradas(): TareaHijo[] {
     if (this.filtro === 'TODAS') return this.tareas;
     if (this.filtro === 'PENDIENTE') {
-      return this.tareas.filter(t => !t.entrega || t.entrega.estado === 'PENDIENTE');
+      return this.tareas.filter(t => !t.vencida && (!t.entrega || t.entrega.estado === 'PENDIENTE'));
+    }
+    if (this.filtro === 'NO_ENTREGADA') {
+      return this.tareas.filter(t => t.vencida && !t.entrega);
     }
     return this.tareas.filter(t => t.entrega?.estado === this.filtro);
   }
 
+  // ── Paginación ───────────────────────────
+  get tareasPaginadas(): TareaHijo[] {
+    return this.tareasFiltradas.slice(0, this.pageSize * this.paginaActual);
+  }
+
+  get hayMasPorCargar(): boolean {
+    return this.tareasPaginadas.length < this.tareasFiltradas.length;
+  }
+
+  cargarMas() {
+    this.paginaActual++;
+  }
+
+  cambiarFiltro(f: typeof this.filtro) {
+    this.filtro = f;
+    this.paginaActual = 1;
+  }
+
+  // ── Detalle expandible ───────────────────
+  toggleDetalle(id: number) {
+    this.expandidoId = this.expandidoId === id ? null : id;
+  }
+
   // ── Contadores ───────────────────────────
   get totalPendientes(): number {
-    return this.tareas.filter(t => !t.entrega || t.entrega.estado === 'PENDIENTE').length;
+    return this.tareas.filter(t => !t.vencida && (!t.entrega || t.entrega.estado === 'PENDIENTE')).length;
+  }
+  get totalNoEntregadas(): number {
+    return this.tareas.filter(t => t.vencida && !t.entrega).length;
   }
   get totalEntregadas(): number {
     return this.tareas.filter(t => t.entrega?.estado === 'ENTREGADA').length;

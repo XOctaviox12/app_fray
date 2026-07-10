@@ -915,3 +915,109 @@
     color: var(--green);
   }
 }
+
+// ── Panel de entregas (docente) ──
+.btn-ver-entregas {
+  display: flex; align-items: center; gap: 6px;
+  width: 100%; margin-top: 10px; padding: 10px;
+  background: transparent; border: 1px dashed var(--card-border);
+  border-radius: 10px; color: var(--orange);
+  font-family: var(--font-display); font-size: 12px; font-weight: 700;
+  justify-content: center; cursor: pointer;
+}
+
+.panel-entregas {
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid var(--white-08);
+}
+
+.loading-entregas, .empty-entregas {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px; padding: 20px; color: var(--white-35); font-size: 12px;
+}
+
+.entrega-row {
+  padding: 12px; margin-bottom: 8px;
+  background: rgba(255,255,255,0.03); border-radius: 12px;
+}
+
+.entrega-row-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 6px;
+}
+
+.entrega-alumno-nombre { font-size: 13px; font-weight: 700; color: var(--white); }
+
+.entrega-estado-badge {
+  padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.4px;
+
+  &.sin-entregar { background: rgba(255,255,255,0.06); color: var(--white-35); }
+  &.entregada { background: rgba(249,115,22,0.1); color: #f97316; }
+  &.calificada { background: rgba(34,197,94,0.1); color: #22c55e; }
+}
+
+.entrega-tardia-badge {
+  padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700;
+  background: rgba(239,68,68,0.08); color: #ef4444; text-transform: uppercase;
+}
+
+.entrega-archivo-link {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--orange); margin: 6px 0; text-decoration: none;
+}
+
+.entrega-comentario {
+  font-size: 12px; color: var(--white-35); font-style: italic; margin: 4px 0;
+}
+
+.entrega-fecha { font-size: 11px; color: var(--white-35); margin: 4px 0; }
+
+.calificar-row {
+  display: flex; flex-direction: column; gap: 8px; margin-top: 10px;
+
+  label { font-size: 10px; color: var(--white-35); text-transform: uppercase; }
+  input, textarea {
+    width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border);
+    border-radius: 8px; padding: 8px; color: var(--white); font-size: 13px;
+  }
+}
+
+.btn-guardar-calif {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px; background: var(--orange); border: none; border-radius: 10px;
+  color: white; font-weight: 700; font-size: 12px; cursor: pointer;
+}
+
+// ── Vista alumno ──
+.mi-entrega-status {
+  margin-top: 10px; padding: 12px;
+  background: rgba(255,255,255,0.03); border-radius: 12px;
+}
+
+.mi-entrega-header {
+  display: flex; gap: 8px; margin-bottom: 6px;
+}
+
+.mi-calificacion {
+  display: flex; align-items: center; gap: 10px; margin-top: 8px;
+  padding-top: 8px; border-top: 1px solid var(--white-08);
+}
+
+.mi-calificacion-num {
+  font-family: var(--font-display); font-size: 20px; font-weight: 800;
+  &.nota-bien { color: #22c55e; }
+  &.nota-reprobado { color: #ef4444; }
+}
+
+.mi-calificacion-feedback { font-size: 12px; color: var(--white-35); flex: 1; }
+
+.btn-editar-entrega, .btn-entregar {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; margin-top: 10px; padding: 11px;
+  background: var(--orange-subtle); border: 1px solid var(--orange-glow);
+  border-radius: 10px; color: var(--orange); font-weight: 700; font-size: 12px;
+  cursor: pointer;
+}
+
+.form-entrega { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--white-08); }

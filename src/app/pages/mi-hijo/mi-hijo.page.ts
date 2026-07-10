@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { SesionService } from '../../services/sesion.service';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { environment } from 'src/environments/environment';
 
 export interface MateriaResumen {
   id: number;
@@ -53,8 +51,6 @@ export interface DatosAlumno {
 })
 export class MiHijoPage implements OnInit {
 
-  supabase: SupabaseClient;
-
   cargando = true;
   error = '';
 
@@ -62,13 +58,13 @@ export class MiHijoPage implements OnInit {
   materias: MateriaResumen[] = [];
   materiaActiva: number = 0; // índice de la pestaña activa
 
-  constructor(private sesion: SesionService) {
-    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
-      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
-    });
-  }
+  constructor(private sesion: SesionService) {}
 
   ngOnInit() {
+    this.cargarDatos();
+  }
+
+  ionViewWillEnter() {
     this.cargarDatos();
   }
 
@@ -84,10 +80,12 @@ export class MiHijoPage implements OnInit {
     }
 
     try {
-      await Promise.all([
-        this.cargarAlumno(alumnoId),
-        this.cargarMaterias(alumnoId),
-      ]);
+      const grupoId = await this.cargarAlumno(alumnoId);
+      if (grupoId) {
+        await this.cargarMaterias(alumnoId, grupoId);
+      } else {
+        this.materias = [];
+      }
     } catch (e: any) {
       this.error = 'Error al cargar los datos: ' + e.message;
     }
@@ -95,8 +93,8 @@ export class MiHijoPage implements OnInit {
     this.cargando = false;
   }
 
-  async cargarAlumno(alumnoId: number) {
-    const { data, error } = await this.supabase
+  async cargarAlumno(alumnoId: number): Promise<number | null> {
+    const { data, error } = await this.sesion.supabase
       .from('users_user')
       .select(`
         id, first_name, last_name, username, email,
@@ -124,21 +122,13 @@ export class MiHijoPage implements OnInit {
       plantel: g?.plantel?.nombre || '—',
       periodo: g?.periodo?.nombre || '—',
     };
+
+    return g?.id || null;
   }
 
-  async cargarMaterias(alumnoId: number) {
-    // 1. Obtener grupo del alumno
-    const { data: usuData } = await this.supabase
-      .from('users_user')
-      .select('alumno_grupo_id')
-      .eq('id', alumnoId)
-      .single();
-
-    const grupoId = (usuData as any)?.alumno_grupo_id;
-    if (!grupoId) return;
-
-    // 2. Asignaturas del grupo
-    const { data: asigData } = await this.supabase
+  async cargarMaterias(alumnoId: number, grupoId: number) {
+    // 1. Asignaturas del grupo
+    const { data: asigData } = await this.sesion.supabase
       .from('academic_asignatura_grupos')
       .select(`
         asignatura:academic_asignatura (
@@ -150,18 +140,21 @@ export class MiHijoPage implements OnInit {
       `)
       .eq('grupo_id', grupoId);
 
-    if (!asigData) return;
+    if (!asigData) {
+      this.materias = [];
+      return;
+    }
 
-    // 3. Boletas parciales del alumno
-    const { data: boletasData } = await this.supabase
+    // 2. Boletas parciales del alumno
+    const { data: boletasData } = await this.sesion.supabase
       .from('academic_boletaparcial')
       .select('asignatura_id, parcial, calificacion_final, nota_tareas, nota_actividades, nota_asistencia, nota_examen, nota_proyecto, publicada, publicada_en')
       .eq('alumno_id', alumnoId)
       .eq('publicada', true)
       .order('parcial');
 
-    // 4. Asistencias del alumno en este grupo
-    const { data: asistData } = await this.supabase
+    // 3. Asistencias del alumno en este grupo
+    const { data: asistData } = await this.sesion.supabase
       .from('academic_asistencia')
       .select('asignatura_id, estado')
       .eq('alumno_id', alumnoId)
@@ -172,19 +165,17 @@ export class MiHijoPage implements OnInit {
       const asig = item.asignatura;
       const asigId = asig.id;
 
-      // Docentes
       const docenteNombre = asig.docentes?.length
         ? asig.docentes.map((d: any) =>
             `${d.user?.first_name || ''} ${d.user?.last_name || ''}`.trim()
           ).join(', ')
         : 'Sin asignar';
 
-      // Boletas de esta materia
       const boletas: BoletaItem[] = (boletasData || [])
         .filter((b: any) => b.asignatura_id === asigId)
         .map((b: any) => ({
           parcial:            b.parcial,
-          calificacion_final: parseFloat(b.calificacion_final),
+          calificacion_final: b.calificacion_final != null ? parseFloat(b.calificacion_final) : 0,
           nota_tareas:        b.nota_tareas != null ? parseFloat(b.nota_tareas) : null,
           nota_actividades:   b.nota_actividades != null ? parseFloat(b.nota_actividades) : null,
           nota_asistencia:    b.nota_asistencia != null ? parseFloat(b.nota_asistencia) : null,
@@ -194,12 +185,10 @@ export class MiHijoPage implements OnInit {
           publicada_en:       b.publicada_en,
         }));
 
-      // Promedio de boletas publicadas
       const promedio = boletas.length
-        ? parseFloat((boletas.reduce((s, b) => s + b.calificacion_final, 0) / boletas.length).toFixed(2))
+        ? parseFloat((boletas.reduce((s, b) => s + (b.calificacion_final || 0), 0) / boletas.length).toFixed(2))
         : null;
 
-      // Asistencias de esta materia
       const asistMateria = (asistData || []).filter((a: any) => a.asignatura_id === asigId);
       const total     = asistMateria.length;
       const presentes = asistMateria.filter((a: any) => a.estado === 'P').length;
@@ -217,6 +206,12 @@ export class MiHijoPage implements OnInit {
         asistencias: { total, presentes, ausentes, retardos, porcentaje },
       } as MateriaResumen;
     });
+
+    // Si la pestaña seleccionada quedó fuera de rango (p. ej. tras un
+    // refresh que redujo el número de materias), la regresamos a la 0.
+    if (this.materiaActiva >= this.materias.length) {
+      this.materiaActiva = 0;
+    }
   }
 
   // ── Helpers ──────────────────────────────

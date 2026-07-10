@@ -2,31 +2,76 @@ import { Component, OnInit } from '@angular/core';
 import { AlertController, ToastController } from '@ionic/angular';
 import { SesionService } from '../../services/sesion.service';
 import { CloudinaryService, ArchivoSubido } from '../../services/cloudinary.service';
+import { Router } from '@angular/router';   // ← agregar
 
 interface Materia { id: number; nombre: string; }
 interface Grupo { id: number; nombre: string; grado: number; aula: string; }
 interface ArchivoEnProgreso {
   file: File; progreso: number; subiendo: boolean; error: boolean; resultado?: ArchivoSubido;
 }
+
+interface Entrega {
+  id: number;
+  archivo: string;
+  comentario: string;
+  estado: string;
+  calificacion: number | null;
+  feedback: string;
+  entregada_en: string;
+  calificada_en: string | null;
+  alumno_id: number;
+  tarea_id: number;
+}
+
+interface AlumnoEntregaRow {
+  alumno_id: number;
+  alumno_nombre: string;
+  entrega: Entrega | null;
+  calificacionEdit: number | null;
+  feedbackEdit: string;
+  guardando: boolean;
+}
+
 interface Tarea {
   id: number; titulo: string; descripcion: string; fecha_entrega: string;
   materia_id: number; materia_nombre: string;
   grupo_id: number; grupo_nombre: string;
   archivos: ArchivoSubido[]; publicada: boolean;
   totalEntregas?: number; totalAlumnos?: number;
+
+  // ── Alumno: su propia entrega ──
+  entregaPropia?: Entrega | null;
+  mostrarFormEntrega?: boolean;
+  comentarioEntrega?: string;
+  archivoEntregaSeleccionado?: File | null;
+  subiendoEntrega?: boolean;
+  progresoEntrega?: number;
+  errorEntrega?: string;
+
+  // ── Docente: panel de calificación ──
+  panelAbierto?: boolean;
+  cargandoEntregas?: boolean;
+  entregasAlumnos?: AlumnoEntregaRow[];
 }
+
 type EstadoFiltro = 'todas' | 'activas' | 'vencidas';
 
 const MAX_MB = 20;
 const EXT_BAN = ['exe', 'bat', 'sh', 'cmd', 'msi'];
+const ESTADO_ENTREGADA = 'ENTREGADA';
+const ESTADO_CALIFICADA = 'CALIFICADA';
 
 @Component({
-  standalone: false,           // ← módulo, no standalone
+  standalone: false,
   selector: 'app-tareas',
   templateUrl: './tareas.page.html',
   styleUrls: ['./tareas.page.scss'],
 })
 export class TareasPage implements OnInit {
+
+  // ═══════════════════════════════════════════
+  // DOCENTE
+  // ═══════════════════════════════════════════
 
   showForm = false;
   editingTarea: Tarea | null = null;
@@ -56,21 +101,53 @@ export class TareasPage implements OnInit {
   filtroGrupoId: number | null = null;
   filtroEstado: EstadoFiltro = 'todas';
 
-  readonly fechaMinima = new Date().toISOString().split('T')[0];
   private formSnapshot = '';
+
+  // ═══════════════════════════════════════════
+  // ALUMNO
+  // ═══════════════════════════════════════════
+
+  tareasAlumno: Tarea[] = [];
+  cargandoTareasAlumno = false;
+  errorTareasAlumno: string | null = null;
 
   constructor(
     private sesion: SesionService,
     private cloudinary: CloudinaryService,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
+    private router: Router,
   ) { }
 
-  ngOnInit() { this.cargarMaterias(); this.cargarTareas(); }
+  get esDocente(): boolean { return this.sesion.esDocente(); }
+  get esAlumno(): boolean { return this.sesion.esAlumno(); }
 
-  // ── MATERIAS Y GRUPOS ──────────────────────────────────────
+  get fechaMinima(): string {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  ngOnInit() {
+    if (this.esDocente) { this.cargarMaterias(); this.cargarTareas(); }
+    else if (this.esAlumno) { this.cargarTareasAlumno(); }
+  }
+
+  ionViewWillEnter() {
+    if (this.esDocente) this.cargarTareas();
+    else if (this.esAlumno) this.cargarTareasAlumno();
+  }
+
+  doRefresh(event: any) {
+    const done = () => event.target.complete();
+    if (this.esDocente) this.cargarTareas().then(done);
+    else if (this.esAlumno) this.cargarTareasAlumno().then(done);
+    else done();
+  }
+
+  // ─────────────────────────────────────────────
+  // DOCENTE: MATERIAS Y GRUPOS
+  // ─────────────────────────────────────────────
   async cargarMaterias() {
-    if (!this.sesion.esDocente()) return;
+    if (!this.esDocente) return;
     this.cargandoOpciones = true;
     try {
       const uid = this.sesion.usuario!.id;
@@ -98,7 +175,6 @@ export class TareasPage implements OnInit {
     try {
       const uid = this.sesion.usuario!.id;
 
-      // Grupos que tienen esta materia
       const { data: relGM, error: eGM } = await this.sesion.supabase
         .from('academic_asignatura_grupos').select('grupo_id')
         .eq('asignatura_id', this.newTask.materiaId);
@@ -106,8 +182,6 @@ export class TareasPage implements OnInit {
       const idsGM = (relGM || []).map((r: any) => r.grupo_id);
       if (!idsGM.length) return;
 
-      // Intersección con los grupos del docente.
-      // Tabla confirmada en Supabase: academic_grupo_docentes (grupo_id, user_id).
       const { data: relDG, error: eDG } = await this.sesion.supabase
         .from('academic_grupo_docentes').select('grupo_id')
         .eq('user_id', uid).in('grupo_id', idsGM);
@@ -135,15 +209,15 @@ export class TareasPage implements OnInit {
     return g.aula ? `${g.grado}° ${g.nombre} — Aula ${g.aula}` : `${g.grado}° ${g.nombre}`;
   }
 
-  // ── CARGAR TAREAS ──────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // DOCENTE: CARGAR TAREAS
+  // ─────────────────────────────────────────────
   async cargarTareas() {
     this.cargandoTareas = true;
     this.errorTareas = null;
 
     try {
       const uid = this.sesion.usuario!.id;
-      // La columna real en academic_tarea es asignatura_id (confirmado por
-      // el error "column academic_tarea.materia_id does not exist").
       const { data, error } = await this.sesion.supabase
         .from('academic_tarea')
         .select(`id, titulo, descripcion, fecha_entrega, archivo, publicada,
@@ -165,6 +239,7 @@ export class TareasPage implements OnInit {
         grupo_nombre: this.formatGrupo(t.academic_grupo),
         archivos: this.parseArchivos(t.archivo),
         publicada: t.publicada ?? true,
+        panelAbierto: false,
       }));
 
     } catch (e: any) {
@@ -174,9 +249,6 @@ export class TareasPage implements OnInit {
     }
     this.cargandoTareas = false;
 
-    // El conteo de entregas es una mejora adicional (columnas aún sin
-    // confirmar). Si falla, NO debe tumbar la lista de tareas que ya
-    // cargó bien — solo se queda sin ese dato extra.
     try {
       await this.cargarConteoEntregas();
     } catch (e: any) {
@@ -184,14 +256,14 @@ export class TareasPage implements OnInit {
     }
   }
 
+  // Corregido: la columna real es tarea_id, no actividad_id.
   private async cargarConteoEntregas() {
     if (!this.tareas.length) return;
     const ids = this.tareas.map(t => t.id);
 
-    // TODO(schema): confirmar columnas reales de academic_entregatarea.
     const { data: entregas, error: eEnt } = await this.sesion.supabase
-      .from('academic_entregatarea').select('actividad_id')
-      .in('actividad_id', ids);
+      .from('academic_entregatarea').select('tarea_id')
+      .in('tarea_id', ids);
     if (eEnt) throw eEnt;
 
     const grupoIds = [...new Set(this.tareas.map(t => t.grupo_id))];
@@ -202,7 +274,7 @@ export class TareasPage implements OnInit {
 
     const entregasPorTarea = new Map<number, number>();
     (entregas || []).forEach((e: any) => {
-      entregasPorTarea.set(e.actividad_id, (entregasPorTarea.get(e.actividad_id) || 0) + 1);
+      entregasPorTarea.set(e.tarea_id, (entregasPorTarea.get(e.tarea_id) || 0) + 1);
     });
 
     const alumnosPorGrupo = new Map<number, number>();
@@ -219,13 +291,103 @@ export class TareasPage implements OnInit {
 
   private parseArchivos(raw: string | null): ArchivoSubido[] {
     if (!raw) return [];
-    if (Array.isArray(raw)) return raw; // por si ya llega como jsonb (no string)
+    if (Array.isArray(raw)) return raw;
     try { return JSON.parse(raw); } catch { return []; }
   }
 
   esVencida(t: Tarea): boolean { return t.fecha_entrega < this.fechaMinima; }
 
-  // ── FILTROS ────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // DOCENTE: PANEL DE CALIFICACIÓN
+  // ─────────────────────────────────────────────
+  async togglePanelEntregas(tarea: Tarea) {
+    tarea.panelAbierto = !tarea.panelAbierto;
+    if (tarea.panelAbierto && !tarea.entregasAlumnos) {
+      await this.cargarEntregasTarea(tarea);
+    }
+  }
+
+  async cargarEntregasTarea(tarea: Tarea) {
+    tarea.cargandoEntregas = true;
+    try {
+      const { data: alumnos, error: eAl } = await this.sesion.supabase
+        .from('users_user')
+        .select('id, first_name, last_name')
+        .eq('alumno_grupo_id', tarea.grupo_id)
+        .eq('rol', 'ALUMNO')
+        .order('first_name');
+      if (eAl) throw eAl;
+
+      const { data: entregas, error: eEnt } = await this.sesion.supabase
+        .from('academic_entregatarea')
+        .select('*')
+        .eq('tarea_id', tarea.id);
+      if (eEnt) throw eEnt;
+
+      const entregasPorAlumno = new Map<number, Entrega>();
+      (entregas || []).forEach((e: any) => entregasPorAlumno.set(e.alumno_id, e));
+
+      tarea.entregasAlumnos = (alumnos || [])
+        .map((a: any) => {
+          const entrega = entregasPorAlumno.get(a.id) || null;
+          return {
+            alumno_id: a.id,
+            alumno_nombre: `${a.first_name} ${a.last_name}`.trim(),
+            entrega,
+            calificacionEdit: entrega?.calificacion ?? null,
+            feedbackEdit: entrega?.feedback || '',
+            guardando: false,
+          } as AlumnoEntregaRow;
+        })
+        .sort((a, b) => {
+          if (!!a.entrega === !!b.entrega) return a.alumno_nombre.localeCompare(b.alumno_nombre);
+          return a.entrega ? -1 : 1;
+        });
+
+      tarea.totalEntregas = entregas?.length || 0;
+      tarea.totalAlumnos = alumnos?.length || 0;
+    } catch (e: any) {
+      this.toast(`No se pudieron cargar las entregas: ${e.message}`, 'danger');
+    } finally {
+      tarea.cargandoEntregas = false;
+    }
+  }
+
+  async guardarCalificacion(row: AlumnoEntregaRow) {
+    if (!row.entrega) return;
+    if (row.calificacionEdit == null || row.calificacionEdit < 0 || row.calificacionEdit > 10) {
+      this.toast('La calificación debe ser entre 0 y 10.', 'warning');
+      return;
+    }
+    row.guardando = true;
+    try {
+      const { data, error } = await this.sesion.supabase
+        .from('academic_entregatarea')
+        .update({
+          calificacion: row.calificacionEdit,
+          feedback: (row.feedbackEdit || '').trim(),
+          estado: ESTADO_CALIFICADA,
+          calificada_en: new Date().toISOString(),
+        })
+        .eq('id', row.entrega.id)
+        .select().single();
+      if (error) throw error;
+      row.entrega = data;
+      this.toast('Calificación guardada.', 'success');
+    } catch (e: any) {
+      this.toast(`No se pudo guardar: ${e.message}`, 'danger');
+    } finally {
+      row.guardando = false;
+    }
+  }
+
+  esCalificada(entrega: Entrega | null | undefined): boolean {
+    return (entrega?.estado || '').toUpperCase() === ESTADO_CALIFICADA;
+  }
+
+  // ─────────────────────────────────────────────
+  // DOCENTE: FILTROS
+  // ─────────────────────────────────────────────
   get materiasFiltro() { const m = new Map<number, string>(); this.tareas.forEach(t => m.set(t.materia_id, t.materia_nombre)); return [...m.entries()].map(([id, nombre]) => ({ id, nombre })); }
   get gruposFiltro() { const m = new Map<number, string>(); this.tareas.forEach(t => m.set(t.grupo_id, t.grupo_nombre)); return [...m.entries()].map(([id, nombre]) => ({ id, nombre })); }
   get hayFiltrosActivos() { return !!(this.searchTerm || this.filtroMateriaId || this.filtroGrupoId || this.filtroEstado !== 'todas'); }
@@ -246,7 +408,9 @@ export class TareasPage implements OnInit {
   getPendientes() { return this.tareas.filter(t => !this.esVencida(t)).length; }
   getVencidas() { return this.tareas.filter(t => this.esVencida(t)).length; }
 
-  // ── FORMULARIO ─────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // DOCENTE: FORMULARIO CREAR/EDITAR
+  // ─────────────────────────────────────────────
   abrirFormularioNuevo() { this.editingTarea = null; this.resetForm(); this.showForm = true; this.snap(); }
 
   async abrirFormularioEditar(t: Tarea) {
@@ -348,8 +512,11 @@ export class TareasPage implements OnInit {
   }
 
   async deleteTask(tarea: Tarea) {
+    const detalle = tarea.totalEntregas
+      ? ` Esta tarea tiene ${tarea.totalEntregas} entrega(s) que también se perderán.`
+      : '';
     const a = await this.alertCtrl.create({
-      header: 'Eliminar tarea', message: `¿Eliminar "${tarea.titulo}"?`,
+      header: 'Eliminar tarea', message: `¿Eliminar "${tarea.titulo}"?${detalle}`,
       buttons: [{ text: 'Cancelar', role: 'cancel' }, {
         text: 'Eliminar', role: 'destructive',
         handler: async () => {
@@ -371,7 +538,9 @@ export class TareasPage implements OnInit {
     this.toast(tarea.publicada ? 'Tarea publicada.' : 'Guardada como borrador.', 'success');
   }
 
-  // ── ARCHIVOS ───────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // DOCENTE: ARCHIVOS DE LA TAREA (múltiples)
+  // ─────────────────────────────────────────────
   onDragOver(e: DragEvent) { e.preventDefault(); e.stopPropagation(); this.isDragging = true; }
   onDragLeave(e: DragEvent) { e.preventDefault(); e.stopPropagation(); this.isDragging = false; }
   onDrop(e: DragEvent) { e.preventDefault(); e.stopPropagation(); this.isDragging = false; if (e.dataTransfer?.files.length) this.subirArchivos(Array.from(e.dataTransfer.files)); }
@@ -407,6 +576,181 @@ export class TareasPage implements OnInit {
       .catch(() => { item.subiendo = false; item.error = true; });
   }
 
+  // ═══════════════════════════════════════════
+  // ALUMNO: CARGAR SUS TAREAS + SU ENTREGA
+  // ═══════════════════════════════════════════
+async cargarTareasAlumno() {
+  this.cargandoTareasAlumno = true;
+  this.errorTareasAlumno = null;
+  try {
+    const uid = this.sesion.usuario!.id;
+
+    // Antes: const grupoId = this.sesion.usuario?.alumno_grupo_id;
+    // Ahora: se consulta fresco, igual que en inicio.page
+    const { data: usu, error: eU } = await this.sesion.supabase
+      .from('users_user')
+      .select('alumno_grupo_id')
+      .eq('id', uid)
+      .single();
+    if (eU) throw eU;
+
+    const grupoId = (usu as any)?.alumno_grupo_id;
+    if (!grupoId) { this.tareasAlumno = []; return; }
+
+    const { data, error } = await this.sesion.supabase
+      .from('academic_tarea')
+      .select(`id, titulo, descripcion, fecha_entrega, archivo, publicada,
+               asignatura_id, grupo_id,
+               academic_asignatura(nombre),
+               academic_grupo(nombre, grado, aula)`)
+      .eq('grupo_id', grupoId)
+      .eq('publicada', true)
+      .order('fecha_entrega', { ascending: true });
+    if (error) throw error;
+
+      const tareas: Tarea[] = (data || []).map((t: any) => ({
+        id: t.id,
+        titulo: t.titulo,
+        descripcion: t.descripcion || '',
+        fecha_entrega: t.fecha_entrega,
+        materia_id: t.asignatura_id,
+        materia_nombre: t.academic_asignatura?.nombre || '—',
+        grupo_id: t.grupo_id,
+        grupo_nombre: this.formatGrupo(t.academic_grupo),
+        archivos: this.parseArchivos(t.archivo),
+        publicada: t.publicada ?? true,
+        comentarioEntrega: '',
+        archivoEntregaSeleccionado: null,
+      }));
+
+      if (tareas.length) {
+        const ids = tareas.map(t => t.id);
+        const { data: entregas, error: eEnt } = await this.sesion.supabase
+          .from('academic_entregatarea')
+          .select('*')
+          .eq('alumno_id', uid)
+          .in('tarea_id', ids);
+        if (eEnt) throw eEnt;
+
+        const porTarea = new Map<number, Entrega>();
+        (entregas || []).forEach((e: any) => porTarea.set(e.tarea_id, e));
+        tareas.forEach(t => t.entregaPropia = porTarea.get(t.id) || null);
+      }
+
+      this.tareasAlumno = tareas;
+    } catch (e: any) {
+      this.errorTareasAlumno = `No se pudieron cargar tus tareas. Detalle: ${e.message}`;
+    } finally {
+      this.cargandoTareasAlumno = false;
+    }
+  }
+
+  toggleFormEntrega(tarea: Tarea) {
+    tarea.mostrarFormEntrega = !tarea.mostrarFormEntrega;
+    if (tarea.mostrarFormEntrega) {
+      tarea.comentarioEntrega = tarea.entregaPropia?.comentario || '';
+      tarea.archivoEntregaSeleccionado = null;
+      tarea.errorEntrega = '';
+    }
+  }
+
+  onArchivoEntregaSeleccionado(tarea: Tarea, ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const err = this.validar(file);
+    if (err) { tarea.errorEntrega = err; input.value = ''; return; }
+    tarea.archivoEntregaSeleccionado = file;
+    tarea.errorEntrega = '';
+  }
+
+  async enviarEntrega(tarea: Tarea) {
+    if (this.tareaBloqueada(tarea)) {
+      tarea.errorEntrega = this.esCalificada(tarea.entregaPropia)
+        ? 'Esta tarea ya fue calificada, no puedes modificar tu entrega.'
+        : 'La fecha de entrega ya venció, no puedes entregar ni modificar.';
+      tarea.mostrarFormEntrega = false;
+      return;
+    }
+    if (!tarea.archivoEntregaSeleccionado && !tarea.entregaPropia) {
+      tarea.errorEntrega = 'Adjunta un archivo para entregar.';
+      return;
+    }
+    if (!tarea.archivoEntregaSeleccionado && !tarea.entregaPropia) {
+      tarea.errorEntrega = 'Adjunta un archivo para entregar.';
+      return;
+    }
+    tarea.subiendoEntrega = true;
+    tarea.progresoEntrega = 0;
+    tarea.errorEntrega = '';
+
+    try {
+      let archivoUrl = tarea.entregaPropia?.archivo || '';
+      if (tarea.archivoEntregaSeleccionado) {
+        const subido = await this.cloudinary.subirArchivo(
+          tarea.archivoEntregaSeleccionado,
+          pct => tarea.progresoEntrega = pct
+        );
+        archivoUrl = subido.url;
+      }
+
+      const uid = this.sesion.usuario!.id;
+      const comentario = (tarea.comentarioEntrega || '').trim();
+      const ahora = new Date().toISOString();
+
+      if (tarea.entregaPropia) {
+        const { data, error } = await this.sesion.supabase
+          .from('academic_entregatarea')
+          .update({
+            archivo: archivoUrl,
+            comentario,
+            estado: ESTADO_ENTREGADA,
+            entregada_en: ahora,
+            // Si vuelve a entregar, se resetea cualquier calificación previa
+            calificacion: null,
+            feedback: '',
+            calificada_en: null,
+          })
+          .eq('id', tarea.entregaPropia.id)
+          .select().single();
+        if (error) throw error;
+        tarea.entregaPropia = data;
+      } else {
+        const { data, error } = await this.sesion.supabase
+          .from('academic_entregatarea')
+          .insert({
+            tarea_id: tarea.id,
+            alumno_id: uid,
+            archivo: archivoUrl,
+            comentario,
+            estado: ESTADO_ENTREGADA,
+            entregada_en: ahora,
+            feedback: '',
+          })
+          .select().single();
+        if (error) throw error;
+        tarea.entregaPropia = data;
+      }
+
+      tarea.mostrarFormEntrega = false;
+      this.toast('Tarea entregada.', 'success');
+    } catch (e: any) {
+      tarea.errorEntrega = `No se pudo entregar: ${e.message}`;
+    } finally {
+      tarea.subiendoEntrega = false;
+    }
+  }
+
+  esTardia(tarea: Tarea): boolean {
+    if (!tarea.entregaPropia) return false;
+    return tarea.entregaPropia.entregada_en.slice(0, 10) > tarea.fecha_entrega;
+  }
+  tareaBloqueada(tarea: Tarea): boolean {
+    return this.esVencida(tarea) || this.esCalificada(tarea.entregaPropia);
+  }
+  // ─────────────────────────────────────────────
+  // COMPARTIDOS
+  // ─────────────────────────────────────────────
   getFileIcon(name: string): string {
     const ext = name.split('.').pop()?.toLowerCase();
     const m: Record<string, string> = { pdf: 'document-text-outline', doc: 'reader-outline', docx: 'reader-outline', jpg: 'image-outline', jpeg: 'image-outline', png: 'image-outline', mp4: 'videocam-outline', mov: 'videocam-outline', zip: 'archive-outline', rar: 'archive-outline' };
@@ -422,4 +766,10 @@ export class TareasPage implements OnInit {
     const t = await this.toastCtrl.create({ message: msg, duration: 2500, color, position: 'bottom' });
     await t.present();
   }
+  getPendientesAlumno(): number {
+  return this.tareasAlumno.filter(t => !t.entregaPropia && !this.esVencida(t)).length;
+}
+irADetalle(tarea: Tarea) {
+  this.router.navigate(['/tareas', tarea.id]);
+}
 }

@@ -53,8 +53,8 @@
         class="post-textarea"
       ></ion-textarea>
 
-      <!-- ── Paso 1: audiencia ─────────────────── -->
-      <div class="audiencia-section">
+      <!-- ── Paso 1: audiencia (no aplica si es solo para docentes) ── -->
+      <div class="audiencia-section" *ngIf="destinatario !== 'DOCENTES'">
         <p class="destinatario-label">¿A quién va dirigido?</p>
         <div class="audiencia-opts">
           <button class="aud-opt" [class.active]="publico === 'ALUMNOS'" (click)="publico = 'ALUMNOS'">
@@ -94,6 +94,16 @@
             <div class="dest-opt-text">
               <strong>Uno o varios grupos</strong>
               <span>Elige tu materia y a qué grupos les llega</span>
+            </div>
+          </button>
+
+          <button class="dest-opt"
+            [class.active]="destinatario === 'DOCENTES'"
+            (click)="onDestinatarioChange('DOCENTES')">
+            <ion-icon name="briefcase-outline"></ion-icon>
+            <div class="dest-opt-text">
+              <strong>Solo docentes</strong>
+              <span>Nadie más lo verá</span>
             </div>
           </button>
 
@@ -141,6 +151,11 @@
             <ng-container *ngIf="gruposSeleccionados.length > 1">Se enviará el mismo comunicado a los {{ gruposSeleccionados.length }} grupos elegidos.</ng-container>
           </p>
         </div>
+
+        <p class="grupo-hint" *ngIf="destinatario === 'DOCENTES'">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          Este comunicado solo será visible para otros docentes y dirección.
+        </p>
       </div>
 
       <!-- Adjunto seleccionado -->
@@ -324,6 +339,14 @@
       </span>
     </div>
     <span class="post-date-top">{{ formatFecha(c.creado_en) }}</span>
+
+    <button class="post-delete-btn" *ngIf="puedeEliminar(c)"
+      [disabled]="eliminandoId === c.id"
+      (click)="eliminarComunicado(c)"
+      title="Eliminar comunicado">
+      <ion-spinner *ngIf="eliminandoId === c.id" name="crescent" style="width:14px;height:14px"></ion-spinner>
+      <ion-icon *ngIf="eliminandoId !== c.id" name="trash-outline"></ion-icon>
+    </button>
   </div>
 
   <div class="dest-chips-row">
@@ -331,7 +354,7 @@
       <ion-icon name="people-circle-outline"></ion-icon>
       {{ etiquetaGrupo(c) }}
     </span>
-    <span class="dest-chip publico" *ngIf="c.publico !== 'AMBOS'">
+    <span class="dest-chip publico" *ngIf="c.publico !== 'AMBOS' && c.destinatario !== 'DOCENTES'">
       <ion-icon [name]="c.publico === 'ALUMNOS' ? 'school-outline' : 'people-outline'"></ion-icon>
       {{ etiquetaPublico(c) }}
     </span>

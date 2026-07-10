@@ -77,191 +77,203 @@
     </div>
 
     <!-- ─────────────────────────────────── -->
-    <!-- PESTAÑAS DE MATERIAS                -->
+    <!-- SIN MATERIAS ASIGNADAS              -->
     <!-- ─────────────────────────────────── -->
-    <p class="section-label">Materias</p>
-
-    <div class="tabs-scroll">
-      <button
-        *ngFor="let m of materias; let i = index"
-        class="tab-btn"
-        [class.active]="materiaActiva === i"
-        (click)="setMateria(i)"
-      >
-        {{ m.nombre }}
-      </button>
+    <div *ngIf="materias.length === 0" class="empty-card" style="margin: 0 16px">
+      <ion-icon name="school-outline"></ion-icon>
+      <p>Aún no hay materias asignadas para este periodo</p>
     </div>
 
-    <!-- ─────────────────────────────────── -->
-    <!-- DETALLE DE MATERIA ACTIVA           -->
-    <!-- ─────────────────────────────────── -->
-    <ng-container *ngIf="materias[materiaActiva] as m">
+    <ng-container *ngIf="materias.length > 0">
 
-      <!-- Encabezado de materia -->
-      <div class="materia-header">
-        <div class="materia-header-left">
-          <span class="materia-nombre">{{ m.nombre }}</span>
-          <span class="materia-clave" *ngIf="m.clave">{{ m.clave }}</span>
-        </div>
-        <div class="docente-chip">
-          <ion-icon name="person-outline"></ion-icon>
-          {{ m.docente }}
-        </div>
+      <!-- ─────────────────────────────────── -->
+      <!-- PESTAÑAS DE MATERIAS                -->
+      <!-- ─────────────────────────────────── -->
+      <p class="section-label">Materias</p>
+
+      <div class="tabs-scroll">
+        <button
+          *ngFor="let m of materias; let i = index"
+          class="tab-btn"
+          [class.active]="materiaActiva === i"
+          (click)="setMateria(i)"
+        >
+          {{ m.nombre }}
+        </button>
       </div>
 
-      <!-- Mini stats de materia -->
-      <div class="materia-stats">
-        <div class="mstat" [class]="'color-' + colorNota(m.promedio)">
-          <span class="mstat-num">{{ m.promedio ?? '—' }}</span>
-          <span class="mstat-lbl">Promedio</span>
-        </div>
-        <div class="mstat" [class]="'color-' + colorAsistencia(m.asistencias.porcentaje)">
-          <span class="mstat-num">{{ m.asistencias.porcentaje }}%</span>
-          <span class="mstat-lbl">Asistencia</span>
-        </div>
-        <div class="mstat color-neutro">
-          <span class="mstat-num">{{ m.boletas.length }}</span>
-          <span class="mstat-lbl">Parciales</span>
-        </div>
-      </div>
+      <!-- ─────────────────────────────────── -->
+      <!-- DETALLE DE MATERIA ACTIVA           -->
+      <!-- ─────────────────────────────────── -->
+      <ng-container *ngIf="materias[materiaActiva] as m">
 
-      <!-- ── BOLETAS PARCIALES ── -->
-      <p class="section-label" style="margin-top:18px">Calificaciones por Parcial</p>
-
-      <div *ngIf="m.boletas.length === 0" class="empty-card">
-        <ion-icon name="document-outline"></ion-icon>
-        <p>Sin calificaciones publicadas aún</p>
-      </div>
-
-      <div *ngFor="let b of m.boletas" class="boleta-card">
-
-        <!-- Header parcial -->
-        <div class="boleta-header">
-          <div class="parcial-badge">{{ nombreParcial(b.parcial) }}</div>
-          <div class="nota-final" [class]="'nota-' + colorNota(b.calificacion_final)">
-            {{ b.calificacion_final | number:'1.1-2' }}
+        <!-- Encabezado de materia -->
+        <div class="materia-header">
+          <div class="materia-header-left">
+            <span class="materia-nombre">{{ m.nombre }}</span>
+            <span class="materia-clave" *ngIf="m.clave">{{ m.clave }}</span>
+          </div>
+          <div class="docente-chip">
+            <ion-icon name="person-outline"></ion-icon>
+            {{ m.docente }}
           </div>
         </div>
 
-        <!-- Desglose de rubros -->
-        <div class="rubros-grid">
+        <!-- Mini stats de materia -->
+        <div class="materia-stats">
+          <div class="mstat" [class]="'color-' + colorNota(m.promedio)">
+            <span class="mstat-num">{{ m.promedio ?? '—' }}</span>
+            <span class="mstat-lbl">Promedio</span>
+          </div>
+          <div class="mstat" [class]="'color-' + colorAsistencia(m.asistencias.porcentaje)">
+            <span class="mstat-num">{{ m.asistencias.porcentaje }}%</span>
+            <span class="mstat-lbl">Asistencia</span>
+          </div>
+          <div class="mstat color-neutro">
+            <span class="mstat-num">{{ m.boletas.length }}</span>
+            <span class="mstat-lbl">Parciales</span>
+          </div>
+        </div>
 
-          <div class="rubro-item" *ngIf="b.nota_tareas != null">
-            <div class="rubro-icon tareas-icon">
-              <ion-icon name="document-text-outline"></ion-icon>
+        <!-- ── BOLETAS PARCIALES ── -->
+        <p class="section-label" style="margin-top:18px">Calificaciones por Parcial</p>
+
+        <div *ngIf="m.boletas.length === 0" class="empty-card">
+          <ion-icon name="document-outline"></ion-icon>
+          <p>Sin calificaciones publicadas aún</p>
+        </div>
+
+        <div *ngFor="let b of m.boletas" class="boleta-card">
+
+          <!-- Header parcial -->
+          <div class="boleta-header">
+            <div class="parcial-badge">{{ nombreParcial(b.parcial) }}</div>
+            <div class="nota-final" [class]="'nota-' + colorNota(b.calificacion_final)">
+              {{ b.calificacion_final | number:'1.1-2' }}
             </div>
-            <div class="rubro-info">
-              <span class="rubro-nombre">Tareas</span>
-              <div class="rubro-barra-wrap">
-                <div class="rubro-barra" [style.width.%]="b.nota_tareas * 10" [class]="'bar-' + colorNota(b.nota_tareas)"></div>
+          </div>
+
+          <!-- Desglose de rubros -->
+          <div class="rubros-grid">
+
+            <div class="rubro-item" *ngIf="b.nota_tareas != null">
+              <div class="rubro-icon tareas-icon">
+                <ion-icon name="document-text-outline"></ion-icon>
               </div>
+              <div class="rubro-info">
+                <span class="rubro-nombre">Tareas</span>
+                <div class="rubro-barra-wrap">
+                  <div class="rubro-barra" [style.width.%]="b.nota_tareas * 10" [class]="'bar-' + colorNota(b.nota_tareas)"></div>
+                </div>
+              </div>
+              <span class="rubro-nota" [class]="'nota-' + colorNota(b.nota_tareas)">{{ b.nota_tareas | number:'1.1-1' }}</span>
             </div>
-            <span class="rubro-nota" [class]="'nota-' + colorNota(b.nota_tareas)">{{ b.nota_tareas | number:'1.1-1' }}</span>
+
+            <div class="rubro-item" *ngIf="b.nota_actividades != null">
+              <div class="rubro-icon activ-icon">
+                <ion-icon name="checkmark-done-outline"></ion-icon>
+              </div>
+              <div class="rubro-info">
+                <span class="rubro-nombre">Actividades</span>
+                <div class="rubro-barra-wrap">
+                  <div class="rubro-barra" [style.width.%]="b.nota_actividades * 10" [class]="'bar-' + colorNota(b.nota_actividades)"></div>
+                </div>
+              </div>
+              <span class="rubro-nota" [class]="'nota-' + colorNota(b.nota_actividades)">{{ b.nota_actividades | number:'1.1-1' }}</span>
+            </div>
+
+            <div class="rubro-item" *ngIf="b.nota_asistencia != null">
+              <div class="rubro-icon asist-icon">
+                <ion-icon name="calendar-outline"></ion-icon>
+              </div>
+              <div class="rubro-info">
+                <span class="rubro-nombre">Asistencia</span>
+                <div class="rubro-barra-wrap">
+                  <div class="rubro-barra" [style.width.%]="b.nota_asistencia * 10" [class]="'bar-' + colorNota(b.nota_asistencia)"></div>
+                </div>
+              </div>
+              <span class="rubro-nota" [class]="'nota-' + colorNota(b.nota_asistencia)">{{ b.nota_asistencia | number:'1.1-1' }}</span>
+            </div>
+
+            <div class="rubro-item" *ngIf="b.nota_examen != null">
+              <div class="rubro-icon examen-icon">
+                <ion-icon name="school-outline"></ion-icon>
+              </div>
+              <div class="rubro-info">
+                <span class="rubro-nombre">Examen</span>
+                <div class="rubro-barra-wrap">
+                  <div class="rubro-barra" [style.width.%]="b.nota_examen * 10" [class]="'bar-' + colorNota(b.nota_examen)"></div>
+                </div>
+              </div>
+              <span class="rubro-nota" [class]="'nota-' + colorNota(b.nota_examen)">{{ b.nota_examen | number:'1.1-1' }}</span>
+            </div>
+
+            <div class="rubro-item" *ngIf="b.nota_proyecto != null">
+              <div class="rubro-icon proyecto-icon">
+                <ion-icon name="construct-outline"></ion-icon>
+              </div>
+              <div class="rubro-info">
+                <span class="rubro-nombre">Proyecto</span>
+                <div class="rubro-barra-wrap">
+                  <div class="rubro-barra" [style.width.%]="b.nota_proyecto * 10" [class]="'bar-' + colorNota(b.nota_proyecto)"></div>
+                </div>
+              </div>
+              <span class="rubro-nota" [class]="'nota-' + colorNota(b.nota_proyecto)">{{ b.nota_proyecto | number:'1.1-1' }}</span>
+            </div>
+
           </div>
 
-          <div class="rubro-item" *ngIf="b.nota_actividades != null">
-            <div class="rubro-icon activ-icon">
-              <ion-icon name="checkmark-done-outline"></ion-icon>
-            </div>
-            <div class="rubro-info">
-              <span class="rubro-nombre">Actividades</span>
-              <div class="rubro-barra-wrap">
-                <div class="rubro-barra" [style.width.%]="b.nota_actividades * 10" [class]="'bar-' + colorNota(b.nota_actividades)"></div>
-              </div>
-            </div>
-            <span class="rubro-nota" [class]="'nota-' + colorNota(b.nota_actividades)">{{ b.nota_actividades | number:'1.1-1' }}</span>
+          <p class="boleta-fecha" *ngIf="b.publicada_en">
+            Publicado el {{ b.publicada_en | date:'d MMM yyyy' }}
+          </p>
+        </div>
+
+        <!-- ── ASISTENCIA ── -->
+        <p class="section-label" style="margin-top:18px">Registro de Asistencia</p>
+
+        <div class="asistencia-card">
+
+          <div class="asist-donut-wrap">
+            <svg viewBox="0 0 36 36" class="asist-donut">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="3"/>
+              <circle
+                cx="18" cy="18" r="15.9" fill="none"
+                [attr.stroke]="m.asistencias.porcentaje >= 90 ? '#22c55e' : m.asistencias.porcentaje >= 75 ? '#f97316' : '#ef4444'"
+                stroke-width="3"
+                [attr.stroke-dasharray]="m.asistencias.porcentaje + ', 100'"
+                stroke-linecap="round"
+                transform="rotate(-90 18 18)"
+              />
+            </svg>
+            <span class="asist-donut-label">{{ m.asistencias.porcentaje }}%</span>
           </div>
 
-          <div class="rubro-item" *ngIf="b.nota_asistencia != null">
-            <div class="rubro-icon asist-icon">
-              <ion-icon name="calendar-outline"></ion-icon>
+          <div class="asist-detalle">
+            <div class="asist-row">
+              <div class="asist-dot green"></div>
+              <span class="asist-tipo">Presentes</span>
+              <span class="asist-val">{{ m.asistencias.presentes }}</span>
             </div>
-            <div class="rubro-info">
-              <span class="rubro-nombre">Asistencia</span>
-              <div class="rubro-barra-wrap">
-                <div class="rubro-barra" [style.width.%]="b.nota_asistencia * 10" [class]="'bar-' + colorNota(b.nota_asistencia)"></div>
-              </div>
+            <div class="asist-row">
+              <div class="asist-dot red"></div>
+              <span class="asist-tipo">Ausentes</span>
+              <span class="asist-val">{{ m.asistencias.ausentes }}</span>
             </div>
-            <span class="rubro-nota" [class]="'nota-' + colorNota(b.nota_asistencia)">{{ b.nota_asistencia | number:'1.1-1' }}</span>
-          </div>
-
-          <div class="rubro-item" *ngIf="b.nota_examen != null">
-            <div class="rubro-icon examen-icon">
-              <ion-icon name="school-outline"></ion-icon>
+            <div class="asist-row">
+              <div class="asist-dot orange"></div>
+              <span class="asist-tipo">Retardos</span>
+              <span class="asist-val">{{ m.asistencias.retardos }}</span>
             </div>
-            <div class="rubro-info">
-              <span class="rubro-nombre">Examen</span>
-              <div class="rubro-barra-wrap">
-                <div class="rubro-barra" [style.width.%]="b.nota_examen * 10" [class]="'bar-' + colorNota(b.nota_examen)"></div>
-              </div>
+            <div class="asist-row total-row">
+              <div class="asist-dot grey"></div>
+              <span class="asist-tipo">Total clases</span>
+              <span class="asist-val">{{ m.asistencias.total }}</span>
             </div>
-            <span class="rubro-nota" [class]="'nota-' + colorNota(b.nota_examen)">{{ b.nota_examen | number:'1.1-1' }}</span>
-          </div>
-
-          <div class="rubro-item" *ngIf="b.nota_proyecto != null">
-            <div class="rubro-icon proyecto-icon">
-              <ion-icon name="construct-outline"></ion-icon>
-            </div>
-            <div class="rubro-info">
-              <span class="rubro-nombre">Proyecto</span>
-              <div class="rubro-barra-wrap">
-                <div class="rubro-barra" [style.width.%]="b.nota_proyecto * 10" [class]="'bar-' + colorNota(b.nota_proyecto)"></div>
-              </div>
-            </div>
-            <span class="rubro-nota" [class]="'nota-' + colorNota(b.nota_proyecto)">{{ b.nota_proyecto | number:'1.1-1' }}</span>
           </div>
 
         </div>
 
-        <p class="boleta-fecha" *ngIf="b.publicada_en">
-          Publicado el {{ b.publicada_en | date:'d MMM yyyy' }}
-        </p>
-      </div>
-
-      <!-- ── ASISTENCIA ── -->
-      <p class="section-label" style="margin-top:18px">Registro de Asistencia</p>
-
-      <div class="asistencia-card">
-
-        <div class="asist-donut-wrap">
-          <svg viewBox="0 0 36 36" class="asist-donut">
-            <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="3"/>
-            <circle
-              cx="18" cy="18" r="15.9" fill="none"
-              [attr.stroke]="m.asistencias.porcentaje >= 90 ? '#22c55e' : m.asistencias.porcentaje >= 75 ? '#f97316' : '#ef4444'"
-              stroke-width="3"
-              [attr.stroke-dasharray]="m.asistencias.porcentaje + ', 100'"
-              stroke-linecap="round"
-              transform="rotate(-90 18 18)"
-            />
-          </svg>
-          <span class="asist-donut-label">{{ m.asistencias.porcentaje }}%</span>
-        </div>
-
-        <div class="asist-detalle">
-          <div class="asist-row">
-            <div class="asist-dot green"></div>
-            <span class="asist-tipo">Presentes</span>
-            <span class="asist-val">{{ m.asistencias.presentes }}</span>
-          </div>
-          <div class="asist-row">
-            <div class="asist-dot red"></div>
-            <span class="asist-tipo">Ausentes</span>
-            <span class="asist-val">{{ m.asistencias.ausentes }}</span>
-          </div>
-          <div class="asist-row">
-            <div class="asist-dot orange"></div>
-            <span class="asist-tipo">Retardos</span>
-            <span class="asist-val">{{ m.asistencias.retardos }}</span>
-          </div>
-          <div class="asist-row total-row">
-            <div class="asist-dot grey"></div>
-            <span class="asist-tipo">Total clases</span>
-            <span class="asist-val">{{ m.asistencias.total }}</span>
-          </div>
-        </div>
-
-      </div>
+      </ng-container>
 
     </ng-container>
 

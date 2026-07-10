@@ -36,6 +36,14 @@ const ICON_MAP: Record<string, string> = {
   OTRO:   'attach-outline',
 };
 
+// Extensiones aceptadas por tipo. Array vacío = cualquier extensión permitida.
+const EXTENSIONES_VALIDAS: Record<string, string[]> = {
+  PDF:    ['pdf'],
+  IMAGEN: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+  VIDEO:  ['mp4', 'mov', 'avi', 'webm', 'mkv'],
+  OTRO:   [],
+};
+
 @Component({
   selector: 'app-herramientas',
   templateUrl: './herramientas.page.html',
@@ -53,14 +61,17 @@ export class HerramientasPage implements OnInit {
   isDragging  = false;
   showForm    = false;
   editingId: number | null = null;
+  error = '';
+
+  // Se activa si el rol del usuario no tiene una vista de materiales soportada
+  sinRolSoportado = false;
 
   // ── Datos ────────────────────────────────────────────────────
   materials: MaterialItem[] = [];
 
-  // Tareas recientes (preview estático — enlaza a /tareas)
-  recentTasks: { title: string; date: string; status: string }[] = [];
-
   // Contenido educativo estático (GeoGebra, Kahoot, etc.)
+  // NOTA: hoy es fijo en el código. Si se quiere que un admin lo edite sin
+  // tocar código, hay que moverlo a una tabla en base de datos (ver recomendación aparte).
   educationalContent = [
     { icon: 'calculator-outline', title: 'GeoGebra',         description: 'Geometría y álgebra interactiva.',    category: 'Matemáticas', duration: 'Ilimitado', level: 'básico',     gradient: 'linear-gradient(135deg,#0a1f44,#1a3a6e)', url: 'https://www.geogebra.org/calculator' },
     { icon: 'flask-outline',      title: 'PhET Simulations', description: 'Simulaciones científicas de la U. de Colorado.',  category: 'Ciencias',    duration: 'Ilimitado', level: 'intermedio', gradient: 'linear-gradient(135deg,#ff6b00,#ff9a44)', url: 'https://phet.colorado.edu/es/' },
@@ -89,8 +100,13 @@ export class HerramientasPage implements OnInit {
   cargandoOpts    = false;
 
   // ── Búsqueda y filtros ───────────────────────────────────────
-  searchTerm   = '';
-  filtroTipo   = 'TODOS';
+  searchTerm    = '';
+  filtroTipo    = 'TODOS';
+  filtroMateria = 'TODAS';
+
+  // ── Paginación ───────────────────────────────────────────────
+  pageSize = 12;
+  paginaActual = 1;
 
   readonly fechaMinima = new Date().toISOString().split('T')[0];
 
@@ -98,15 +114,65 @@ export class HerramientasPage implements OnInit {
   get esAlumno():  boolean { return this.sesion.esAlumno(); }
   get esTutor():   boolean { return this.sesion.esTutor(); }
 
+  // Asunción: estos métodos siguen el mismo patrón que esDocente/esAlumno/esTutor.
+  // Si no existen en SesionService, avísame para ajustar el nombre real.
+  get esAdmin():    boolean { return (this.sesion as any).esAdmin?.()    ?? false; }
+  get esCoord():     boolean { return (this.sesion as any).esCoord?.()    ?? false; }
+  get esDirector():  boolean { return (this.sesion as any).esDirector?.() ?? false; }
+
+  get puedeGestionar(): boolean { return this.esDocente; } // quién puede subir/editar/borrar
+
   get materialesFiltrados(): MaterialItem[] {
     return this.materials.filter(m => {
       if (this.filtroTipo !== 'TODOS' && m.tipo !== this.filtroTipo) return false;
+      if (this.filtroMateria !== 'TODAS' && m.asignatura !== this.filtroMateria) return false;
       if (this.searchTerm.trim()) {
         const q = this.searchTerm.toLowerCase();
-        return m.titulo.toLowerCase().includes(q) || m.asignatura.toLowerCase().includes(q);
+        return m.titulo.toLowerCase().includes(q)
+          || m.asignatura.toLowerCase().includes(q)
+          || m.descripcion.toLowerCase().includes(q);
       }
       return true;
     });
+  }
+
+  // Lista de materias presentes en el material cargado, para armar los chips de filtro.
+  // Se calcula a partir de los materiales, no de un catálogo aparte, así solo aparecen
+  // materias que realmente tienen contenido publicado.
+  get materiasConMaterial(): string[] {
+    return [...new Set(this.materials.map(m => m.asignatura))].sort((a, b) => a.localeCompare(b, 'es'));
+  }
+
+  contarMateria(nombre: string): number {
+    return this.materials.filter(m => m.asignatura === nombre).length;
+  }
+
+  cambiarFiltroMateria(materia: string) {
+    this.filtroMateria = materia;
+    this.paginaActual = 1;
+  }
+
+  get materialesPaginados(): MaterialItem[] {
+    return this.materialesFiltrados.slice(0, this.pageSize * this.paginaActual);
+  }
+
+  get hayMasPorCargar(): boolean {
+    return this.materialesPaginados.length < this.materialesFiltrados.length;
+  }
+
+  cargarMas() { this.paginaActual++; }
+
+  cambiarFiltroTipo(tipo: string) {
+    this.filtroTipo = tipo;
+    this.paginaActual = 1;
+  }
+
+  onBusquedaCambia() {
+    this.paginaActual = 1;
+  }
+
+  contarTipo(tipo: string): number {
+    return this.materials.filter(m => m.tipo === tipo).length;
   }
 
   constructor(
@@ -132,12 +198,19 @@ export class HerramientasPage implements OnInit {
 
   async cargarDatos() {
     this.cargando = true;
+    this.error = '';
+    this.sinRolSoportado = false;
+    this.paginaActual = 1;
+    this.filtroMateria = 'TODAS';
     try {
-      if (this.esDocente)     await this.cargarMaterialesDocente();
-      else if (this.esAlumno) await this.cargarMaterialesAlumno();
-      else if (this.esTutor)  await this.cargarMaterialesAlumnoHijo();
+      if (this.esDocente)          await this.cargarMaterialesDocente();
+      else if (this.esAlumno)      await this.cargarMaterialesAlumno();
+      else if (this.esTutor)       await this.cargarMaterialesAlumnoHijo();
+      else if (this.esAdmin || this.esCoord || this.esDirector) await this.cargarMaterialesAdmin();
+      else this.sinRolSoportado = true;
     } catch (e: any) {
       console.error('Herramientas:', e.message);
+      this.error = 'Error al cargar materiales: ' + e.message;
     } finally {
       this.cargando = false;
     }
@@ -191,6 +264,31 @@ export class HerramientasPage implements OnInit {
       .from('academic_materialapoyo')
       .select('id, titulo, descripcion, tipo, archivo, url_externa, activo, creado_en, asignatura_id, grupo_id')
       .eq('grupo_id', grupoId)
+      .eq('activo', true)
+      .order('creado_en', { ascending: false });
+
+    if (error) throw error;
+    await this.hidratar(data || []);
+  }
+
+  // Vista de solo lectura para ADMIN/COORD/DIRECTOR: todos los materiales del plantel.
+  // Asunción: sesion.usuario trae plantel_id, siguiendo el mismo aislamiento
+  // por plantel que ya usas en el resto del proyecto. Ajusta el nombre del campo si difiere.
+  private async cargarMaterialesAdmin() {
+    const plantelId = (this.sesion.usuario as any)?.plantel_id;
+    if (!plantelId) { this.sinRolSoportado = true; return; }
+
+    const { data: grupos, error: gErr } = await this.supabase
+      .from('academic_grupo').select('id').eq('plantel_id', plantelId);
+    if (gErr) throw gErr;
+
+    const grupoIds = (grupos || []).map((g: any) => g.id);
+    if (!grupoIds.length) return;
+
+    const { data, error } = await this.supabase
+      .from('academic_materialapoyo')
+      .select('id, titulo, descripcion, tipo, archivo, url_externa, activo, creado_en, asignatura_id, grupo_id')
+      .in('grupo_id', grupoIds)
       .eq('activo', true)
       .order('creado_en', { ascending: false });
 
@@ -273,13 +371,23 @@ export class HerramientasPage implements OnInit {
   //  FORMULARIO — ABRIR / CERRAR
   // ══════════════════════════════════════════════════════════
 
-  abrirNuevo() {
+  async abrirNuevo() {
+    // Si ya hay un formulario abierto (p.ej. editando) con cambios sin guardar,
+    // confirmar antes de descartarlo — antes este botón lo pisaba sin preguntar.
+    if (this.showForm && this.hayCambiosSinGuardar()) {
+      const confirmado = await this.confirmarDescarte();
+      if (!confirmado) return;
+    }
     this.editingId = null;
     this.resetForm();
     this.showForm = true;
   }
 
   async abrirEditar(mat: MaterialItem) {
+    if (this.showForm && this.hayCambiosSinGuardar()) {
+      const confirmado = await this.confirmarDescarte();
+      if (!confirmado) return;
+    }
     this.editingId = mat.id;
     this.archivoSeleccionado = null;
     this.archivoExistente    = mat.archivo_url;
@@ -303,12 +411,25 @@ export class HerramientasPage implements OnInit {
   }
 
   async solicitarCierre() {
-    if (!this.newMaterial.titulo.trim() && !this.archivoSeleccionado) { this.forzarCierre(); return; }
-    const a = await this.alertCtrl.create({
-      header: 'Descartar cambios', message: '¿Salir sin guardar?',
-      buttons: [{ text: 'Seguir', role: 'cancel' }, { text: 'Descartar', role: 'destructive', handler: () => this.forzarCierre() }]
+    if (!this.hayCambiosSinGuardar()) { this.forzarCierre(); return; }
+    const confirmado = await this.confirmarDescarte();
+    if (confirmado) this.forzarCierre();
+  }
+
+  private hayCambiosSinGuardar(): boolean {
+    return !!this.newMaterial.titulo.trim() || !!this.archivoSeleccionado;
+  }
+
+  private confirmarDescarte(): Promise<boolean> {
+    return new Promise((resolve) => {
+      this.alertCtrl.create({
+        header: 'Descartar cambios', message: '¿Salir sin guardar?',
+        buttons: [
+          { text: 'Seguir', role: 'cancel', handler: () => resolve(false) },
+          { text: 'Descartar', role: 'destructive', handler: () => resolve(true) },
+        ]
+      }).then(a => a.present());
     });
-    await a.present();
   }
 
   private resetForm() {
@@ -337,6 +458,7 @@ export class HerramientasPage implements OnInit {
     this.guardando = true;
     try {
       let archivo_url = this.archivoExistente;
+      const archivoAnteriorParaBorrar = this.editingId ? this.materials.find(m => m.id === this.editingId)?.archivo_url : null;
 
       // Subir archivo a Cloudinary si hay uno nuevo
       if (this.archivoSeleccionado) {
@@ -378,6 +500,14 @@ export class HerramientasPage implements OnInit {
             grupo: gru ? `${gru.grado}° ${gru.nombre}` : this.materials[idx].grupo,
           };
         }
+
+        // El archivo viejo quedó reemplazado: intentar limpiarlo de Cloudinary.
+        // Requiere borrado firmado desde el backend (ver nota aparte); si el método
+        // no existe todavía en CloudinaryService, esto no rompe el guardado.
+        if (archivoAnteriorParaBorrar && archivoAnteriorParaBorrar !== archivo_url) {
+          this.limpiarArchivoHuerfano(archivoAnteriorParaBorrar);
+        }
+
         this.toast('Material actualizado.', 'success');
       } else {
         const { data, error } = await this.supabase
@@ -420,12 +550,24 @@ export class HerramientasPage implements OnInit {
               .from('academic_materialapoyo').update({ activo: false }).eq('id', mat.id);
             if (error) { this.toast('No se pudo eliminar.', 'danger'); return; }
             this.materials = this.materials.filter(m => m.id !== mat.id);
+            if (mat.archivo_url) this.limpiarArchivoHuerfano(mat.archivo_url);
             this.toast('Material eliminado.', 'success');
           }
         }
       ]
     });
     await a.present();
+  }
+
+  // Intenta borrar el archivo de Cloudinary. No bloquea el flujo si falla:
+  // el borrado real necesita un endpoint firmado en el backend (Django), ya que
+  // el API secret de Cloudinary no debe vivir en el cliente Angular.
+  private async limpiarArchivoHuerfano(url: string) {
+    try {
+      await (this.cloudinary as any).eliminarArchivo?.(url);
+    } catch (e) {
+      console.warn('No se pudo limpiar archivo huérfano en Cloudinary:', url);
+    }
   }
 
   // ── Abrir material ────────────────────────────────────────
@@ -442,16 +584,31 @@ export class HerramientasPage implements OnInit {
   onDragLeave(e: DragEvent) { e.preventDefault(); this.isDragging = false; }
   onDrop(e: DragEvent) {
     e.preventDefault(); this.isDragging = false;
-    if (e.dataTransfer?.files.length) this.archivoSeleccionado = e.dataTransfer.files[0];
+    if (e.dataTransfer?.files.length) this.validarYAsignarArchivo(e.dataTransfer.files[0]);
   }
   onFileSelected(e: any) {
     if (e.target.files.length) {
-      const file: File = e.target.files[0];
-      if (file.size / 1048576 > 50) { this.toast('El archivo supera 50MB.', 'warning'); return; }
-      this.archivoSeleccionado = file;
+      this.validarYAsignarArchivo(e.target.files[0]);
       e.target.value = '';
     }
   }
+
+  private validarYAsignarArchivo(file: File) {
+    if (file.size / 1048576 > 50) { this.toast('El archivo supera 50MB.', 'warning'); return; }
+
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    const permitidas = EXTENSIONES_VALIDAS[this.newMaterial.tipo];
+    if (permitidas && permitidas.length && !permitidas.includes(ext)) {
+      this.toast(
+        `El tipo "${this.newMaterial.tipo}" no acepta archivos .${ext}. Formatos válidos: ${permitidas.join(', ')}`,
+        'warning'
+      );
+      return;
+    }
+
+    this.archivoSeleccionado = file;
+  }
+
   quitarArchivo() { this.archivoSeleccionado = null; this.archivoExistente = null; }
 
   // ══════════════════════════════════════════════════════════

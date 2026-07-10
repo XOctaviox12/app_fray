@@ -45,12 +45,22 @@
 }
 
 .avatar-wrap {
+  position: relative;
   width: 92px;
   height: 92px;
   border-radius: 50%;
   border: 3px solid var(--orange);
   padding: 3px;
   margin-bottom: 14px;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.avatar-editable {
+  cursor: pointer;
+
+  &:active {
+    transform: scale(0.96);
+  }
 }
 
 .profile-avatar {
@@ -62,6 +72,36 @@
   background: linear-gradient(135deg, var(--navy-3), var(--navy-4));
 }
 
+.avatar-edit-overlay {
+  position: absolute;
+  inset: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 50%;
+  color: var(--white);
+  pointer-events: none;
+
+  ion-icon {
+    font-size: 22px;
+  }
+
+  ion-spinner {
+    width: 22px;
+    height: 22px;
+    --color: var(--orange);
+  }
+
+  .progreso-txt {
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 700;
+  }
+}
+
 .profile-name {
   margin: 0;
   font-family: var(--font-display);
@@ -71,9 +111,15 @@
   letter-spacing: -0.3px;
 }
 
+.badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 .role-badge {
   display: inline-block;
-  margin-top: 8px;
   padding: 4px 12px;
   border-radius: 20px;
   background: var(--orange-subtle);
@@ -83,6 +129,64 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
+}
+
+.estatus-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  border: 1px solid transparent;
+}
+
+.estatus-activo {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.25);
+  color: #22c55e;
+}
+
+.estatus-inactivo {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.member-since {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: var(--white-35);
+}
+
+// ============================================
+// BANNER DE ERROR
+// ============================================
+
+.error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 18px 18px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+
+  ion-icon {
+    font-size: 17px;
+    color: #ef4444;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 12.5px;
+    color: #ef4444;
+    line-height: 1.4;
+  }
 }
 
 // ============================================
@@ -147,6 +251,12 @@
   gap: 2px;
 }
 
+.full-width {
+  // Campos editables (teléfono, dirección, fecha) necesitan más espacio
+  // que el resto para no verse apretados cuando entran los inputs.
+  flex-basis: 100%;
+}
+
 .info-label {
   font-size: 10px;
   color: var(--white-35);
@@ -161,6 +271,54 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+// ── Inputs de edición inline ──────────────────
+
+.inline-input {
+  --background: transparent;
+  --color: var(--white);
+  --placeholder-color: var(--white-35);
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 2px;
+  --padding-bottom: 2px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+ion-textarea.inline-input {
+  --background: transparent;
+  margin-top: 2px;
+}
+
+ion-datetime-button.inline-input,
+ion-datetime-button {
+  margin-top: 2px;
+
+  &::part(native) {
+    background: transparent;
+    color: var(--white);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0;
+  }
+}
+
+// ============================================
+// GUARDAR CAMBIOS
+// ============================================
+
+.btn-guardar {
+  --background: var(--orange);
+  --background-activated: var(--orange);
+  --border-radius: 14px;
+  --box-shadow: none;
+  margin: 8px 18px 14px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  height: 46px;
 }
 
 // ============================================
@@ -187,6 +345,17 @@
 
   ion-icon {
     font-size: 17px;
+  }
+
+  ion-spinner {
+    width: 17px;
+    height: 17px;
+    --color: #ef4444;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
   }
 
   &:active {

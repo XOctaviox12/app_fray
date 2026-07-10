@@ -3,13 +3,13 @@ import { SesionService } from '../../services/sesion.service';
 import { CloudinaryService } from '../../services/cloudinary.service';
 
 export type Publico = 'ALUMNOS' | 'PADRES' | 'AMBOS';
-export type Alcance  = 'TODOS' | 'GRUPO';
+export type Alcance  = 'TODOS' | 'GRUPO' | 'DOCENTES';
 
 export interface Comunicado {
   id: number;
   titulo: string;
   cuerpo: string;
-  destinatario: Alcance | 'DOCENTES';
+  destinatario: Alcance;
   publico: Publico;
   creado_en: string;
   activo: boolean;
@@ -34,6 +34,7 @@ export class ComunidadPage implements OnInit {
   get esTutor():   boolean { return this.sesion.esTutor(); }
   get esDocente(): boolean { return this.sesion.esDocente(); }
   get esAlumno():  boolean { return this.sesion.esAlumno(); }
+  get miUserId():  number | null { return this.sesion.usuario?.id ?? null; }
 
   comunicadosMaestros:  Comunicado[] = [];
   comunicadosDireccion: Comunicado[] = [];
@@ -47,7 +48,7 @@ export class ComunidadPage implements OnInit {
   // Paso 1: audiencia
   publico: Publico = 'AMBOS';
 
-  // Paso 2: alcance
+  // Paso 2: alcance ('DOCENTES' = solo visible para otros docentes)
   destinatario: Alcance = 'TODOS';
 
   // Paso 3 (solo si alcance = GRUPO): materia → grupo(s)
@@ -68,6 +69,9 @@ export class ComunidadPage implements OnInit {
   progresoAdj   = 0;
   publicando    = false;
   errorPublicar = '';
+
+  // ── Eliminar comunicado ───────────────────
+  eliminandoId: number | null = null;
 
   tabActiva: 'maestros' | 'direccion' = 'maestros';
 
@@ -104,8 +108,8 @@ export class ComunidadPage implements OnInit {
       // login de tutor deja un campo alumno_id colgado directamente en
       // sesion.usuario (el objeto Usuario admite columnas extra). Si esto
       // no es así, este bloque no podrá resolver el grupo del tutor y la
-      // vista de comunicados quedará vacía para ese rol — avisar para
-      // definir cómo se relaciona el login del tutor con users_tutor.
+      // vista de comunicados quedará vacía para ese rol — pendiente
+      // confirmar cómo se relaciona el login del tutor con users_tutor.
       const alumnoId = (this.sesion.usuario as any)?.alumno_id;
       if (!alumnoId) return;
       const { data } = await this.sesion.supabase
@@ -255,6 +259,7 @@ export class ComunidadPage implements OnInit {
         );
       } else if (this.esAlumno) {
         visibles = todos.filter(c =>
+          c.destinatario !== 'DOCENTES' &&
           c.publico !== 'PADRES' && (
             c.destinatario === 'TODOS' ||
             (c.destinatario === 'GRUPO' && c.grupo?.id === this.grupoIdPropio)
@@ -262,6 +267,7 @@ export class ComunidadPage implements OnInit {
         );
       } else if (this.esTutor) {
         visibles = todos.filter(c =>
+          c.destinatario !== 'DOCENTES' &&
           c.publico !== 'ALUMNOS' && (
             c.destinatario === 'TODOS' ||
             (c.destinatario === 'GRUPO' && c.grupo?.id === this.grupoIdPropio)
@@ -297,19 +303,25 @@ export class ComunidadPage implements OnInit {
 
       if (this.adjuntoFile) {
         this.subiendoAdj = true;
-        const r = await this.cloudinary.subirArchivo(
-          this.adjuntoFile,
-          pct => { this.progresoAdj = pct; }
-        );
-        adjuntoUrl = r.url;
-        this.subiendoAdj = false;
+        try {
+          const r = await this.cloudinary.subirArchivo(
+            this.adjuntoFile,
+            pct => { this.progresoAdj = pct; }
+          );
+          adjuntoUrl = r.url;
+        } finally {
+          // Se resetea pase lo que pase, para no dejar el spinner de
+          // subida trabado si la subida falla a medias.
+          this.subiendoAdj = false;
+        }
       }
 
       const base = {
         titulo:        this.nuevoTitulo.trim(),
         cuerpo:        this.nuevoCuerpo.trim(),
         destinatario:  this.destinatario,
-        publico:       this.publico,
+        // "Solo docentes" no aplica el filtro de público (alumnos/padres)
+        publico:       this.destinatario === 'DOCENTES' ? 'AMBOS' : this.publico,
         asignatura_id: this.materiaSeleccionada,
         plantel_id:    this.plantelId,
         autor_id:      this.sesion.usuario!.id,
@@ -344,6 +356,34 @@ export class ComunidadPage implements OnInit {
     this.publicando = false;
   }
 
+  // ── Eliminar (desactivar) un comunicado propio ────────────
+  puedeEliminar(c: Comunicado): boolean {
+    return this.esDocente && c.autor?.id === this.miUserId;
+  }
+
+  async eliminarComunicado(c: Comunicado) {
+    if (this.eliminandoId) return; // evita doble click mientras hay una petición en curso
+    const confirmado = window.confirm('¿Eliminar este comunicado? Ya no será visible para nadie.');
+    if (!confirmado) return;
+
+    this.eliminandoId = c.id;
+    try {
+      const { error } = await this.sesion.supabase
+        .from('academic_comunicado')
+        .update({ activo: false })
+        .eq('id', c.id);
+      if (error) throw error;
+
+      // Quita el comunicado de las listas locales sin tener que recargar todo
+      this.comunicadosMaestros  = this.comunicadosMaestros.filter(x => x.id !== c.id);
+      this.comunicadosDireccion = this.comunicadosDireccion.filter(x => x.id !== c.id);
+    } catch (e: any) {
+      this.error = 'No se pudo eliminar el comunicado: ' + e.message;
+    } finally {
+      this.eliminandoId = null;
+    }
+  }
+
   // ── Adjunto ───────────────────────────────
   onAdjuntoChange(e: any) {
     const file: File = e.target.files[0];
@@ -357,6 +397,7 @@ export class ComunidadPage implements OnInit {
     this.adjuntoFile   = null;
     this.adjuntoNombre = '';
     this.progresoAdj   = 0;
+    this.subiendoAdj   = false;
   }
 
   triggerFileInput() { document.getElementById('adjuntoInput')?.click(); }

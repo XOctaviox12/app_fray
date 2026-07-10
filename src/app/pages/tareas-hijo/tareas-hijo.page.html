@@ -32,21 +32,29 @@
     <p class="hero-sub">Monitorea las entregas y calificaciones</p>
 
     <div class="stats-row">
-      <div class="stat-chip" [class.active]="filtro === 'TODAS'" (click)="filtro = 'TODAS'">
+      <div class="stat-chip" [class.active]="filtro === 'TODAS'" (click)="cambiarFiltro('TODAS')">
         <span class="stat-num">{{ tareas.length }}</span>
         <span class="stat-lbl">Total</span>
       </div>
-      <div class="stat-chip orange" [class.active]="filtro === 'PENDIENTE'" (click)="filtro = 'PENDIENTE'">
+      <div class="stat-chip orange" [class.active]="filtro === 'PENDIENTE'" (click)="cambiarFiltro('PENDIENTE')">
         <span class="stat-num">{{ totalPendientes }}</span>
         <span class="stat-lbl">Pendiente</span>
       </div>
-      <div class="stat-chip green" [class.active]="filtro === 'ENTREGADA'" (click)="filtro = 'ENTREGADA'">
+      <div class="stat-chip green" [class.active]="filtro === 'ENTREGADA'" (click)="cambiarFiltro('ENTREGADA')">
         <span class="stat-num">{{ totalEntregadas }}</span>
         <span class="stat-lbl">Entregada</span>
       </div>
-      <div class="stat-chip blue" [class.active]="filtro === 'CALIFICADA'" (click)="filtro = 'CALIFICADA'">
+      <div class="stat-chip blue" [class.active]="filtro === 'CALIFICADA'" (click)="cambiarFiltro('CALIFICADA')">
         <span class="stat-num">{{ totalCalificadas }}</span>
         <span class="stat-lbl">Calificada</span>
+      </div>
+      <div class="stat-chip red" [class.active]="filtro === 'TARDE'" (click)="cambiarFiltro('TARDE')" *ngIf="totalTarde > 0">
+        <span class="stat-num">{{ totalTarde }}</span>
+        <span class="stat-lbl">Tardía</span>
+      </div>
+      <div class="stat-chip dark" [class.active]="filtro === 'NO_ENTREGADA'" (click)="cambiarFiltro('NO_ENTREGADA')" *ngIf="totalNoEntregadas > 0">
+        <span class="stat-num">{{ totalNoEntregadas }}</span>
+        <span class="stat-lbl">No entregada</span>
       </div>
     </div>
   </div>
@@ -86,9 +94,11 @@
     <!-- Tarjetas -->
     <div
       class="task-card"
-      *ngFor="let t of tareasFiltradas"
+      *ngFor="let t of tareasPaginadas"
       [class.critica]="esCritica(t)"
       [class.vencida]="t.vencida && !t.entrega"
+      [class.expandida]="expandidoId === t.id"
+      (click)="toggleDetalle(t.id)"
     >
 
       <!-- Header -->
@@ -114,15 +124,29 @@
           [class]="'nota-' + colorNota(t.entrega!.calificacion!)">
           {{ t.entrega!.calificacion | number:'1.1-1' }}
         </div>
+
+        <ion-icon class="expand-chevron" [name]="expandidoId === t.id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
       </div>
 
-      <!-- Descripción -->
-      <p class="task-desc" *ngIf="t.descripcion">{{ t.descripcion }}</p>
+      <!-- Descripción: resumen siempre visible, completa al expandir -->
+      <p class="task-desc" *ngIf="t.descripcion" [class.clamp]="expandidoId !== t.id">{{ t.descripcion }}</p>
 
       <!-- Alerta crítica -->
       <div class="alerta-critica" *ngIf="esCritica(t)">
         <ion-icon name="warning-outline"></ion-icon>
         ¡Vence pronto! Recuérdaselo a {{ alumnoNombre.split(' ')[0] }}
+      </div>
+
+      <!-- Detalle expandido -->
+      <div class="task-detalle" *ngIf="expandidoId === t.id">
+        <div class="detalle-row" *ngIf="t.entrega?.entregada_en">
+          <ion-icon name="checkmark-done-outline"></ion-icon>
+          Entregada el {{ formatFecha(t.entrega!.entregada_en!) }}
+        </div>
+        <div class="detalle-row">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          Fecha límite original: {{ formatFecha(t.fecha_entrega) }}
+        </div>
       </div>
 
       <!-- Feedback del maestro -->
@@ -150,6 +174,11 @@
       </div>
 
     </div>
+
+    <!-- Cargar más -->
+    <ion-button *ngIf="hayMasPorCargar" expand="block" fill="clear" class="cargar-mas-btn" (click)="cargarMas()">
+      Cargar más tareas
+    </ion-button>
   </div>
 
   <div style="height:32px"></div>

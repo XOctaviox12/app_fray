@@ -278,7 +278,10 @@
           </div>
           <div class="resumen-card purple">
             <ion-icon name="people-outline"></ion-icon>
-            <span class="resumen-num">{{ materiasDocente | sumField:'totalAlumnos' }}</span>
+            <!-- No usar sumField aquí: un mismo alumno puede estar en varias
+                 materias del docente y se contaría repetido. Se usa el total
+                 de alumnos únicos calculado en el componente. -->
+            <span class="resumen-num">{{ totalAlumnosUnicos }}</span>
             <span class="resumen-lbl">Alumnos</span>
           </div>
         </div>

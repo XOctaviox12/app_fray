@@ -11,6 +11,13 @@ export interface Usuario {
   rol: string;
   foto_perfil: string | null;
   plantel_id?: number;
+  telefono?: string | null;
+  direccion?: string | null;
+  fecha_nacimiento?: string | null;
+  date_joined?: string;
+  estatus?: string;
+  is_active?: boolean;
+  alumno_grupo_id?: number;
   [key: string]: any;
 }
 
@@ -42,33 +49,46 @@ export class SesionService {
     this.cargarSesionLocal();
   }
 
-  // ── Persistencia local ───────────────────────────────────
-  cargarSesionLocal(): void {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    try {
-      const parsed = JSON.parse(raw);
-      if (parsed._tipo === 'TUTOR') { this.tutor   = parsed; this.loggedIn = true; }
-      else                          { this.usuario  = parsed; this.loggedIn = true; }
-    } catch { localStorage.removeItem(STORAGE_KEY); }
+cargarSesionLocal(): void {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed._tipo === 'TUTOR') {
+      this.tutor = parsed;
+      this.loggedIn = true;
+    } else {
+      // Si la sesión guardada no tiene 'estatus', es una sesión vieja
+      // de antes de que agregáramos ese campo al select. Forzamos
+      // nuevo login para traer los datos completos.
+      if (parsed.estatus === undefined) {
+        localStorage.removeItem(STORAGE_KEY);
+        return;
+      }
+      this.usuario = parsed;
+      this.loggedIn = true;
+    }
+  } catch {
+    localStorage.removeItem(STORAGE_KEY);
   }
+}
 
   // ── Login alumno / maestro ───────────────────────────────
-  async iniciarSesion(username: string, password: string): Promise<boolean> {
-    try {
-      const { data, error } = await this.supabase
-        .from('users_user')
-        .select('id, username, first_name, last_name, email, rol, foto_perfil, password_plana')
-        .eq('username', username).eq('password_plana', password).single();
+async iniciarSesion(username: string, password: string): Promise<boolean> {
+  try {
+    const { data, error } = await this.supabase
+      .from('users_user')
+      .select('id, username, first_name, last_name, email, rol, foto_perfil, password_plana, telefono, direccion, fecha_nacimiento, date_joined, estatus, is_active')
+      .eq('username', username).eq('password_plana', password).single();
 
-      if (error || !data) { console.error('Login fallido:', error?.message); return false; }
+    if (error || !data) { console.error('Login fallido:', error?.message); return false; }
 
-      const { password_plana, ...seguro } = data as any;
-      this.usuario = seguro; this.tutor = null; this.loggedIn = true;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(seguro));
-      return true;
-    } catch (e: any) { console.error(e.message); return false; }
-  }
+    const { password_plana, ...seguro } = data as any;
+    this.usuario = seguro; this.tutor = null; this.loggedIn = true;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(seguro));
+    return true;
+  } catch (e: any) { console.error(e.message); return false; }
+}
 
   // ── Login tutor por código de acceso ─────────────────────
   // users_tutor.codigo_acceso es un campo generado por Django en Tutor.save()

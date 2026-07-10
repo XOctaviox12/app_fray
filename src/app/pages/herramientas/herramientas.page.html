@@ -19,8 +19,20 @@
 
 <ion-content class="herramientas-content">
 
+  <!-- ── Error ── -->
+  <div *ngIf="error" class="global-error">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    {{ error }}
+  </div>
+
+  <!-- ── Rol sin vista soportada ── -->
+  <div class="rol-no-soportado" *ngIf="sinRolSoportado && !cargando">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    <p>Esta sección aún no tiene una vista configurada para tu rol.</p>
+  </div>
+
   <!-- ── Hero ──────────────────────────────────────────────── -->
-  <div class="hero-section">
+  <div class="hero-section" *ngIf="!sinRolSoportado">
     <div class="hero-text">
       <h2 class="hero-title">
         {{ esDocente ? 'Centro de Recursos' : 'Material de tus Maestros' }}
@@ -37,7 +49,7 @@
   </div>
 
   <!-- ── Accesos rápidos ───────────────────────────────────── -->
-  <div class="quick-access-row">
+  <div class="quick-access-row" *ngIf="!sinRolSoportado">
     <div class="access-card" (click)="scrollTo('materiales')">
       <div class="access-icon-wrap materiales-bg">
         <ion-icon name="library-outline"></ion-icon>
@@ -61,7 +73,7 @@
   <!-- ══════════════════════════════════════════════════════ -->
   <!--  SECCIÓN: Materiales                                  -->
   <!-- ══════════════════════════════════════════════════════ -->
-  <section class="resource-section" id="materiales">
+  <section class="resource-section" id="materiales" *ngIf="!sinRolSoportado">
 
     <div class="section-header">
       <h3 class="section-title">
@@ -78,15 +90,36 @@
     <div class="search-filter-row" *ngIf="materials.length > 0 || searchTerm">
       <div class="search-wrap">
         <ion-icon name="search-outline" class="field-icon"></ion-icon>
-        <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar material..." />
-        <ion-icon *ngIf="searchTerm" name="close-circle" class="clear-btn" (click)="searchTerm = ''"></ion-icon>
+        <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onBusquedaCambia()" placeholder="Buscar material..." />
+        <ion-icon *ngIf="searchTerm" name="close-circle" class="clear-btn" (click)="searchTerm = ''; onBusquedaCambia()"></ion-icon>
       </div>
       <div class="tipo-filter-row">
-        <button class="tipo-chip-btn" [class.active]="filtroTipo === 'TODOS'" (click)="filtroTipo = 'TODOS'">Todos</button>
-        <button class="tipo-chip-btn" [class.active]="filtroTipo === 'PDF'"   (click)="filtroTipo = 'PDF'">PDF</button>
-        <button class="tipo-chip-btn" [class.active]="filtroTipo === 'VIDEO'" (click)="filtroTipo = 'VIDEO'">Video</button>
-        <button class="tipo-chip-btn" [class.active]="filtroTipo === 'LINK'"  (click)="filtroTipo = 'LINK'">Enlace</button>
-        <button class="tipo-chip-btn" [class.active]="filtroTipo === 'IMAGEN'"(click)="filtroTipo = 'IMAGEN'">Imagen</button>
+        <button class="tipo-chip-btn" [class.active]="filtroTipo === 'TODOS'" (click)="cambiarFiltroTipo('TODOS')">
+          Todos <span class="tipo-count">{{ materials.length }}</span>
+        </button>
+        <button class="tipo-chip-btn" [class.active]="filtroTipo === 'PDF'" (click)="cambiarFiltroTipo('PDF')">
+          PDF <span class="tipo-count">{{ contarTipo('PDF') }}</span>
+        </button>
+        <button class="tipo-chip-btn" [class.active]="filtroTipo === 'VIDEO'" (click)="cambiarFiltroTipo('VIDEO')">
+          Video <span class="tipo-count">{{ contarTipo('VIDEO') }}</span>
+        </button>
+        <button class="tipo-chip-btn" [class.active]="filtroTipo === 'LINK'" (click)="cambiarFiltroTipo('LINK')">
+          Enlace <span class="tipo-count">{{ contarTipo('LINK') }}</span>
+        </button>
+        <button class="tipo-chip-btn" [class.active]="filtroTipo === 'IMAGEN'" (click)="cambiarFiltroTipo('IMAGEN')">
+          Imagen <span class="tipo-count">{{ contarTipo('IMAGEN') }}</span>
+        </button>
+      </div>
+
+      <!-- Filtro por materia: separa el material de apoyo por asignatura -->
+      <div class="materia-filter-row" *ngIf="materiasConMaterial.length > 1">
+        <button class="materia-chip-btn" [class.active]="filtroMateria === 'TODAS'" (click)="cambiarFiltroMateria('TODAS')">
+          Todas las materias
+        </button>
+        <button class="materia-chip-btn" *ngFor="let materia of materiasConMaterial"
+          [class.active]="filtroMateria === materia" (click)="cambiarFiltroMateria(materia)">
+          {{ materia }} <span class="tipo-count">{{ contarMateria(materia) }}</span>
+        </button>
       </div>
     </div>
 
@@ -240,12 +273,12 @@
 
       <div class="empty-mini" *ngIf="materialesFiltrados.length === 0">
         <ion-icon name="folder-open-outline"></ion-icon>
-        <p *ngIf="searchTerm || filtroTipo !== 'TODOS'">Sin resultados para este filtro.</p>
-        <p *ngIf="!searchTerm && filtroTipo === 'TODOS' && esDocente">No has subido materiales aún. Toca <strong>Subir</strong> para comenzar.</p>
-        <p *ngIf="!searchTerm && filtroTipo === 'TODOS' && !esDocente">Tus maestros aún no han compartido materiales.</p>
+        <p *ngIf="searchTerm || filtroTipo !== 'TODOS' || filtroMateria !== 'TODAS'">Sin resultados para este filtro.</p>
+        <p *ngIf="!searchTerm && filtroTipo === 'TODOS' && filtroMateria === 'TODAS' && esDocente">No has subido materiales aún. Toca <strong>Subir</strong> para comenzar.</p>
+        <p *ngIf="!searchTerm && filtroTipo === 'TODOS' && filtroMateria === 'TODAS' && !esDocente">Tus maestros aún no han compartido materiales.</p>
       </div>
 
-      <div class="material-card" *ngFor="let mat of materialesFiltrados">
+      <div class="material-card" *ngFor="let mat of materialesPaginados">
         <div class="material-type-icon" [ngClass]="mat.tipo.toLowerCase()">
           <ion-icon [name]="getTypeIcon(mat.tipo)"></ion-icon>
         </div>
@@ -272,6 +305,10 @@
         </div>
       </div>
 
+      <ion-button *ngIf="hayMasPorCargar" expand="block" fill="clear" class="cargar-mas-btn" (click)="cargarMas()">
+        Cargar más materiales
+      </ion-button>
+
     </ng-container>
 
   </section>
@@ -279,7 +316,7 @@
   <!-- ══════════════════════════════════════════════════════ -->
   <!--  SECCIÓN: Tareas vinculadas                           -->
   <!-- ══════════════════════════════════════════════════════ -->
-  <section class="resource-section" id="tareas">
+  <section class="resource-section" id="tareas" *ngIf="!sinRolSoportado">
     <div class="section-header">
       <h3 class="section-title">
         <ion-icon name="document-text-outline"></ion-icon>
@@ -306,7 +343,7 @@
   <!-- ══════════════════════════════════════════════════════ -->
   <!--  SECCIÓN: Contenido Educativo (herramientas externas) -->
   <!-- ══════════════════════════════════════════════════════ -->
-  <section class="resource-section" id="contenido">
+  <section class="resource-section" id="contenido" *ngIf="!sinRolSoportado">
     <div class="section-header">
       <h3 class="section-title">
         <ion-icon name="school-outline"></ion-icon>

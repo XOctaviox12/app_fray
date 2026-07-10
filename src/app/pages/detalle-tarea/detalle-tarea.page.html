@@ -1,0 +1,216 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/tareas"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="header-title">Detalle de tarea</ion-title>
+  </ion-toolbar>
+  <div class="header-accent-bar"></div>
+</ion-header>
+
+<ion-content class="detalle-tarea-content">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="loading-tareas" *ngIf="cargando">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando tarea...</p>
+  </div>
+
+  <div class="error-tareas" *ngIf="error && !cargando">
+    <ion-icon name="cloud-offline-outline"></ion-icon>
+    <p>{{ error }}</p>
+    <button class="retry-btn" (click)="cargarTodo()">
+      <ion-icon name="refresh-outline"></ion-icon> Reintentar
+    </button>
+  </div>
+
+  <ng-container *ngIf="tarea && !cargando && !error">
+
+    <!-- ── Header de la tarea ── -->
+    <div class="tarea-header-card">
+      <div class="tarea-header-top">
+        <h2 class="tarea-titulo">{{ tarea.titulo }}</h2>
+        <span class="badge" [class.badge-draft]="!tarea.publicada" [class.badge-vencida]="tarea.publicada && esVencida()" [class.badge-activa]="tarea.publicada && !esVencida()">
+          {{ !tarea.publicada ? 'Borrador' : (esVencida() ? 'Vencida' : 'Activa') }}
+        </span>
+      </div>
+      <div class="tarea-header-meta">
+        <span class="chip">{{ tarea.materia_nombre }}</span>
+        <span class="chip chip-muted">{{ tarea.grupo_nombre }}</span>
+        <span class="chip chip-muted">📅 {{ tarea.fecha_entrega | date:'d MMM yyyy' }}</span>
+      </div>
+      <p class="tarea-descripcion" *ngIf="tarea.descripcion">{{ tarea.descripcion }}</p>
+
+      <div class="tarea-archivos" *ngIf="tarea.archivos && tarea.archivos.length > 0">
+        <a class="archivo-chip" *ngFor="let file of tarea.archivos" [href]="file.url" target="_blank">
+          <ion-icon [name]="getFileIcon(file.name)"></ion-icon>
+          <span>{{ file.name }}</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ══════════════ DOCENTE ══════════════ -->
+    <ng-container *ngIf="esDocente">
+      <div class="kpi-row">
+        <div class="kpi-chip"><span class="kpi-num">{{ totalAlumnos }}</span><span class="kpi-lbl">Alumnos</span></div>
+        <div class="kpi-chip kpi-green"><span class="kpi-num">{{ totalEntregas }}</span><span class="kpi-lbl">Entregaron</span></div>
+        <div class="kpi-chip kpi-orange"><span class="kpi-num">{{ totalCalificadas }}</span><span class="kpi-lbl">Calificadas</span></div>
+      </div>
+
+      <h3 class="section-title">Entregas de alumnos</h3>
+
+      <div class="empty-entregas" *ngIf="entregasAlumnos.length === 0">
+        <ion-icon name="people-outline"></ion-icon>
+        <p>No hay alumnos en este grupo.</p>
+      </div>
+
+      <div class="entrega-row" *ngFor="let row of entregasAlumnos">
+        <div class="entrega-row-header">
+          <span class="entrega-alumno-nombre">{{ row.alumno_nombre }}</span>
+          <span class="entrega-estado-badge" [class.sin-entregar]="!row.entrega" [class.entregada]="row.entrega && !esCalificada(row.entrega)" [class.calificada]="esCalificada(row.entrega)">
+            {{ !row.entrega ? 'Sin entregar' : (esCalificada(row.entrega) ? 'Calificada' : 'Entregada') }}
+          </span>
+        </div>
+
+        <ng-container *ngIf="row.entrega">
+          <a class="entrega-archivo-link" [href]="row.entrega.archivo" target="_blank">
+            <ion-icon [name]="getFileIcon(row.entrega.archivo)"></ion-icon>
+            Ver archivo entregado
+          </a>
+          <p class="entrega-comentario" *ngIf="row.entrega.comentario">"{{ row.entrega.comentario }}"</p>
+          <p class="entrega-fecha">Entregado el {{ row.entrega.entregada_en | date:'d MMM yyyy, HH:mm' }}</p>
+
+          <div class="calificar-row">
+            <div class="calificar-input-wrap">
+              <label>Calificación</label>
+              <input type="number" min="0" max="10" step="0.1" [(ngModel)]="row.calificacionEdit" placeholder="0-10" />
+            </div>
+            <div class="calificar-feedback-wrap">
+              <label>Retroalimentación</label>
+              <textarea rows="2" [(ngModel)]="row.feedbackEdit" placeholder="Comentario para el alumno (opcional)"></textarea>
+            </div>
+            <button class="btn-guardar-calif" [disabled]="row.guardando" (click)="guardarCalificacion(row)">
+              <ion-spinner *ngIf="row.guardando" name="crescent"></ion-spinner>
+              <ion-icon *ngIf="!row.guardando" name="checkmark-outline"></ion-icon>
+              {{ row.guardando ? 'Guardando...' : 'Guardar calificación' }}
+            </button>
+          </div>
+        </ng-container>
+      </div>
+    </ng-container>
+
+    <!-- ══════════════ ALUMNO ══════════════ -->
+    <ng-container *ngIf="esAlumno">
+      <div class="mi-entrega-status" *ngIf="entregaPropia">
+        <div class="mi-entrega-header">
+          <span class="entrega-estado-badge" [class.entregada]="!esCalificada(entregaPropia)" [class.calificada]="esCalificada(entregaPropia)">
+            {{ esCalificada(entregaPropia) ? 'Calificada' : 'Entregada' }}
+          </span>
+          <span class="entrega-tardia-badge" *ngIf="esTardia()">Entrega tardía</span>
+        </div>
+
+        <a class="entrega-archivo-link" [href]="entregaPropia.archivo" target="_blank">
+          <ion-icon [name]="getFileIcon(entregaPropia.archivo)"></ion-icon>
+          Ver mi archivo entregado
+        </a>
+        <p class="entrega-fecha">Entregado el {{ entregaPropia.entregada_en | date:'d MMM yyyy, HH:mm' }}</p>
+
+        <div class="mi-calificacion" *ngIf="esCalificada(entregaPropia)">
+          <div class="mi-calificacion-num" [class]="'nota-' + (entregaPropia.calificacion! >= 6 ? 'bien' : 'reprobado')">
+            {{ entregaPropia.calificacion | number:'1.1-1' }}
+          </div>
+          <p class="mi-calificacion-feedback" *ngIf="entregaPropia.feedback">{{ entregaPropia.feedback }}</p>
+        </div>
+
+        <button class="btn-editar-entrega" *ngIf="!tareaBloqueada()" (click)="toggleFormEntrega()">
+          <ion-icon name="create-outline"></ion-icon>
+          Reemplazar entrega
+        </button>
+      </div>
+
+      <button class="btn-entregar" *ngIf="!entregaPropia && !mostrarFormEntrega && !esVencida()" (click)="toggleFormEntrega()">
+        <ion-icon name="cloud-upload-outline"></ion-icon>
+        Entregar tarea
+      </button>
+
+      <div class="form-entrega" *ngIf="mostrarFormEntrega">
+        <div class="input-group">
+          <label class="input-label">Comentario (opcional)</label>
+          <textarea [(ngModel)]="comentarioEntrega" placeholder="Algo que quieras decirle al docente..." rows="2"></textarea>
+        </div>
+
+        <div class="file-upload-zone" (click)="entregaFileInput.click()">
+          <input #entregaFileInput type="file" hidden (change)="onArchivoEntregaSeleccionado($event)" />
+          <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+          <p class="upload-text" *ngIf="!archivoEntregaSeleccionado">Toca para elegir tu archivo</p>
+          <p class="upload-text" *ngIf="archivoEntregaSeleccionado">{{ archivoEntregaSeleccionado.name }}</p>
+          <p class="upload-hint">Máximo 20MB</p>
+        </div>
+
+        <div class="file-progress-bar" *ngIf="subiendoEntrega">
+          <div class="file-progress-fill" [style.width.%]="progresoEntrega"></div>
+        </div>
+
+        <div class="opciones-error" *ngIf="errorEntrega">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>{{ errorEntrega }}</span>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-cancel" (click)="mostrarFormEntrega = false" [disabled]="subiendoEntrega">Cancelar</button>
+          <button class="btn-save" (click)="enviarEntrega()" [disabled]="subiendoEntrega">
+            <ion-spinner *ngIf="subiendoEntrega" name="crescent"></ion-spinner>
+            {{ subiendoEntrega ? (progresoEntrega + '%') : 'Enviar entrega' }}
+          </button>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ══════════════ COMENTARIOS (ambos roles) ══════════════ -->
+    <h3 class="section-title">Comentarios del grupo</h3>
+    <div class="comentarios-card">
+      <div class="comentario-row" *ngFor="let c of comentarios">
+        <div class="comentario-avatar" [class.avatar-docente]="c.autor_rol === 'DOCENTE'">
+          {{ c.autor_nombre.charAt(0) }}
+        </div>
+        <div class="comentario-bubble">
+          <div class="comentario-top">
+            <span class="comentario-autor">
+              {{ c.autor_nombre }}
+              <span class="comentario-rol" *ngIf="c.autor_rol === 'DOCENTE'">· Docente</span>
+            </span>
+            <div class="comentario-acciones" *ngIf="esMiComentario(c) && !c.editando">
+              <ion-icon name="create-outline" (click)="activarEdicion(c)"></ion-icon>
+              <ion-icon name="trash-outline" (click)="eliminarComentario(c)"></ion-icon>
+            </div>
+          </div>
+
+          <p class="comentario-texto" *ngIf="!c.editando">{{ c.texto }}</p>
+
+          <div class="comentario-edit-form" *ngIf="c.editando">
+            <textarea rows="2" [(ngModel)]="c.textoEdit"></textarea>
+            <div class="comentario-edit-actions">
+              <button class="btn-cancel" (click)="cancelarEdicionComentario(c)">Cancelar</button>
+              <button class="btn-save" (click)="guardarEdicionComentario(c)">Guardar</button>
+            </div>
+          </div>
+
+          <span class="comentario-fecha">{{ c.creado_en | date:'d MMM yyyy, HH:mm' }}</span>
+        </div>
+      </div>
+
+      <p class="comentarios-vacio" *ngIf="comentarios.length === 0">Sin comentarios aún.</p>
+
+      <div class="comentario-nuevo-form">
+        <input type="text" [(ngModel)]="nuevoComentario" placeholder="Escribe un comentario..." (keyup.enter)="enviarComentario()" />
+        <button [disabled]="enviandoComentario || !nuevoComentario.trim()" (click)="enviarComentario()">
+          <ion-spinner *ngIf="enviandoComentario" name="crescent"></ion-spinner>
+          <ion-icon *ngIf="!enviandoComentario" name="send-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+  </ng-container>
+</ion-content>

@@ -101,7 +101,7 @@ export class AsistenciaPage implements OnInit {
     );
   }
 
-  get hayComosGuardar(): boolean {
+  get hayCambiosSinGuardar(): boolean {
     if (!this.alumnos.length) return false;
     return this.alumnos.some(a => this.snapshotEstados.get(a.id) !== a.estado);
   }
@@ -290,13 +290,6 @@ export class AsistenciaPage implements OnInit {
     }
   }
 
-  // Formatea un grupo suelto (usado en las tarjetas del selector)
-  formatGrupo(g: { grado?: number; nombre?: string; aula?: string }): string {
-    const base = `${g.grado ?? ''}° ${g.nombre ?? ''}`.trim();
-    const aula = this.formatAula(g.aula);
-    return aula ? `${base} — ${aula}` : base;
-  }
-
   seleccionarGrupo(materia: MateriaConGrupos, grupo: GrupoDeMateria) {
     this.materiaId = materia.id;
     this.materiaNombre = materia.nombre;
@@ -352,7 +345,7 @@ export class AsistenciaPage implements OnInit {
     // this.hayComosGuardar refleja el estado de this.alumnos sin importar
     // qué pestaña (lista/historial) esté activa en este momento — así se
     // protege igual si el cambio de fecha viene desde el historial.
-    if (this.vista === 'tomar' && this.hayComosGuardar) {
+    if (this.vista === 'tomar' && this.hayCambiosSinGuardar) {
       const alert = await this.alertCtrl.create({
         header: 'Cambios sin guardar',
         message: 'Cambiar de fecha descartará los cambios sin guardar de la lista actual. ¿Deseas continuar?',
@@ -388,7 +381,7 @@ export class AsistenciaPage implements OnInit {
   // ── Volver (con protección de cambios sin guardar) ──────────
   async volver() {
     if (this.vista === 'tomar') {
-      if (this.segmento === 'lista' && this.hayComosGuardar) {
+      if (this.segmento === 'lista' && this.hayCambiosSinGuardar) {
         const alert = await this.alertCtrl.create({
           header: 'Cambios sin guardar',
           message: 'Tienes cambios en la lista que no has guardado. ¿Deseas salir de todas formas?',
@@ -684,9 +677,12 @@ export class AsistenciaPage implements OnInit {
     return Math.round(((item.presentes + item.retardos * 0.5) / item.total) * 100);
   }
 
-  private toDateStr(d: Date): string {
-    return d.toISOString().split('T')[0];
-  }
+private toDateStr(d: Date): string {
+  const y  = d.getFullYear();
+  const m  = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
 
   private async mostrarToast(msg: string, color: string) {
     const t = await this.toastCtrl.create({

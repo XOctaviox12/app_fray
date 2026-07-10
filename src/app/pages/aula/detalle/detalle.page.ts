@@ -32,6 +32,10 @@ export class DetallePage implements OnInit {
   totalCalificadas = 0;
   promedioNota: number | null = null;
 
+  get esDocente(): boolean { return this.sesion.esDocente(); }
+  get esAlumno():  boolean { return this.sesion.esAlumno();  }
+  get esTutor():   boolean { return this.sesion.esTutor();   }
+
   get porcentajeColor(): string {
     if (this.asistencia.porcentaje >= 85) return 'verde';
     if (this.asistencia.porcentaje >= 70) return 'naranja';
@@ -69,6 +73,12 @@ export class DetallePage implements OnInit {
     this.cargando = true;
     this.error    = null;
     try {
+      const autorizado = await this.validarAcceso();
+      if (!autorizado) {
+        this.error = 'No tienes acceso a la información de este grupo.';
+        return;
+      }
+
       await Promise.all([
         this.cargarGrupo(),
         this.cargarAsignatura(),
@@ -83,6 +93,72 @@ export class DetallePage implements OnInit {
     } finally {
       this.cargando = false;
     }
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  VALIDACIÓN DE ACCESO
+  //  Evita que un alumno o tutor pueda ver el detalle de
+  //  un grupo ajeno cambiando el :id en la URL, y que un
+  //  docente vea grupos/materias que no le corresponden.
+  // ══════════════════════════════════════════════════════
+  private async validarAcceso(): Promise<boolean> {
+    const userId = this.sesion.usuario?.id;
+    if (!userId || !this.grupoId) return false;
+
+    if (this.esDocente) {
+      const { data: relGrupo } = await this.sesion.supabase
+        .from('academic_grupo_docentes')
+        .select('grupo_id')
+        .eq('user_id', userId)
+        .eq('grupo_id', this.grupoId)
+        .maybeSingle();
+      if (!relGrupo) return false;
+
+      // Si viene una materia específica, confirmar que el docente
+      // la imparte y que se da precisamente en ese grupo.
+      if (this.asignaturaId) {
+        const { data: relAsigDocente } = await this.sesion.supabase
+          .from('academic_asignatura_docentes')
+          .select('asignatura_id')
+          .eq('user_id', userId)
+          .eq('asignatura_id', this.asignaturaId)
+          .maybeSingle();
+        if (!relAsigDocente) return false;
+
+        const { data: relAsigGrupo } = await this.sesion.supabase
+          .from('academic_asignatura_grupos')
+          .select('asignatura_id')
+          .eq('asignatura_id', this.asignaturaId)
+          .eq('grupo_id', this.grupoId)
+          .maybeSingle();
+        if (!relAsigGrupo) return false;
+      }
+
+      return true;
+    }
+
+    if (this.esAlumno) {
+      const { data: usu } = await this.sesion.supabase
+        .from('users_user')
+        .select('alumno_grupo_id')
+        .eq('id', userId)
+        .single();
+      return (usu as any)?.alumno_grupo_id === this.grupoId;
+    }
+
+    if (this.esTutor) {
+      const alumnoId = this.sesion.tutor?.alumno_id;
+      if (!alumnoId) return false;
+
+      const { data: alumno } = await this.sesion.supabase
+        .from('users_user')
+        .select('alumno_grupo_id')
+        .eq('id', alumnoId)
+        .single();
+      return (alumno as any)?.alumno_grupo_id === this.grupoId;
+    }
+
+    return false;
   }
 
   private async cargarGrupo() {
@@ -109,7 +185,8 @@ export class DetallePage implements OnInit {
     const { count } = await this.sesion.supabase
       .from('users_user')
       .select('id', { count: 'exact', head: true })
-      .eq('alumno_grupo_id', this.grupoId);
+      .eq('alumno_grupo_id', this.grupoId)
+      .eq('rol', 'ALUMNO');
     this.totalAlumnos = count ?? 0;
   }
 

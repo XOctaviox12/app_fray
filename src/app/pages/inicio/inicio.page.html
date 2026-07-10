@@ -16,11 +16,33 @@
 </ion-header>
 
 <ion-content class="inicio-content">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+  <div class="error-banner" *ngIf="error">
+  <ion-icon name="alert-circle-outline"></ion-icon>
+  <p>{{ error }}</p>
+</div>
 
   <!-- ════════════════════════════════════════ -->
   <!--              VISTA ALUMNO               -->
   <!-- ════════════════════════════════════════ -->
-  <ng-container *ngIf="!esTutor && !esDocente">
+   <ng-container *ngIf="cargando">
+  <div class="hero-section">
+    <div class="hero-text">
+      <ion-skeleton-text animated style="width: 40%; height: 14px;"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 60%; height: 28px;"></ion-skeleton-text>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><ion-skeleton-text animated style="width: 100%; height: 40px;"></ion-skeleton-text></div>
+    <div class="stat-card"><ion-skeleton-text animated style="width: 100%; height: 40px;"></ion-skeleton-text></div>
+    <div class="stat-card"><ion-skeleton-text animated style="width: 100%; height: 40px;"></ion-skeleton-text></div>
+  </div>
+</ng-container>
+
+<ng-container *ngIf="!cargando">
+    <ng-container *ngIf="!esTutor && !esDocente">
 
     <div class="hero-section">
       <div class="hero-text">
@@ -101,8 +123,9 @@
     </ion-button>
 
   </ng-container>
-
-  <!-- ════════════════════════════════════════ -->
+</ng-container>
+<ng-container *ngIf="!cargando">
+   <!-- ════════════════════════════════════════ -->
   <!--             VISTA DOCENTE               -->
   <!-- ════════════════════════════════════════ -->
   <ng-container *ngIf="esDocente">
@@ -208,8 +231,9 @@
     </ion-button>
 
   </ng-container>
-
-  <!-- ════════════════════════════════════════ -->
+</ng-container>
+<ng-container *ngIf="!cargando">
+   <!-- ════════════════════════════════════════ -->
   <!--              VISTA TUTOR                -->
   <!-- ════════════════════════════════════════ -->
   <ng-container *ngIf="esTutor">
@@ -283,5 +307,5 @@
     </ion-button>
 
   </ng-container>
-
+</ng-container>
 </ion-content>
