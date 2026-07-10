@@ -1,7 +1,7 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="header-toolbar">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/tareas"></ion-back-button>
+      <ion-back-button defaultHref="/tareas"></ion-back-button>
     </ion-buttons>
     <ion-title class="header-title">Detalle de tarea</ion-title>
   </ion-toolbar>
@@ -75,10 +75,10 @@
         </div>
 
         <ng-container *ngIf="row.entrega">
-          <a class="entrega-archivo-link" [href]="row.entrega.archivo" target="_blank">
-            <ion-icon [name]="getFileIcon(row.entrega.archivo)"></ion-icon>
-            Ver archivo entregado
-          </a>
+          <a class="entrega-archivo-link" [href]="urlArchivo(row.entrega.archivo)" target="_blank" rel="noopener">
+  <ion-icon [name]="getFileIcon(urlArchivo(row.entrega.archivo))"></ion-icon>
+  Ver archivo entregado
+</a>
           <p class="entrega-comentario" *ngIf="row.entrega.comentario">"{{ row.entrega.comentario }}"</p>
           <p class="entrega-fecha">Entregado el {{ row.entrega.entregada_en | date:'d MMM yyyy, HH:mm' }}</p>
 
@@ -111,10 +111,10 @@
           <span class="entrega-tardia-badge" *ngIf="esTardia()">Entrega tardía</span>
         </div>
 
-        <a class="entrega-archivo-link" [href]="entregaPropia.archivo" target="_blank">
-          <ion-icon [name]="getFileIcon(entregaPropia.archivo)"></ion-icon>
-          Ver mi archivo entregado
-        </a>
+        <a class="entrega-archivo-link" [href]="urlArchivo(entregaPropia.archivo)" target="_blank" rel="noopener">
+  <ion-icon [name]="getFileIcon(urlArchivo(entregaPropia.archivo))"></ion-icon>
+  Ver mi archivo entregado
+</a>
         <p class="entrega-fecha">Entregado el {{ entregaPropia.entregada_en | date:'d MMM yyyy, HH:mm' }}</p>
 
         <div class="mi-calificacion" *ngIf="esCalificada(entregaPropia)">

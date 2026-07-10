@@ -409,19 +409,24 @@ export class ActividadPage implements OnInit {
       }
 
       // Upsert de la entrega
+      const ahoraIso = new Date().toISOString();
       const payload: any = {
         actividad_id: act.id, alumno_id: alumnoId,
         archivo:      archivoUrl,
-        feedback:     '',
+        feedback:     act.entrega?.feedback || '',
+        entregada_en: ahoraIso,
       };
 
       let entregaId = act.entrega?.id;
 
       if (entregaId) {
-        await this.supabase.from('academic_entregaactividad').update(payload).eq('id', entregaId);
+        const { error: errUpd } = await this.supabase
+          .from('academic_entregaactividad').update(payload).eq('id', entregaId);
+        if (errUpd) throw errUpd;
       } else {
-        const { data } = await this.supabase
+        const { data, error: errIns } = await this.supabase
           .from('academic_entregaactividad').insert(payload).select('id').single();
+        if (errIns) throw errIns;
         entregaId = (data as any)?.id;
       }
 
@@ -432,18 +437,20 @@ export class ActividadPage implements OnInit {
           .eq('entrega_id', entregaId).maybeSingle();
 
         if (existResp) {
-          await this.supabase.from('academic_respuestaalumno')
+          const { error: errRespUpd } = await this.supabase.from('academic_respuestaalumno')
             .update({ texto: this.respuestaTexto.trim() }).eq('id', (existResp as any).id);
+          if (errRespUpd) throw errRespUpd;
         } else {
           // Necesitamos la primera pregunta de la actividad
           const { data: preg } = await this.supabase
             .from('academic_preguntaactividad').select('id').eq('actividad_id', act.id).limit(1).single();
           if (preg) {
-            await this.supabase.from('academic_respuestaalumno').insert({
+            const { error: errRespIns } = await this.supabase.from('academic_respuestaalumno').insert({
               entrega_id:  entregaId,
               pregunta_id: (preg as any).id,
               texto:       this.respuestaTexto.trim(),
             });
+            if (errRespIns) throw errRespIns;
           }
         }
       }
@@ -452,8 +459,8 @@ export class ActividadPage implements OnInit {
       const idx = this.actividades.findIndex(a => a.id === act.id);
       if (idx !== -1) {
         this.actividades[idx].entrega = {
-          id: entregaId!, calificacion: null, feedback: '',
-          entregada_en: new Date().toISOString(),
+          id: entregaId!, calificacion: null, feedback: act.entrega?.feedback || '',
+          entregada_en: ahoraIso,
           archivo_url: archivoUrl, respuesta_texto: this.respuestaTexto.trim(),
         };
       }

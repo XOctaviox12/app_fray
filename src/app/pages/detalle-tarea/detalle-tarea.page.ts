@@ -487,4 +487,11 @@ export class DetalleTareaPage implements OnInit {
     const t = await this.toastCtrl.create({ message: msg, duration: 2500, color, position: 'bottom' });
     await t.present();
   }
+  // Corrige URLs de Cloudinary que quedaron mal formadas (ej. "raw/upload/https://...")
+// tomando solo la parte que arranca en "http". Si no encuentra "http", regresa tal cual.
+urlArchivo(raw: string | null | undefined): string {
+  if (!raw) return '';
+  const idx = raw.indexOf('http');
+  return idx > 0 ? raw.slice(idx) : raw;
+}
 }

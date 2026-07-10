@@ -30,6 +30,14 @@ interface MateriaConGrupos {
   grupos: GrupoDeMateria[];
 }
 
+interface HistorialItem {
+  fecha: string;
+  presentes: number;
+  retardos: number;
+  ausentes: number;
+  total: number;
+}
+
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const MESES_LARGO = [
   'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
@@ -80,9 +88,10 @@ export class AsistenciaPage implements OnInit {
   // Segmento activo dentro de 'tomar'
   segmento: 'lista' | 'historial' = 'lista';
 
-  // Historial (de esta materia+grupo)
-  historial: { fecha: string; presentes: number; ausentes: number; retardos: number; total: number }[] = [];
+  // Historial (de esta materia+grupo), siempre ordenado descendente por fecha
+  historial: HistorialItem[] = [];
   cargandoHistorial = false;
+  errorHistorial: string | null = null;
 
   get totalPresentes(): number { return this.alumnos.filter(a => a.estado === 'P').length; }
   get totalAusentes():  number { return this.alumnos.filter(a => a.estado === 'A').length; }
@@ -299,6 +308,10 @@ export class AsistenciaPage implements OnInit {
     this.grupoAula = grupo.aula;
     this.vista = 'tomar';
     this.segmento = 'lista';
+    // El historial es específico de esta materia+grupo; se limpia para que
+    // no se arrastre el de una selección anterior mientras carga el nuevo.
+    this.historial = [];
+    this.errorHistorial = null;
     this.cargarAlumnos();
   }
 
@@ -368,7 +381,6 @@ export class AsistenciaPage implements OnInit {
       if (this.vista === 'selector') {
         await this.cargarGrupos();
       } else if (this.segmento === 'historial') {
-        this.historial = [];
         await this.cargarHistorial();
       } else {
         await this.cargarAlumnos();
@@ -406,6 +418,7 @@ export class AsistenciaPage implements OnInit {
     this.alumnos = [];
     this.historial = [];
     this.error = null;
+    this.errorHistorial = null;
     this.cargarGrupos(); // refresca estados "tomada" para la fecha seleccionada
   }
 
@@ -630,6 +643,12 @@ export class AsistenciaPage implements OnInit {
     this.snapshotEstados = new Map(this.alumnos.map(a => [a.id, a.estado]));
     this.yaGuardada = true;
     this.mostrarToast(`Lista guardada · ${this.totalPresentes}P ${this.totalRetardos}R ${this.totalAusentes}A`, 'success');
+
+    // El historial pudo haber quedado desactualizado con este guardado
+    // (nueva fecha, o cambios sobre una fecha ya existente). Se limpia
+    // para que, si el maestro entra a la pestaña Historial después, se
+    // recargue con el dato fresco en vez de mostrar el cache viejo.
+    this.historial = [];
   }
 
   // ── Historial (de esta materia+grupo) ─────────────────────────
@@ -641,6 +660,10 @@ export class AsistenciaPage implements OnInit {
 
   async cargarHistorial() {
     this.cargandoHistorial = true;
+    this.errorHistorial = null;
+
+    // Traemos TODOS los registros de esta materia+grupo (sin límite de fecha),
+    // para que se vea el historial completo desde que se empezó a tomar lista.
     const { data, error } = await this.sesion.supabase
       .from('academic_asistencia')
       .select('fecha, estado')
@@ -648,22 +671,34 @@ export class AsistenciaPage implements OnInit {
       .eq('asignatura_id', this.materiaId)
       .order('fecha', { ascending: false });
 
-    if (!error && data) {
-      const porFecha = new Map<string, { P: number; A: number; R: number }>();
-      data.forEach((r: any) => {
-        if (!porFecha.has(r.fecha)) porFecha.set(r.fecha, { P: 0, A: 0, R: 0 });
-        const d = porFecha.get(r.fecha)!;
-        d[r.estado as Estado]++;
-      });
+    if (error) {
+      console.error('Error cargando historial:', error.message);
+      this.errorHistorial = 'No se pudo cargar el historial. Verifica tu conexión.';
+      this.historial = [];
+      this.cargandoHistorial = false;
+      return;
+    }
 
-      this.historial = Array.from(porFecha.entries()).map(([fecha, cnt]) => ({
+    const porFecha = new Map<string, { P: number; A: number; R: number }>();
+    (data || []).forEach((r: any) => {
+      if (!porFecha.has(r.fecha)) porFecha.set(r.fecha, { P: 0, A: 0, R: 0 });
+      const d = porFecha.get(r.fecha)!;
+      d[r.estado as Estado]++;
+    });
+
+    this.historial = Array.from(porFecha.entries())
+      .map(([fecha, cnt]) => ({
         fecha,
         presentes: cnt.P,
         retardos:  cnt.R,
         ausentes:  cnt.A,
         total:     cnt.P + cnt.A + cnt.R,
-      }));
-    }
+      }))
+      // Orden descendente explícito por fecha (más reciente primero).
+      // No depende del orden en que Supabase devolvió las filas ni del
+      // orden de inserción del Map: se garantiza aquí siempre.
+      .sort((a, b) => b.fecha.localeCompare(a.fecha));
+
     this.cargandoHistorial = false;
   }
 
@@ -672,17 +707,17 @@ export class AsistenciaPage implements OnInit {
     return `${d} ${MESES_CORTO[+m - 1]} ${y}`;
   }
 
-  porcentajeHistorial(item: any): number {
+  porcentajeHistorial(item: HistorialItem): number {
     if (!item.total) return 0;
     return Math.round(((item.presentes + item.retardos * 0.5) / item.total) * 100);
   }
 
-private toDateStr(d: Date): string {
-  const y  = d.getFullYear();
-  const m  = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${dd}`;
-}
+  private toDateStr(d: Date): string {
+    const y  = d.getFullYear();
+    const m  = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dd}`;
+  }
 
   private async mostrarToast(msg: string, color: string) {
     const t = await this.toastCtrl.create({

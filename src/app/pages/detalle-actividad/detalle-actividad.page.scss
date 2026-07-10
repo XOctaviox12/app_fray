@@ -1,0 +1,273 @@
+@import "src/theme/variables";
+
+// ── HEADER ────────────────────────────────────────────────────
+.header-toolbar    { --background: #{$navy-2}; --color: #{$white}; --border-style: none; --min-height: 56px; }
+.header-title      { color: $white; font-size: 1rem; font-weight: 800; letter-spacing: -0.3px; }
+.header-accent-bar { height: 3px; background: linear-gradient(90deg, $orange, transparent); }
+
+// ── CONTENT ───────────────────────────────────────────────────
+.detalle-actividad-content { --background: #{$navy}; }
+
+// ── LOADING / ERROR ───────────────────────────────────────────
+.loading-actividad, .error-actividad {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  padding: 60px 24px; text-align: center;
+  ion-spinner { width: 28px; height: 28px; }
+  ion-icon    { font-size: 28px; color: $white-35; }
+  p { margin: 0; font-size: 12.5px; color: $white-60; }
+}
+.retry-btn {
+  display: flex; align-items: center; gap: 6px; margin-top: 4px;
+  padding: 9px 16px; border-radius: 10px; border: none;
+  background: rgba(255,107,0,0.1); border: 1px solid rgba(255,107,0,0.25);
+  color: $orange; font-size: 12px; font-weight: 700; cursor: pointer;
+  ion-icon { font-size: 14px; }
+}
+
+// ════════════════════════════════════════════════════════════
+// HEADER DE ACTIVIDAD
+// ════════════════════════════════════════════════════════════
+.actividad-header-card {
+  margin: 14px 16px; padding: 16px;
+  background: $card-bg; border: 1px solid $card-border; border-top: 2px solid $orange;
+  border-radius: 16px; backdrop-filter: blur(10px);
+}
+
+.actividad-header-top {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px;
+}
+.actividad-titulo { margin: 0; font-size: 17px; font-weight: 800; color: $white; line-height: 1.3; }
+
+.badge {
+  flex-shrink: 0; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
+  padding: 4px 9px; border-radius: 7px;
+  &.badge-draft   { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: $white-60; }
+  &.badge-vencida { background: rgba(239,68,68,0.12);   border: 1px solid rgba(239,68,68,0.25);   color: #ef4444; }
+  &.badge-activa  { background: rgba(34,197,94,0.12);   border: 1px solid rgba(34,197,94,0.25);   color: #22c55e; }
+}
+
+.actividad-header-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 9px; border-radius: 7px; font-size: 10.5px; font-weight: 700;
+  background: rgba(255,107,0,0.1); border: 1px solid rgba(255,107,0,0.2); color: $orange;
+  ion-icon { font-size: 11px; }
+  &.chip-muted { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.09); color: $white-60; }
+  &.chip-tipo  { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.09); color: $white-60; }
+  &.chip-valor { background: rgba(96,165,250,0.1); border-color: rgba(96,165,250,0.22); color: #60a5fa; }
+}
+
+.actividad-descripcion { margin: 0 0 10px; font-size: 12.5px; color: $white-60; line-height: 1.5; }
+
+.archivo-chip, .link-interactiva {
+  display: inline-flex; align-items: center; gap: 6px; margin-right: 8px; margin-bottom: 4px;
+  padding: 7px 12px; border-radius: 9px; font-size: 11.5px; font-weight: 700; text-decoration: none;
+  background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.25); color: #60a5fa;
+  ion-icon { font-size: 14px; }
+}
+
+// ── KPI ROW ───────────────────────────────────────────────────
+.kpi-row { display: flex; gap: 8px; margin: 16px 16px 6px; }
+.kpi-chip {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 12px 6px; border-radius: 13px;
+  background: $card-bg; border: 1px solid $card-border;
+  .kpi-num { font-size: 19px; font-weight: 800; color: $white; }
+  .kpi-lbl { font-size: 8.5px; color: $white-35; text-transform: uppercase; letter-spacing: 0.5px; }
+  &.kpi-green  .kpi-num { color: #22c55e; }
+  &.kpi-orange .kpi-num { color: $orange; }
+}
+
+.section-title {
+  margin: 18px 16px 8px; font-size: 13px; font-weight: 800; color: $white; letter-spacing: -0.2px;
+}
+
+// ── EMPTY ─────────────────────────────────────────────────────
+.empty-entregas {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  margin: 0 16px; padding: 26px 16px; text-align: center;
+  background: $card-bg; border: 1px solid $card-border; border-radius: 14px;
+  ion-icon { font-size: 24px; color: $white-35; }
+  p { margin: 0; font-size: 12px; color: $white-35; }
+}
+
+// ════════════════════════════════════════════════════════════
+// FILAS DE ENTREGA (docente)
+// ════════════════════════════════════════════════════════════
+.entrega-row {
+  margin: 0 16px 10px; padding: 13px;
+  background: $card-bg; border: 1px solid $card-border; border-radius: 14px;
+}
+
+.entrega-row-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.entrega-alumno-nombre { font-size: 13px; font-weight: 700; color: $white; }
+
+.entrega-estado-badge {
+  flex-shrink: 0; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px;
+  padding: 3px 8px; border-radius: 6px;
+  &.sin-entregar { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.22);  color: #ef4444; }
+  &.entregada    { background: rgba(255,107,0,0.1);  border: 1px solid rgba(255,107,0,0.22);  color: $orange; }
+  &.calificada   { background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.22); color: #60a5fa; }
+}
+
+.entrega-tardia-badge {
+  font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px;
+  padding: 3px 8px; border-radius: 6px; margin-left: 6px;
+  background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.25); color: #f97316;
+}
+
+.entrega-comentario {
+  margin: 0 0 6px; padding: 8px 10px; border-radius: 9px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+  font-size: 11.5px; color: $white-60; font-style: italic; line-height: 1.45;
+}
+
+.entrega-archivo-link {
+  display: inline-flex; align-items: center; gap: 5px; margin-bottom: 6px;
+  font-size: 11px; font-weight: 700; color: #60a5fa; text-decoration: none;
+  ion-icon { font-size: 13px; }
+}
+
+.entrega-fecha { margin: 0 0 8px; font-size: 10px; color: $white-35; }
+
+// ── Calificar en línea ────────────────────────────────────────
+.calificar-row {
+  display: flex; flex-direction: column; gap: 8px; margin-top: 6px; padding-top: 10px;
+  border-top: 1px dashed rgba(255,255,255,0.1);
+}
+.calificar-input-wrap, .calificar-feedback-wrap {
+  display: flex; flex-direction: column; gap: 4px;
+  label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: $white-35; }
+  input, textarea {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 9px;
+    padding: 8px 10px; font-size: 12.5px; color: $white; outline: none;
+    &:focus { border-color: $orange; }
+    &::placeholder { color: $white-35; }
+  }
+  textarea { resize: none; }
+}
+.btn-guardar-calif {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px; border-radius: 10px; border: none;
+  background: $orange; color: $white; font-size: 12px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 12px $orange-glow;
+  ion-icon    { font-size: 14px; }
+  ion-spinner { width: 14px; height: 14px; }
+  &[disabled] { opacity: 0.6; cursor: not-allowed; }
+}
+
+// ════════════════════════════════════════════════════════════
+// ESTADO DE MI ENTREGA (alumno / tutor)
+// ════════════════════════════════════════════════════════════
+.mi-entrega-status {
+  margin: 16px 16px 10px; padding: 15px;
+  background: $card-bg; border: 1px solid $card-border; border-radius: 16px;
+}
+.mi-entrega-header { display: flex; align-items: center; margin-bottom: 8px; }
+
+.mi-calificacion {
+  display: flex; align-items: center; gap: 10px; margin: 10px 0 4px;
+  padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.03);
+}
+.mi-calificacion-num {
+  min-width: 46px; padding: 6px 10px; border-radius: 10px; text-align: center;
+  font-size: 17px; font-weight: 800;
+  &.nota-excelente { background: rgba(34,197,94,0.15);  color: #22c55e; }
+  &.nota-bien      { background: rgba(96,165,250,0.15); color: #60a5fa; }
+  &.nota-regular   { background: rgba(249,115,22,0.15); color: #f97316; }
+  &.nota-reprobado { background: rgba(239,68,68,0.15);  color: #ef4444; }
+}
+.mi-calificacion-feedback { margin: 0; font-size: 11.5px; color: $white-60; font-style: italic; line-height: 1.45; }
+
+.btn-editar-entrega {
+  display: flex; align-items: center; gap: 6px; margin-top: 10px;
+  padding: 9px 14px; border-radius: 10px; cursor: pointer;
+  background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.25); color: #60a5fa;
+  font-size: 11.5px; font-weight: 700;
+  ion-icon { font-size: 14px; }
+}
+
+.btn-entregar {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin: 16px 16px 10px; padding: 12px; border-radius: 12px; border: none; cursor: pointer;
+  background: $orange; color: $white; font-size: 13px; font-weight: 700;
+  box-shadow: 0 4px 14px $orange-glow;
+  ion-icon { font-size: 16px; }
+}
+
+// ── No entregable (MULTIPLE / INTERACTIVA) ───────────────────
+.no-entregable {
+  display: flex; align-items: flex-start; gap: 9px; margin: 16px 16px 10px; padding: 13px;
+  border-radius: 14px; background: rgba(96,165,250,0.07); border: 1px solid rgba(96,165,250,0.18);
+  ion-icon { font-size: 19px; color: #60a5fa; flex-shrink: 0; margin-top: 1px; }
+  strong { display: block; font-size: 12.5px; color: $white; margin-bottom: 3px; }
+  p { margin: 0 0 8px; font-size: 11.5px; color: $white-60; line-height: 1.45; }
+}
+.link-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 10px; border-radius: 7px; font-size: 10.5px; font-weight: 700;
+  background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.25);
+  color: #60a5fa; text-decoration: none;
+  ion-icon { font-size: 12px; }
+}
+
+// ════════════════════════════════════════════════════════════
+// FORM DE ENTREGA (alumno)
+// ════════════════════════════════════════════════════════════
+.form-entrega {
+  margin: 0 16px 20px; padding: 15px;
+  background: $card-bg; border: 1px solid $card-border; border-top: 2px solid $orange;
+  border-radius: 16px;
+}
+
+.input-group  { margin-bottom: 12px; }
+.input-label  { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: $white-35; margin-bottom: 6px; }
+
+.form-entrega textarea {
+  width: 100%; box-sizing: border-box; resize: none;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+  padding: 10px; font-size: 13px; color: $white; outline: none;
+  &:focus { border-color: $orange; }
+  &::placeholder { color: $white-35; }
+}
+
+.archivo-actual {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+  padding: 9px 11px; border-radius: 10px;
+  background: rgba(34,197,94,0.07); border: 1px solid rgba(34,197,94,0.2);
+  font-size: 11.5px; color: $white-60;
+  ion-icon { font-size: 15px; color: #22c55e; flex-shrink: 0; }
+  span { flex: 1; }
+  .ver-link { color: #22c55e; font-weight: 700; text-decoration: none; flex-shrink: 0; }
+}
+
+.file-upload-zone {
+  border: 1.5px dashed rgba(255,255,255,0.15); border-radius: 12px;
+  padding: 18px 12px; text-align: center; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  &:hover { border-color: $orange; background: rgba(255,107,0,0.04); }
+}
+.upload-icon { font-size: 24px; color: $white-35; margin-bottom: 6px; }
+.upload-text { margin: 0; font-size: 12px; color: $white-60; }
+.upload-hint { margin: 4px 0 0; font-size: 10px; color: $white-35; }
+
+.file-progress-bar { width: 100%; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; margin: 10px 0; }
+.file-progress-fill { height: 100%; background: $orange; transition: width 0.15s ease; }
+
+.opciones-error {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
+  font-size: 11px; color: #ef4444;
+  ion-icon { font-size: 15px; flex-shrink: 0; }
+}
+
+.form-actions { display: flex; gap: 10px; }
+.btn-cancel, .btn-save {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 11px; border-radius: 10px; border: none; font-size: 12.5px; font-weight: 700; cursor: pointer;
+  ion-spinner { width: 15px; height: 15px; }
+  &[disabled] { opacity: 0.6; cursor: not-allowed; }
+}
+.btn-cancel { background: rgba(255,255,255,0.06); color: $white-60; }
+.btn-save   { background: $orange; color: $white; box-shadow: 0 4px 14px $orange-glow; }
+
+div[style*="height"] { height: 40px; }

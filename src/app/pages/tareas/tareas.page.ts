@@ -60,6 +60,7 @@ const MAX_MB = 20;
 const EXT_BAN = ['exe', 'bat', 'sh', 'cmd', 'msi'];
 const ESTADO_ENTREGADA = 'ENTREGADA';
 const ESTADO_CALIFICADA = 'CALIFICADA';
+const EXT_IMAGEN = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
 @Component({
   standalone: false,
@@ -757,6 +758,27 @@ async cargarTareasAlumno() {
     return m[ext || ''] || 'document-outline';
   }
 
+  // Extrae la extensión real de una URL, ignorando query params
+  // (ej. Cloudinary a veces agrega ?v=123 o similares al final).
+  private extension(url: string): string {
+    const sinQuery = (url || '').split('?')[0].split('#')[0];
+    return sinQuery.split('.').pop()?.toLowerCase() || '';
+  }
+
+  esImagen(url: string): boolean {
+    return EXT_IMAGEN.includes(this.extension(url));
+  }
+
+  esPDF(url: string): boolean {
+    return this.extension(url) === 'pdf';
+  }
+
+  // true si el archivo se puede previsualizar inline (imagen o pdf);
+  // si es false, se muestra solo el enlace "Abrir archivo".
+  esPrevisualizable(url: string): boolean {
+    return this.esImagen(url) || this.esPDF(url);
+  }
+
   formatSize(b: number): string {
     if (!b) return '0 B'; const k = 1024, s = ['B', 'KB', 'MB'], i = Math.floor(Math.log(b) / Math.log(k));
     return (b / Math.pow(k, i)).toFixed(1) + ' ' + s[i];
@@ -771,5 +793,10 @@ async cargarTareasAlumno() {
 }
 irADetalle(tarea: Tarea) {
   this.router.navigate(['/tareas', tarea.id]);
+}
+urlArchivo(raw: string | null | undefined): string {
+  if (!raw) return '';
+  const idx = raw.indexOf('http');
+  return idx > 0 ? raw.slice(idx) : raw;
 }
 }

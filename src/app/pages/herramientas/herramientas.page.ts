@@ -572,7 +572,7 @@ export class HerramientasPage implements OnInit {
 
   // ── Abrir material ────────────────────────────────────────
   abrirMaterial(mat: MaterialItem) {
-    const url = mat.url_externa || mat.archivo_url;
+    const url = mat.url_externa || this.urlArchivo(mat.archivo_url);
     if (url) window.open(url, '_blank');
   }
 
@@ -623,6 +623,30 @@ export class HerramientasPage implements OnInit {
 
   getTypeColor(tipo: string): string {
     return { PDF:'#ef4444', VIDEO:'#ff6b00', IMAGEN:'#3b82f6', LINK:'#8b5cf6', OTRO:'#64748b' }[tipo] || '#64748b';
+  }
+
+  // Normaliza el valor guardado en "archivo" para poder abrirlo/mostrarlo.
+  // En academic_materialapoyo hay registros viejos donde "archivo" quedó
+  // guardado como ruta relativa de Cloudinary (sin dominio, ej:
+  // "image/upload/v.../archivo.pdf") y otros donde puede venir con basura
+  // pegada antes de la URL real. Esta función:
+  //  1) Si ya trae "http" en algún punto, corta todo lo anterior (limpia prefijos corruptos).
+  //  2) Si no trae "http" para nada (ruta relativa "pura" de Cloudinary),
+  //     reconstruye la URL completa usando el cloud_name de environment.
+  urlArchivo(raw: string | null | undefined): string {
+    if (!raw) return '';
+    const idx = raw.indexOf('http');
+    if (idx > 0) return raw.slice(idx);
+    if (idx === 0) return raw;
+
+    // No trae "http": es una ruta relativa de Cloudinary (image/upload/v.../archivo.ext)
+    const cloudName = (environment as any).cloudinaryCloudName;
+    if (cloudName) {
+      const rutaLimpia = raw.replace(/^\/+/, '');
+      return `https://res.cloudinary.com/${cloudName}/${rutaLimpia}`;
+    }
+    // Sin cloud_name configurado, devolvemos tal cual para no romper el flujo.
+    return raw;
   }
 
   formatSize(b: number): string {

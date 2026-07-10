@@ -70,6 +70,7 @@
 .input-group  { margin-bottom: 12px; }
 .input-label  { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: $white-35; margin-bottom: 5px; }
 .input-hint   { margin: 5px 2px 0; font-size: 10px; color: $white-35; line-height: 1.4; }
+.label-opt    { text-transform: none; font-weight: 500; color: $white-35; letter-spacing: 0; }
 
 .input-wrap {
   display: flex; align-items: center; gap: 8px;
@@ -114,7 +115,7 @@
 .publish-toggle-title { font-size: 11.5px; font-weight: 700; color: $white; }
 .publish-toggle-sub   { font-size: 10px; color: $white-35; line-height: 1.3; }
 
-// Acciones formulario
+// Acciones formulario / modales (compartidas)
 .form-actions { display: flex; gap: 10px; margin-top: 4px; }
 .btn-cancel, .btn-save {
   flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -125,8 +126,9 @@
 }
 .btn-cancel { background: rgba(255,255,255,0.06); color: $white-60; }
 .btn-save   { background: $orange; color: $white; box-shadow: 0 4px 14px $orange-glow; }
+.btn-spinner{ width: 15px; height: 15px; }
 
-// ── ARCHIVOS ──────────────────────────────────────────────────
+// ── ARCHIVOS (formulario docente) ────────────────────────────
 .file-upload-zone {
   border: 1.5px dashed rgba(255,255,255,0.15); border-radius: 12px;
   padding: 18px 12px; text-align: center; cursor: pointer; margin-bottom: 10px;
@@ -232,6 +234,14 @@
   &.nota-regular   { background: rgba(249,115,22,0.15); color: #f97316; }
   &.nota-reprobado { background: rgba(239,68,68,0.15);  color: #ef4444; }
 }
+.nota-badge-sm {
+  flex-shrink: 0; min-width: 30px; padding: 3px 7px; border-radius: 7px;
+  font-size: 11.5px; font-weight: 800; text-align: center;
+  &.nota-excelente { background: rgba(34,197,94,0.15);  color: #22c55e; }
+  &.nota-bien      { background: rgba(96,165,250,0.15); color: #60a5fa; }
+  &.nota-regular   { background: rgba(249,115,22,0.15); color: #f97316; }
+  &.nota-reprobado { background: rgba(239,68,68,0.15);  color: #ef4444; }
+}
 
 // Descripción
 .activity-desc { font-size: 11.5px; color: $white-60; margin: 0 0 10px; line-height: 1.45; }
@@ -269,6 +279,63 @@
   p { margin: 0; font-size: 11.5px; color: $white-60; line-height: 1.45; font-style: italic; }
 }
 
+// ════════════════════════════════════════════════════════════
+// PANEL DE ENTREGAS (docente, expandible dentro de la card)
+// ════════════════════════════════════════════════════════════
+.entregas-panel {
+  margin: 4px 0 10px; padding: 10px 0 2px;
+  border-top: 1px dashed rgba(255,255,255,0.1);
+  animation: fade-in-up 0.25s ease both;
+}
+
+.entregas-loading {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 18px 0; color: $white-35; font-size: 11.5px;
+  ion-spinner { width: 16px; height: 16px; }
+}
+
+.empty-entregas {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 18px 0; color: $white-35; text-align: center;
+  ion-icon { font-size: 22px; }
+  p { margin: 0; font-size: 11.5px; }
+}
+
+.entrega-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 9px 8px; border-radius: 10px;
+  &:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.05); }
+}
+
+.entrega-alumno { display: flex; align-items: center; gap: 9px; min-width: 0; flex: 1; }
+.entrega-avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,107,0,0.12); color: $orange; font-size: 13px; font-weight: 800;
+  text-transform: uppercase;
+}
+.entrega-info      { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.entrega-nombre    { font-size: 12px; font-weight: 700; color: $white; }
+.entrega-fecha     { font-size: 10px; color: $white-35; }
+.entrega-respuesta {
+  font-size: 10.5px; color: $white-60; font-style: italic;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px;
+}
+.entrega-archivo-link {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;
+  font-size: 10.5px; font-weight: 700; color: #60a5fa; text-decoration: none;
+  ion-icon { font-size: 12px; }
+}
+
+.entrega-calificacion { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.btn-calificar {
+  display: flex; align-items: center; gap: 4px;
+  border: 1px solid rgba(255,107,0,0.25); background: rgba(255,107,0,0.08);
+  color: $orange; font-size: 10px; font-weight: 700;
+  padding: 5px 9px; border-radius: 8px; cursor: pointer; white-space: nowrap;
+  ion-icon { font-size: 12px; }
+}
+
 // Footer card
 .card-footer {
   display: flex; align-items: center; justify-content: space-between;
@@ -276,12 +343,19 @@
   gap: 8px; flex-wrap: wrap;
 }
 .footer-left  { display: flex; flex-direction: column; gap: 3px; }
-.footer-right { display: flex; align-items: center; gap: 8px; }
+.footer-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 .fecha-txt { display: flex; align-items: center; gap: 4px; font-size: 10.5px; color: $white-35; ion-icon { font-size: 12px; } }
 .dias-restantes { font-size: 10px; font-weight: 700; color: $white-35; &.vence-hoy { color: #f97316; } &.vencido { color: #ef4444; } }
 
-// Publicar mini-btn
+// Ver entregas / publicar
+.btn-ver-entregas {
+  display: flex; align-items: center; gap: 4px;
+  border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
+  color: $white-60; font-size: 10px; font-weight: 700;
+  padding: 4px 8px; border-radius: 8px; cursor: pointer;
+  ion-icon { font-size: 12px; }
+}
 .publish-mini-btn {
   display: flex; align-items: center; gap: 4px;
   border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
@@ -291,7 +365,20 @@
   &.is-published { border-color: rgba(34,197,94,0.25); background: rgba(34,197,94,0.08); color: #22c55e; }
 }
 
-// Estado chip alumno
+// Entregar / editar entrega (alumno)
+.btn-entregar {
+  display: flex; align-items: center; gap: 4px;
+  border: none; background: $orange; color: $white; font-size: 10.5px; font-weight: 700;
+  padding: 6px 11px; border-radius: 8px; cursor: pointer;
+  box-shadow: 0 3px 10px $orange-glow;
+  ion-icon { font-size: 12px; }
+  &.editar {
+    background: rgba(96,165,250,0.12); color: #60a5fa; box-shadow: none;
+    border: 1px solid rgba(96,165,250,0.25);
+  }
+}
+
+// Estado chip alumno / tutor
 .estado-chip {
   display: flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700;
   ion-icon { font-size: 13px; }
@@ -323,3 +410,123 @@
 
 // ── FAB ───────────────────────────────────────────────────────
 .fab-agregar { --background: #{$orange}; --color: #{$white}; --box-shadow: 0 6px 18px #{$orange-glow}; }
+
+// ════════════════════════════════════════════════════════════
+// MODALES (Entregar actividad / Calificar entrega)
+// ════════════════════════════════════════════════════════════
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.55); backdrop-filter: blur(3px);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding: 0;
+  animation: overlay-in 0.2s ease both;
+
+  @media (min-width: 600px) {
+    align-items: center; padding: 20px;
+  }
+}
+@keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
+
+.modal-card {
+  width: 100%; max-width: 440px; max-height: 88vh;
+  background: $navy-2; border: 1px solid $card-border;
+  border-top: 2px solid $orange;
+  border-radius: 20px 20px 0 0;
+  display: flex; flex-direction: column; overflow: hidden;
+  animation: modal-up 0.25s ease both;
+
+  @media (min-width: 600px) {
+    border-radius: 18px;
+    animation: modal-pop 0.2s ease both;
+  }
+}
+@keyframes modal-up  { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes modal-pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 16px 14px; border-bottom: 1px solid $white-08; flex-shrink: 0;
+}
+.modal-header-left {
+  display: flex; align-items: center; gap: 8px;
+  ion-icon { font-size: 17px; color: $orange; }
+  h3 { margin: 0; font-size: 14px; font-weight: 800; color: $white; }
+}
+.modal-close {
+  width: 28px; height: 28px; border-radius: 50%; border: none;
+  background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; cursor: pointer;
+  ion-icon { font-size: 16px; color: $white-35; }
+}
+
+.modal-body {
+  padding: 16px; overflow-y: auto; flex: 1;
+}
+.modal-act-titulo { margin: 0 0 2px; font-size: 13.5px; font-weight: 700; color: $white; }
+.modal-act-asig   { margin: 0 0 14px; font-size: 11px; color: $white-35; }
+
+.modal-footer {
+  display: flex; gap: 10px; padding: 14px 16px;
+  border-top: 1px solid $white-08; flex-shrink: 0;
+}
+
+// Entrega: archivo ya subido
+.archivo-actual {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+  padding: 9px 11px; border-radius: 10px;
+  background: rgba(34,197,94,0.07); border: 1px solid rgba(34,197,94,0.2);
+  font-size: 11.5px; color: $white-60;
+  ion-icon { font-size: 15px; color: #22c55e; flex-shrink: 0; }
+  span { flex: 1; }
+  .ver-link { color: #22c55e; font-weight: 700; text-decoration: none; flex-shrink: 0; }
+}
+
+.upload-zone-simple {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  border: 1.5px dashed rgba(255,255,255,0.15); border-radius: 12px;
+  padding: 18px 12px; text-align: center; cursor: pointer; margin-bottom: 10px;
+  transition: border-color 0.2s, background 0.2s;
+  ion-icon { font-size: 22px; color: $white-35; }
+  span { font-size: 12px; color: $white-60; font-weight: 600; }
+  &:hover { border-color: $orange; background: rgba(255,107,0,0.04); }
+}
+
+.upload-progress {
+  position: relative; height: 26px; border-radius: 8px; overflow: hidden;
+  background: rgba(255,255,255,0.06); margin-bottom: 10px;
+  display: flex; align-items: center;
+  span {
+    position: relative; z-index: 1; margin: 0 auto;
+    font-size: 10.5px; font-weight: 700; color: $white;
+  }
+}
+.upload-progress-fill {
+  position: absolute; inset: 0; width: 0; background: $orange;
+  transition: width 0.15s ease;
+}
+
+// Tipos no entregables (MULTIPLE / INTERACTIVA)
+.no-entregable {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 12px; border-radius: 12px; margin-bottom: 4px;
+  background: rgba(96,165,250,0.07); border: 1px solid rgba(96,165,250,0.18);
+  ion-icon { font-size: 18px; color: #60a5fa; flex-shrink: 0; margin-top: 1px; }
+  strong { display: block; font-size: 12px; color: $white; margin-bottom: 3px; }
+  p { margin: 0 0 8px; font-size: 11px; color: $white-60; line-height: 1.4; }
+}
+
+// Calificar: respuesta y archivo del alumno
+.respuesta-alumno {
+  margin-bottom: 12px; padding: 10px 12px; border-radius: 10px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+}
+.resp-label { margin: 0 0 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: $white-35; }
+.resp-texto { margin: 0; font-size: 12px; color: $white-60; line-height: 1.5; }
+
+.archivo-entregado { margin-bottom: 12px; }
+.adjunto-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 12px; border-radius: 9px;
+  background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.25);
+  color: #60a5fa; font-size: 11.5px; font-weight: 700; text-decoration: none;
+  ion-icon { font-size: 15px; }
+}

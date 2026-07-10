@@ -319,8 +319,8 @@
               </div>
 
               <ng-container *ngIf="row.entrega">
-                <a class="entrega-archivo-link" [href]="row.entrega.archivo" target="_blank">
-                  <ion-icon [name]="getFileIcon(row.entrega.archivo)"></ion-icon>
+                <a class="entrega-archivo-link" [href]="urlArchivo(row.entrega.archivo)" target="_blank" rel="noopener">
+                  <ion-icon [name]="getFileIcon(urlArchivo(row.entrega.archivo))"></ion-icon>
                   Ver archivo entregado
                 </a>
                 <p class="entrega-comentario" *ngIf="row.entrega.comentario">
@@ -394,10 +394,9 @@
           <span class="stat-lbl">Total</span>
         </div>
         <div class="stat-chip orange">
-  <span class="stat-num">{{ getPendientesAlumno() }}</span>
-  <span class="stat-lbl">Pendientes</span>
-</div>
-
+          <span class="stat-num">{{ getPendientesAlumno() }}</span>
+          <span class="stat-lbl">Pendientes</span>
+        </div>
       </div>
     </div>
 
@@ -460,7 +459,7 @@
             <span class="entrega-tardia-badge" *ngIf="esTardia(tarea)">Entrega tardía</span>
           </div>
 
-          <a class="entrega-archivo-link" [href]="tarea.entregaPropia.archivo" target="_blank">
+          <a class="entrega-archivo-link" [href]="tarea.entregaPropia.archivo" target="_blank" rel="noopener">
             <ion-icon [name]="getFileIcon(tarea.entregaPropia.archivo)"></ion-icon>
             Ver mi archivo entregado
           </a>

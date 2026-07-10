@@ -8,6 +8,14 @@ interface MetricaAsistencia {
   retardos: number; porcentaje: number;
 }
 
+interface AlumnoGrupo {
+  id: number;
+  numero: number; // posición fija en la lista (orden alfabético)
+  nombre: string;
+  apellido: string;
+  foto: string | null;
+}
+
 @Component({
   standalone: false,
   selector: 'app-detalle',
@@ -26,6 +34,7 @@ export class DetallePage implements OnInit {
   error: string | null = null;
 
   asistencia: MetricaAsistencia = { total: 0, presentes: 0, ausentes: 0, retardos: 0, porcentaje: 0 };
+  alumnos: AlumnoGrupo[] = [];
   totalAlumnos     = 0;
   totalTareas      = 0;
   tareasEntregadas = 0;
@@ -182,12 +191,28 @@ export class DetallePage implements OnInit {
   }
 
   private async cargarAlumnos() {
-    const { count } = await this.sesion.supabase
+    const { data, error } = await this.sesion.supabase
       .from('users_user')
-      .select('id', { count: 'exact', head: true })
+      .select('id, first_name, last_name, foto_perfil')
       .eq('alumno_grupo_id', this.grupoId)
-      .eq('rol', 'ALUMNO');
-    this.totalAlumnos = count ?? 0;
+      .eq('rol', 'ALUMNO')
+      .order('last_name');
+    if (error) throw error;
+
+    this.alumnos = (data || []).map((u: any, i: number) => ({
+      id: u.id,
+      numero: i + 1,
+      nombre: u.first_name || '',
+      apellido: u.last_name || '',
+      foto: u.foto_perfil,
+    }));
+    this.totalAlumnos = this.alumnos.length;
+  }
+
+  iniciales(alumno: AlumnoGrupo): string {
+    const n = alumno.nombre?.charAt(0) || '';
+    const a = alumno.apellido?.charAt(0) || '';
+    return (n + a).toUpperCase() || '?';
   }
 
   private async cargarAsistencia() {

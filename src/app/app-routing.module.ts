@@ -77,6 +77,11 @@ const routes: Routes = [
   path: 'tareas/:id',
   loadChildren: () => import('./pages/detalle-tarea/detalle-tarea.module').then(m => m.DetalleTareaPageModule)
 },
+  {
+  path: 'detalle-actividad/:id',
+  canActivate: [AuthGuard],
+  loadChildren: () => import('./pages/detalle-actividad/detalle-actividad.module').then(m => m.DetalleActividadPageModule)
+}
 ];
 
 @NgModule({

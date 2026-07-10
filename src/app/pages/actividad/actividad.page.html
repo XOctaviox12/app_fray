@@ -347,13 +347,14 @@
       </button>
     </div>
 
-    <!-- ── Cards ── -->
+    <!-- ── Cards (tocar la card manda al detalle) ── -->
     <div class="activity-card"
       *ngFor="let a of actividadesFiltradas; let i = index"
       [class.critica]="esCritica(a)"
       [class.vencida-card]="a.vencida && !a.entrega"
       [class.draft]="!a.publicada"
-      [style.animationDelay]="i * 0.05 + 's'">
+      [style.animationDelay]="i * 0.05 + 's'"
+      [routerLink]="['/detalle-actividad', a.id]">
 
       <!-- Header -->
       <div class="card-header">
@@ -385,10 +386,10 @@
         </div>
         <!-- Acciones docente -->
         <div class="card-actions" *ngIf="esDocente">
-          <button class="act-btn" (click)="abrirFormularioEditar(a)">
+          <button class="act-btn" (click)="$event.stopPropagation(); abrirFormularioEditar(a)">
             <ion-icon name="create-outline"></ion-icon>
           </button>
-          <button class="act-btn delete" (click)="eliminarActividad(a)">
+          <button class="act-btn delete" (click)="$event.stopPropagation(); eliminarActividad(a)">
             <ion-icon name="trash-outline"></ion-icon>
           </button>
         </div>
@@ -407,7 +408,8 @@
           <ion-icon name="star-outline"></ion-icon>
           {{ a.valor_total | number:'1.0-1' }} pts
         </span>
-        <a *ngIf="a.url_interactiva" [href]="a.url_interactiva" target="_blank" class="link-chip">
+        <a *ngIf="a.url_interactiva" [href]="a.url_interactiva" target="_blank" class="link-chip"
+          (click)="$event.stopPropagation()">
           <ion-icon name="open-outline"></ion-icon>
           Abrir actividad
         </a>
@@ -426,7 +428,7 @@
       </div>
 
       <!-- ── PANEL ENTREGAS (docente) ── -->
-      <div class="entregas-panel" *ngIf="esDocente && actividadExpandida?.id === a.id">
+      <div class="entregas-panel" *ngIf="esDocente && actividadExpandida?.id === a.id" (click)="$event.stopPropagation()">
 
         <div class="entregas-loading" *ngIf="cargandoEntregas">
           <ion-spinner name="crescent"></ion-spinner>
@@ -489,7 +491,7 @@
 
           <!-- DOCENTE: ver entregas + toggle publicar -->
           <ng-container *ngIf="esDocente">
-            <button class="btn-ver-entregas" (click)="verEntregas(a)">
+            <button class="btn-ver-entregas" (click)="$event.stopPropagation(); verEntregas(a)">
               <ion-icon [name]="actividadExpandida?.id === a.id ? 'chevron-up-outline' : 'people-outline'"></ion-icon>
               {{ actividadExpandida?.id === a.id ? 'Cerrar' : 'Ver entregas' }}
             </button>
@@ -504,13 +506,13 @@
           <ng-container *ngIf="esAlumno">
             <button class="btn-entregar"
               *ngIf="!a.entrega && (a.tipo === 'ABIERTA' || a.tipo === 'ARCHIVO')"
-              (click)="abrirEntrega(a)">
+              (click)="$event.stopPropagation(); abrirEntrega(a)">
               <ion-icon name="cloud-upload-outline"></ion-icon>
               Entregar
             </button>
             <button class="btn-entregar editar"
               *ngIf="a.entrega && a.entrega.calificacion == null && (a.tipo === 'ABIERTA' || a.tipo === 'ARCHIVO')"
-              (click)="abrirEntrega(a)">
+              (click)="$event.stopPropagation(); abrirEntrega(a)">
               <ion-icon name="create-outline"></ion-icon>
               Editar entrega
             </button>
