@@ -8,11 +8,7 @@
     <ion-title class="header-title">
       {{ esDocente ? 'Actividades del Grupo' : esTutor ? 'Actividades del Alumno' : 'Mis Actividades' }}
     </ion-title>
-    <ion-buttons slot="end" *ngIf="esDocente">
-      <ion-button class="header-add-btn" (click)="abrirFormularioNuevo()">
-        <ion-icon name="add-outline" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-buttons>
+
   </ion-toolbar>
   <div class="header-accent-bar"></div>
 </ion-header>

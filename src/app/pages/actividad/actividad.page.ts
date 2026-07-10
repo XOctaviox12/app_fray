@@ -736,18 +736,63 @@ export class ActividadPage implements OnInit {
     finally { this.guardando = false; }
   }
 
-  async eliminarActividad(act: ActividadItem) {
-    const al = await this.alertCtrl.create({
-      header:'Eliminar actividad', message:`¿Eliminar "${act.titulo}"?`,
-      buttons:[{ text:'Cancelar', role:'cancel' }, { text:'Eliminar', role:'destructive', handler: async () => {
-        const { error } = await this.supabase.from('academic_actividad').delete().eq('id', act.id);
-        if (error) { this.toast('No se pudo eliminar.','danger'); return; }
-        this.actividades = this.actividades.filter(a => a.id !== act.id);
-        this.toast('Actividad eliminada.','success');
-      }}]
-    });
-    await al.present();
-  }
+async eliminarActividad(act: ActividadItem) {
+  const al = await this.alertCtrl.create({
+    header: 'Eliminar actividad',
+    message: `¿Eliminar "${act.titulo}"? Esto borrará también las entregas y calificaciones de los alumnos.`,
+    buttons: [
+      { text: 'Cancelar', role: 'cancel' },
+      {
+        text: 'Eliminar', role: 'destructive',
+        handler: async () => {
+          try {
+            // 1) IDs de entregas y preguntas de esta actividad
+            const { data: entregas } = await this.supabase
+              .from('academic_entregaactividad').select('id').eq('actividad_id', act.id);
+            const entregaIds = (entregas || []).map((e: any) => e.id);
+
+            const { data: preguntas } = await this.supabase
+              .from('academic_preguntaactividad').select('id').eq('actividad_id', act.id);
+            const preguntaIds = (preguntas || []).map((p: any) => p.id);
+
+            // 2) Borrar respuestas de alumnos que dependan de esas entregas o preguntas
+            if (entregaIds.length) {
+              const { error: e1 } = await this.supabase
+                .from('academic_respuestaalumno').delete().in('entrega_id', entregaIds);
+              if (e1) throw e1;
+            }
+            if (preguntaIds.length) {
+              const { error: e2 } = await this.supabase
+                .from('academic_respuestaalumno').delete().in('pregunta_id', preguntaIds);
+              if (e2) throw e2;
+            }
+
+            // 3) Borrar entregas y preguntas
+            const { error: e3 } = await this.supabase
+              .from('academic_entregaactividad').delete().eq('actividad_id', act.id);
+            if (e3) throw e3;
+
+            const { error: e4 } = await this.supabase
+              .from('academic_preguntaactividad').delete().eq('actividad_id', act.id);
+            if (e4) throw e4;
+
+            // 4) Ahora sí, borrar la actividad
+            const { error } = await this.supabase
+              .from('academic_actividad').delete().eq('id', act.id);
+            if (error) throw error;
+
+            this.actividades = this.actividades.filter(a => a.id !== act.id);
+            this.toast('Actividad eliminada.', 'success');
+          } catch (e: any) {
+            console.error('Eliminar actividad:', e);
+            this.toast('No se pudo eliminar: ' + e.message, 'danger');
+          }
+        }
+      }
+    ]
+  });
+  await al.present();
+}
 
   async togglePublicada(act: ActividadItem, ev: Event) {
     ev.stopPropagation();
