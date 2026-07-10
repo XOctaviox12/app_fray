@@ -334,6 +334,9 @@ export class ComunidadPage implements OnInit {
         autor_id:      this.sesion.usuario!.id,
         adjunto:       adjuntoUrl,
         activo:        true,
+        // Necesario porque la columna creado_en es NOT NULL en la BD
+        // y no tiene un DEFAULT now() configurado en Supabase.
+        creado_en:     new Date().toISOString(),
       };
 
       const filas: (typeof base & { grupo_id: number | null })[] =
