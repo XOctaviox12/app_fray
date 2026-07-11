@@ -1,35 +1,94 @@
 // ============================================
 // PERFIL.PAGE.SCSS
+// Rediseño premium iPad — Soft UI (70%) + Cupertino (20%) + Neumorphism ligero (10%)
+// Variables locales al componente: no se toca el theme global de la app.
 // ============================================
 
-// --- Header ---
+:host {
+  // ---- Paleta ----
+  --p-primary: #F57C00;
+  --p-primary-soft: rgba(245, 124, 0, 0.10);
+  --p-primary-glow: rgba(245, 124, 0, 0.28);
+  --p-secondary: #0D47A1;
+  --p-secondary-soft: rgba(13, 71, 161, 0.08);
+  --p-error: #D32F2F;
+  --p-error-soft: rgba(211, 47, 47, 0.08);
+  --p-success: #2E7D32;
+  --p-success-soft: rgba(46, 125, 50, 0.08);
+  --p-white: #FFFFFF;
+  --p-bg: #F8F9FB;
+  --p-bg-2: #EEF2F7;
+  --p-text: #1F2937;
+  --p-text-2: #6B7280;
+  --p-border: #E5E7EB;
+
+  // ---- Radios ----
+  --r-card: 22px;
+  --r-btn: 18px;
+  --r-input: 16px;
+  --r-modal: 24px;
+
+  // ---- Sombras ----
+  --sh-soft: 0 8px 30px rgba(15, 23, 42, 0.08);
+  --sh-soft-lg: 0 16px 40px rgba(15, 23, 42, 0.10);
+  --sh-neu-out: 8px 8px 18px rgba(163, 177, 198, 0.35), -8px -8px 18px rgba(255, 255, 255, 0.85);
+  --sh-neu-in: inset 4px 4px 10px rgba(163, 177, 198, 0.30), inset -4px -4px 10px rgba(255, 255, 255, 0.75);
+
+  // ---- Tipografía ----
+  --f-display: 'SF Pro Display', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --f-text: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  display: block;
+}
+
+// ============================================
+// HEADER — Cupertino: limpio, translúcido, sin ruido
+// ============================================
 
 .header-toolbar {
-  --background: var(--navy-2);
-  --color: var(--white);
+  --background: rgba(248, 249, 251, 0.86);
+  --color: var(--p-text);
   --border-style: none;
-  --min-height: 56px;
+  --min-height: 60px;
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
 
 .header-title {
-  color: var(--white);
-  font-family: var(--font-display);
-  font-weight: 800;
+  color: var(--p-text);
+  font-family: var(--f-display);
+  font-weight: 700;
   font-size: 1.05rem;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.2px;
 }
 
 .header-back-btn {
-  --color: var(--white);
+  --color: var(--p-secondary);
 }
 
-.header-accent-bar {
-  height: 3px;
-  background: linear-gradient(90deg, var(--orange), transparent);
+.header-edit-btn {
+  --color: var(--p-primary);
+  --background-hover: var(--p-primary-soft);
+  --border-radius: 12px;
+  transition: transform 200ms ease;
+
+  &:active {
+    transform: scale(0.92);
+  }
 }
 
 .perfil-content {
-  --background: var(--navy);
+  --background: var(--p-bg);
+}
+
+// ============================================
+// SHELL — centra y limita el ancho en iPad Pro 13"
+// ============================================
+
+.page-shell {
+  max-width: 980px;
+  margin: 0 auto;
+  padding-bottom: 40px;
 }
 
 // ============================================
@@ -41,18 +100,29 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 32px 24px 24px;
+  padding: 40px 24px 28px;
 }
 
+// Avatar: único punto donde aplicamos neumorfismo ligero
 .avatar-wrap {
   position: relative;
-  width: 92px;
-  height: 92px;
+  width: 108px;
+  height: 108px;
   border-radius: 50%;
-  border: 3px solid var(--orange);
-  padding: 3px;
-  margin-bottom: 14px;
-  transition: transform 0.2s, opacity 0.2s;
+  padding: 5px;
+  margin-bottom: 16px;
+  background: var(--p-bg);
+  box-shadow: var(--sh-neu-out);
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.avatar-halo {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: conic-gradient(from 180deg, var(--p-primary), #ffb066, var(--p-primary));
+  opacity: 0.9;
+  z-index: 0;
 }
 
 .avatar-editable {
@@ -60,43 +130,48 @@
 
   &:active {
     transform: scale(0.96);
+    box-shadow: var(--sh-neu-in);
   }
 }
 
 .profile-avatar {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
   display: block;
-  background: linear-gradient(135deg, var(--navy-3), var(--navy-4));
+  background: var(--p-bg-2);
+  border: 3px solid var(--p-white);
 }
 
 .avatar-edit-overlay {
   position: absolute;
-  inset: 3px;
+  inset: 5px;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  background: rgba(0, 0, 0, 0.55);
+  gap: 3px;
+  background: rgba(31, 41, 55, 0.55);
   border-radius: 50%;
-  color: var(--white);
+  color: var(--p-white);
   pointer-events: none;
 
   ion-icon {
-    font-size: 22px;
+    font-size: 24px;
   }
 
   ion-spinner {
     width: 22px;
     height: 22px;
-    --color: var(--orange);
+    --color: var(--p-primary);
   }
 
   .progreso-txt {
-    font-family: var(--font-display);
+    font-family: var(--f-display);
     font-size: 10px;
     font-weight: 700;
   }
@@ -104,27 +179,29 @@
 
 .profile-name {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 19px;
-  font-weight: 800;
-  color: var(--white);
-  letter-spacing: -0.3px;
+  font-family: var(--f-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--p-text);
+  letter-spacing: -0.4px;
 }
 
 .badge-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .role-badge {
   display: inline-block;
-  padding: 4px 12px;
+  padding: 5px 14px;
   border-radius: 20px;
-  background: var(--orange-subtle);
-  border: 1px solid var(--orange-glow);
-  color: var(--orange);
+  background: var(--p-secondary-soft);
+  border: 1px solid rgba(13, 71, 161, 0.16);
+  color: var(--p-secondary);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -132,8 +209,10 @@
 }
 
 .estatus-badge {
-  display: inline-block;
-  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
   border-radius: 20px;
   font-size: 11px;
   font-weight: 700;
@@ -142,22 +221,30 @@
   border: 1px solid transparent;
 }
 
+.estatus-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
 .estatus-activo {
-  background: rgba(34, 197, 94, 0.1);
-  border-color: rgba(34, 197, 94, 0.25);
-  color: #22c55e;
+  background: var(--p-success-soft);
+  border-color: rgba(46, 125, 50, 0.22);
+  color: var(--p-success);
 }
 
 .estatus-inactivo {
-  background: rgba(239, 68, 68, 0.08);
-  border-color: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  background: var(--p-error-soft);
+  border-color: rgba(211, 47, 47, 0.2);
+  color: var(--p-error);
 }
 
 .member-since {
-  margin: 8px 0 0;
-  font-size: 11px;
-  color: var(--white-35);
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--p-text-2);
+  font-family: var(--f-text);
 }
 
 // ============================================
@@ -167,79 +254,117 @@
 .error-banner {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  margin: 0 18px 18px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  gap: 10px;
+  margin: 0 20px 20px;
+  padding: 14px 16px;
+  border-radius: var(--r-input);
+  background: var(--p-error-soft);
+  border: 1px solid rgba(211, 47, 47, 0.18);
+  animation: fadeSlideIn 220ms ease;
 
   ion-icon {
-    font-size: 17px;
-    color: #ef4444;
+    font-size: 18px;
+    color: var(--p-error);
     flex-shrink: 0;
     margin-top: 1px;
   }
 
   p {
     margin: 0;
-    font-size: 12.5px;
-    color: #ef4444;
-    line-height: 1.4;
+    font-size: 13px;
+    color: var(--p-error);
+    line-height: 1.45;
+    font-family: var(--f-text);
   }
 }
 
 // ============================================
-// SECCIONES DE INFORMACIÓN
+// GRID DE INFORMACIÓN — split view en iPad
 // ============================================
 
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  padding: 0 20px;
+
+  // iPad (768px) en adelante: dos columnas lado a lado
+  @media (min-width: 768px) {
+    grid-template-columns: 1.2fr 1fr;
+    align-items: start;
+    gap: 24px;
+    padding: 0 28px;
+  }
+
+  // iPad Pro 11" / 13" en adelante: más aire
+  @media (min-width: 1024px) {
+    gap: 28px;
+    padding: 0 36px;
+  }
+}
+
 .info-section {
-  padding: 0 18px;
-  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .section-label {
-  font-family: var(--font-display);
-  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--f-display);
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: var(--white-35);
-  margin: 0 0 8px 4px;
+  color: var(--p-text-2);
+  margin: 0 0 2px 6px;
+
+  ion-icon {
+    font-size: 14px;
+    color: var(--p-primary);
+  }
 }
 
+// ---- Tarjeta Soft UI ----
 .info-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
+  background: var(--p-white);
+  border: 1px solid var(--p-border);
+  border-radius: var(--r-card);
   overflow: hidden;
-  backdrop-filter: blur(10px);
+  box-shadow: var(--sh-soft);
 }
 
 .info-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 13px 14px;
+  gap: 14px;
+  padding: 16px 18px;
+  transition: background 200ms ease;
 
   &:not(:last-child) {
-    border-bottom: 1px solid var(--white-08);
+    border-bottom: 1px solid var(--p-border);
+  }
+
+  &:hover {
+    background: var(--p-bg);
   }
 }
 
 .info-icon-wrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
-  background: rgba(255, 107, 0, 0.1);
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: var(--p-primary-soft);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 
   ion-icon {
-    font-size: 17px;
-    color: var(--orange);
+    font-size: 18px;
+    color: var(--p-primary);
   }
 }
 
@@ -248,77 +373,92 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .full-width {
-  // Campos editables (teléfono, dirección, fecha) necesitan más espacio
-  // que el resto para no verse apretados cuando entran los inputs.
   flex-basis: 100%;
 }
 
 .info-label {
-  font-size: 10px;
-  color: var(--white-35);
+  font-size: 11px;
+  color: var(--p-text-2);
   text-transform: uppercase;
   letter-spacing: 0.4px;
+  font-family: var(--f-text);
 }
 
 .info-value {
-  font-size: 13px;
-  color: var(--white);
+  font-size: 14px;
+  color: var(--p-text);
   font-weight: 600;
+  font-family: var(--f-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-// ── Inputs de edición inline ──────────────────
+// ---- Inputs de edición inline ----
 
 .inline-input {
   --background: transparent;
-  --color: var(--white);
-  --placeholder-color: var(--white-35);
+  --color: var(--p-text);
+  --placeholder-color: var(--p-text-2);
   --padding-start: 0;
   --padding-end: 0;
-  --padding-top: 2px;
-  --padding-bottom: 2px;
-  font-size: 13px;
+  --padding-top: 3px;
+  --padding-bottom: 3px;
+  font-size: 14px;
   font-weight: 600;
+  font-family: var(--f-text);
 }
 
 ion-textarea.inline-input {
   --background: transparent;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 ion-datetime-button.inline-input,
 ion-datetime-button {
-  margin-top: 2px;
+  margin-top: 3px;
 
   &::part(native) {
-    background: transparent;
-    color: var(--white);
+    background: var(--p-bg-2);
+    color: var(--p-text);
     font-size: 13px;
     font-weight: 600;
-    padding: 0;
+    font-family: var(--f-text);
+    padding: 6px 12px;
+    border-radius: 12px;
   }
 }
 
+.soft-modal {
+  --border-radius: var(--r-modal);
+  --box-shadow: var(--sh-soft-lg);
+}
+
 // ============================================
-// GUARDAR CAMBIOS
+// GUARDAR CAMBIOS — neumorfismo ligero en la acción principal
 // ============================================
 
 .btn-guardar {
-  --background: var(--orange);
-  --background-activated: var(--orange);
-  --border-radius: 14px;
-  --box-shadow: none;
-  margin: 8px 18px 14px;
-  font-family: var(--font-display);
+  --background: var(--p-primary);
+  --background-activated: #d96e00;
+  --background-hover: #ff8a1f;
+  --color: var(--p-white);
+  --border-radius: var(--r-btn);
+  --box-shadow: 6px 6px 14px rgba(245, 124, 0, 0.22), -4px -4px 10px rgba(255, 255, 255, 0.6);
+  margin: 4px 0 0;
+  font-family: var(--f-display);
   font-weight: 700;
-  font-size: 13px;
-  height: 46px;
+  font-size: 14px;
+  height: 50px;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+
+  &:active {
+    transform: translateY(1px) scale(0.99);
+  }
 }
 
 // ============================================
@@ -330,27 +470,27 @@ ion-datetime-button {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: calc(100% - 36px);
-  margin: 8px 18px 32px;
-  padding: 13px;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 14px;
-  background: rgba(239, 68, 68, 0.08);
-  color: #ef4444;
-  font-family: var(--font-display);
-  font-size: 13px;
+  width: 100%;
+  margin: 4px 0 0;
+  padding: 15px;
+  border: 1px solid rgba(211, 47, 47, 0.18);
+  border-radius: var(--r-btn);
+  background: var(--p-error-soft);
+  color: var(--p-error);
+  font-family: var(--f-display);
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 200ms ease, transform 200ms ease;
 
   ion-icon {
-    font-size: 17px;
+    font-size: 18px;
   }
 
   ion-spinner {
     width: 17px;
     height: 17px;
-    --color: #ef4444;
+    --color: var(--p-error);
   }
 
   &:disabled {
@@ -359,7 +499,14 @@ ion-datetime-button {
   }
 
   &:active {
-    background: rgba(239, 68, 68, 0.15);
+    background: rgba(211, 47, 47, 0.14);
+    transform: scale(0.99);
+  }
+
+  @media (hover: hover) {
+    &:hover:not(:disabled) {
+      background: rgba(211, 47, 47, 0.12);
+    }
   }
 }
 
@@ -372,35 +519,53 @@ ion-datetime-button {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 80px 24px;
+  padding: 100px 24px;
+  animation: fadeSlideIn 250ms ease;
 }
 
 .empty-icon-wrap {
-  width: 72px;
-  height: 72px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
-  background: var(--orange-subtle);
+  background: var(--p-primary-soft);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  box-shadow: var(--sh-soft);
 
   ion-icon {
-    font-size: 32px;
-    color: var(--orange);
+    font-size: 36px;
+    color: var(--p-primary);
   }
 }
 
 .empty-title {
   margin: 0 0 6px;
-  font-family: var(--font-display);
-  font-size: 15px;
+  font-family: var(--f-display);
+  font-size: 17px;
   font-weight: 700;
-  color: var(--white);
+  color: var(--p-text);
 }
 
 .empty-sub {
   margin: 0;
-  font-size: 12px;
-  color: var(--white-35);
+  font-size: 13px;
+  color: var(--p-text-2);
+  font-family: var(--f-text);
+}
+
+// ============================================
+// ANIMACIONES SUTILES
+// ============================================
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

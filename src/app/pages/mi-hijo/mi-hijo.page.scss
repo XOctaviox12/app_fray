@@ -1,77 +1,100 @@
 // ============================================
-// MI-HIJO.PAGE.SCSS
+// HIJO.PAGE.SCSS
+// Rediseño visual iPad · Soft UI + Cupertino + Neumorphism ligero
+// (No existía SCSS previo para esta página; se creó siguiendo el mismo
+// sistema de diseño ya aplicado en clase/comunidad/detalle-tarea/
+// detalle-actividad/herramientas/materias. Solo se usan clases que ya
+// existen en el HTML — ninguna clase, evento o binding fue modificado.)
 // ============================================
 
-.hijo-content {
-  --background: var(--navy);
+:host {
+  --fh-primary: #F57C00;
+  --fh-primary-dark: #E06C00;
+  --fh-secondary: #0D47A1;
+  --fh-error: #D32F2F;
+  --fh-white: #FFFFFF;
+  --fh-bg: #F8F9FB;
+  --fh-bg-2: #EEF2F7;
+  --fh-text: #1F2937;
+  --fh-text-2: #6B7280;
+  --fh-border: #E5E7EB;
+
+  --fh-success: #16A34A;
+  --fh-success-soft: rgba(22, 163, 74, 0.1);
+  --fh-info: #0D47A1;
+  --fh-info-soft: rgba(13, 71, 161, 0.1);
+
+  --fh-radius-card: 22px;
+  --fh-radius-btn: 18px;
+
+  --fh-shadow-soft: 0 8px 30px rgba(15, 23, 42, 0.08);
+  --fh-shadow-lift: 0 14px 40px rgba(15, 23, 42, 0.12);
+
+  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .header-toolbar {
-  --background: var(--navy-2);
-  --color: var(--white);
+  --background: var(--fh-white);
+  --color: var(--fh-text);
   --border-style: none;
-  --min-height: 56px;
+  --min-height: 64px;
 }
 
 .header-title {
-  color: var(--white);
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.05rem;
+  color: var(--fh-text);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.2px;
 }
 
 .header-accent-bar {
-  height: 3px;
-  background: linear-gradient(90deg, var(--orange), transparent);
+  height: 1px;
+  background: var(--fh-border);
 }
 
-// ── Error ─────────────────────────────────────
+.hijo-content { --background: var(--fh-bg); }
+
+// ── Error state ────────────────────────────
 .error-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 60px 24px;
-  gap: 10px;
-  color: rgba(255,255,255,0.35);
+  gap: 12px;
+  padding: 64px 24px;
   text-align: center;
+  color: var(--fh-text-2);
 
-  ion-icon { font-size: 36px; }
-  p { font-size: 13px; margin: 0; }
+  ion-icon { font-size: 36px; color: var(--fh-error); }
+  p { margin: 0; font-size: 13px; }
 }
 
-// ── Tarjeta alumno ────────────────────────────
+// ── Tarjeta de alumno ───────────────────────
 .alumno-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 16px 16px 0;
-  padding: 16px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 18px;
-  backdrop-filter: blur(10px);
+  gap: 14px;
+  background: var(--fh-white);
+  border-radius: var(--fh-radius-card);
+  padding: 20px;
+  margin: 18px;
+  box-shadow: var(--fh-shadow-soft);
+}
 
-  &.skeleton-card {
-    margin-bottom: 16px;
-  }
+.skeleton-card {
+  align-items: center;
 }
 
 .alumno-avatar {
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background: rgba(255, 107, 0, 0.15);
-  border: 2px solid var(--orange);
+  background: rgba(245, 124, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 
-  ion-icon {
-    font-size: 24px;
-    color: var(--orange);
-  }
+  ion-icon { font-size: 27px; color: var(--fh-primary); }
 }
 
 .alumno-info {
@@ -80,379 +103,348 @@
 }
 
 .alumno-nombre {
-  margin: 0 0 3px;
-  font-family: var(--font-display);
-  font-size: 15px;
+  margin: 0;
+  font-size: 17px;
   font-weight: 800;
-  color: var(--white);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--fh-text);
+  letter-spacing: -0.2px;
 }
 
 .alumno-meta {
-  margin: 0;
-  font-size: 10.5px;
-  color: var(--white-35);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--fh-text-2);
 }
 
 .alumno-periodo-badge {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 3px;
-  background: rgba(255,107,0,0.1);
-  border: 1px solid rgba(255,107,0,0.25);
-  border-radius: 10px;
-  padding: 7px 10px;
+  gap: 6px;
+  background: var(--fh-info-soft);
+  border-radius: 12px;
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--fh-info);
   flex-shrink: 0;
 
-  ion-icon {
-    font-size: 14px;
-    color: var(--orange);
-  }
-
-  span {
-    font-size: 8px;
-    font-weight: 700;
-    color: var(--orange);
-    text-align: center;
-    max-width: 70px;
-    line-height: 1.2;
-  }
+  ion-icon { font-size: 14px; }
 }
 
-// ── Stats globales ────────────────────────────
+// ── Stats globales ─────────────────────────
 .stats-row {
   display: flex;
-  gap: 8px;
-  padding: 12px 16px 0;
+  gap: 10px;
+  padding: 0 18px 18px;
 }
 
 .stat-card {
   flex: 1;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 14px;
-  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border-radius: 16px;
+  padding: 16px 8px;
+  background: var(--fh-white);
+  box-shadow: var(--fh-shadow-soft);
+
+  .stat-num { font-size: 20px; font-weight: 800; }
+  .stat-lbl { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--fh-text-2); text-align: center; }
+
+  &.color-excelente .stat-num { color: var(--fh-success); }
+  &.color-bien      .stat-num { color: var(--fh-info); }
+  &.color-regular   .stat-num { color: var(--fh-primary); }
+  &.color-reprobado .stat-num { color: var(--fh-error); }
+  &.color-neutro,
+  &.color-sin-nota  .stat-num { color: var(--fh-text); }
+}
+
+// ── Empty card ──────────────────────────────
+.empty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 20px;
   text-align: center;
-  backdrop-filter: blur(10px);
+  background: var(--fh-white);
+  border-radius: var(--fh-radius-card);
+  box-shadow: var(--fh-shadow-soft);
+  margin: 0 18px 18px;
+
+  ion-icon { font-size: 34px; color: var(--fh-border); }
+  p { margin: 0; font-size: 12.5px; color: var(--fh-text-2); }
 }
 
-.stat-num {
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 800;
-  display: block;
-  color: var(--white);
-}
-
-.stat-lbl {
-  font-size: 8.5px;
-  color: var(--white-35);
-  display: block;
-  margin-top: 2px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-// Colores de notas
-.color-excelente .stat-num { color: #22c55e; }
-.color-bien      .stat-num { color: #60a5fa; }
-.color-regular   .stat-num { color: #f97316; }
-.color-reprobado .stat-num { color: #ef4444; }
-.color-pendiente .stat-num { color: var(--white-35); }
-.color-neutro    .stat-num { color: var(--white); }
-
-// ── Section label ─────────────────────────────
+// ── Section label ──────────────────────────
 .section-label {
-  font-family: var(--font-display);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 1.4px;
   text-transform: uppercase;
-  color: var(--white-35);
-  padding: 0 16px;
-  margin: 16px 0 8px;
+  color: var(--fh-text-2);
+  padding: 0 18px;
+  margin: 6px 0 10px;
 }
 
-// ── Tabs materias ─────────────────────────────
+// ── Tabs de materias ────────────────────────
 .tabs-scroll {
   display: flex;
-  gap: 6px;
+  gap: 8px;
+  padding: 0 18px 18px;
   overflow-x: auto;
-  padding: 0 16px 8px;
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
 }
 
 .tab-btn {
   flex-shrink: 0;
-  padding: 7px 14px;
-  border: 1px solid var(--card-border);
-  border-radius: 20px;
-  background: var(--card-bg);
-  color: var(--white-35);
-  font-size: 11px;
+  padding: 9px 16px;
+  border-radius: 12px;
+  border: none;
+  background: var(--fh-white);
+  box-shadow: var(--fh-shadow-soft);
+  color: var(--fh-text-2);
+  font-size: 12.5px;
   font-weight: 700;
-  font-family: var(--font-display);
   cursor: pointer;
-  transition: all 0.15s;
   white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
   &.active {
-    background: var(--orange);
-    border-color: var(--orange);
-    color: #fff;
+    background: var(--fh-primary);
+    color: var(--fh-white);
+    box-shadow: 0 8px 20px rgba(245, 124, 0, 0.28);
   }
 }
 
-// ── Header materia ────────────────────────────
+// ── Encabezado de materia activa ───────────
 .materia-header {
-  margin: 0 16px 10px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 12px;
+  padding: 0 18px;
+  margin-bottom: 14px;
 }
 
 .materia-header-left {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
 }
 
 .materia-nombre {
-  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 800;
-  color: var(--white);
+  color: var(--fh-text);
+  letter-spacing: -0.2px;
 }
 
 .materia-clave {
-  font-size: 9px;
-  font-weight: 700;
-  padding: 2px 7px;
-  background: rgba(255,255,255,0.07);
-  border-radius: 6px;
-  color: var(--white-35);
-  letter-spacing: 1px;
+  font-size: 11px;
+  color: var(--fh-text-2);
 }
 
 .docente-chip {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  color: var(--white-35);
+  gap: 6px;
+  background: var(--fh-bg-2);
+  border-radius: 12px;
+  padding: 7px 12px;
+  font-size: 11.5px;
   font-weight: 600;
+  color: var(--fh-text-2);
+  flex-shrink: 0;
 
-  ion-icon { font-size: 12px; }
+  ion-icon { font-size: 14px; color: var(--fh-primary); }
 }
 
-// ── Mini stats materia ────────────────────────
+// ── Mini stats de materia ──────────────────
 .materia-stats {
   display: flex;
-  gap: 8px;
-  padding: 0 16px;
-  margin-bottom: 4px;
+  gap: 10px;
+  padding: 0 18px 6px;
 }
 
 .mstat {
   flex: 1;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 10px 6px;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border-radius: 14px;
+  padding: 13px 8px;
+  background: var(--fh-white);
+  box-shadow: var(--fh-shadow-soft);
+
+  .mstat-num { font-size: 17px; font-weight: 800; }
+  .mstat-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--fh-text-2); }
+
+  &.color-excelente .mstat-num { color: var(--fh-success); }
+  &.color-bien      .mstat-num { color: var(--fh-info); }
+  &.color-regular   .mstat-num { color: var(--fh-primary); }
+  &.color-reprobado .mstat-num { color: var(--fh-error); }
+  &.color-neutro,
+  &.color-sin-nota  .mstat-num { color: var(--fh-text); }
 }
 
-.mstat-num {
-  display: block;
-  font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: 800;
-  color: var(--white);
-}
-
-.mstat-lbl {
-  display: block;
-  font-size: 8px;
-  color: var(--white-35);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 2px;
-}
-
-.color-excelente .mstat-num { color: #22c55e; }
-.color-bien      .mstat-num { color: #60a5fa; }
-.color-regular   .mstat-num { color: #f97316; }
-.color-reprobado .mstat-num { color: #ef4444; }
-.color-pendiente .mstat-num { color: var(--white-35); }
-.color-neutro    .mstat-num { color: var(--white); }
-
-// ── Boleta card ───────────────────────────────
-.empty-card {
-  margin: 0 16px 10px;
-  padding: 28px 16px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  text-align: center;
-  color: var(--white-35);
-
-  ion-icon { font-size: 28px; display: block; margin: 0 auto 8px; }
-  p { font-size: 12px; margin: 0; }
-}
-
+// ── Boletas parciales ──────────────────────
 .boleta-card {
-  margin: 0 16px 10px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  overflow: hidden;
-  backdrop-filter: blur(10px);
+  background: var(--fh-white);
+  border-radius: var(--fh-radius-card);
+  padding: 18px;
+  margin: 0 18px 12px;
+  box-shadow: var(--fh-shadow-soft);
 }
 
 .boleta-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--card-border);
+  margin-bottom: 14px;
 }
 
 .parcial-badge {
-  font-family: var(--font-display);
   font-size: 12px;
   font-weight: 800;
-  color: var(--white);
+  color: var(--fh-text);
+  background: var(--fh-bg-2);
+  border-radius: 10px;
+  padding: 6px 12px;
 }
 
 .nota-final {
-  font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 12px;
 
-  &.nota-excelente { color: #22c55e; }
-  &.nota-bien      { color: #60a5fa; }
-  &.nota-regular   { color: #f97316; }
-  &.nota-reprobado { color: #ef4444; }
-  &.nota-pendiente { color: var(--white-35); }
+  &.nota-excelente { color: var(--fh-success); background: var(--fh-success-soft); }
+  &.nota-bien      { color: var(--fh-info);    background: var(--fh-info-soft); }
+  &.nota-regular   { color: var(--fh-primary); background: rgba(245, 124, 0, 0.1); }
+  &.nota-reprobado { color: var(--fh-error);   background: rgba(211, 47, 47, 0.1); }
+  &.nota-neutro,
+  &.nota-sin-nota  { color: var(--fh-text);    background: var(--fh-bg-2); }
 }
 
-// ── Rubros ────────────────────────────────────
+// ── Desglose de rubros ─────────────────────
 .rubros-grid {
-  padding: 12px 16px 8px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .rubro-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .rubro-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 14px;
 
-  &.tareas-icon   { background: rgba(255,107,0,0.12);  color: var(--orange); }
-  &.activ-icon    { background: rgba(96,165,250,0.12); color: #60a5fa; }
-  &.asist-icon    { background: rgba(34,197,94,0.12);  color: #22c55e; }
-  &.examen-icon   { background: rgba(168,85,247,0.12); color: #a855f7; }
-  &.proyecto-icon { background: rgba(234,179,8,0.12);  color: #eab308; }
+  ion-icon { font-size: 16px; }
+
+  &.tareas-icon   { background: rgba(245, 124, 0, 0.1);  ion-icon { color: var(--fh-primary); } }
+  &.activ-icon    { background: var(--fh-success-soft);  ion-icon { color: var(--fh-success); } }
+  &.asist-icon    { background: var(--fh-info-soft);     ion-icon { color: var(--fh-info); } }
+  &.examen-icon   { background: rgba(124, 58, 237, 0.1); ion-icon { color: #7C3AED; } }
+  &.proyecto-icon { background: rgba(8, 145, 178, 0.1);  ion-icon { color: #0891B2; } }
 }
 
 .rubro-info {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .rubro-nombre {
-  display: block;
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--white-35);
-  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fh-text-2);
 }
 
 .rubro-barra-wrap {
-  height: 4px;
-  background: rgba(255,255,255,0.07);
+  width: 100%;
+  height: 6px;
   border-radius: 4px;
+  background: var(--fh-bg-2);
   overflow: hidden;
 }
 
 .rubro-barra {
   height: 100%;
   border-radius: 4px;
-  transition: width 0.5s ease;
+  transition: width 0.3s ease;
 
-  &.bar-excelente { background: #22c55e; }
-  &.bar-bien      { background: #60a5fa; }
-  &.bar-regular   { background: #f97316; }
-  &.bar-reprobado { background: #ef4444; }
-  &.bar-pendiente { background: rgba(255,255,255,0.15); }
+  &.bar-excelente { background: var(--fh-success); }
+  &.bar-bien      { background: var(--fh-info); }
+  &.bar-regular   { background: var(--fh-primary); }
+  &.bar-reprobado { background: var(--fh-error); }
+  &.bar-neutro,
+  &.bar-sin-nota  { background: var(--fh-text-2); }
 }
 
 .rubro-nota {
-  font-family: var(--font-display);
   font-size: 14px;
   font-weight: 800;
   flex-shrink: 0;
   min-width: 32px;
   text-align: right;
 
-  &.nota-excelente { color: #22c55e; }
-  &.nota-bien      { color: #60a5fa; }
-  &.nota-regular   { color: #f97316; }
-  &.nota-reprobado { color: #ef4444; }
-  &.nota-pendiente { color: var(--white-35); }
+  &.nota-excelente { color: var(--fh-success); }
+  &.nota-bien      { color: var(--fh-info); }
+  &.nota-regular   { color: var(--fh-primary); }
+  &.nota-reprobado { color: var(--fh-error); }
+  &.nota-neutro,
+  &.nota-sin-nota  { color: var(--fh-text); }
 }
 
 .boleta-fecha {
-  margin: 4px 16px 12px;
-  font-size: 9.5px;
-  color: var(--white-35);
+  margin: 14px 0 0;
+  font-size: 11px;
+  color: var(--fh-text-2);
+  text-align: right;
 }
 
-// ── Asistencia card ───────────────────────────
+// ── Asistencia ──────────────────────────────
 .asistencia-card {
-  margin: 0 16px 10px;
-  padding: 16px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
   display: flex;
   align-items: center;
-  gap: 18px;
-  backdrop-filter: blur(10px);
+  gap: 20px;
+  background: var(--fh-white);
+  border-radius: var(--fh-radius-card);
+  padding: 20px;
+  margin: 0 18px 18px;
+  box-shadow: var(--fh-shadow-soft);
 }
 
 .asist-donut-wrap {
   position: relative;
-  width: 70px;
-  height: 70px;
+  width: 84px;
+  height: 84px;
   flex-shrink: 0;
 }
 
 .asist-donut {
-  width: 70px;
-  height: 70px;
+  width: 100%;
+  height: 100%;
+
+  circle:first-child {
+    stroke: var(--fh-bg-2);
+  }
 }
 
 .asist-donut-label {
@@ -461,53 +453,73 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-display);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
-  color: var(--white);
+  color: var(--fh-text);
 }
 
 .asist-detalle {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 9px;
+  min-width: 0;
 }
 
 .asist-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
 
   &.total-row {
+    padding-top: 9px;
+    border-top: 1px dashed var(--fh-border);
     margin-top: 2px;
-    padding-top: 6px;
-    border-top: 1px solid var(--card-border);
   }
 }
 
 .asist-dot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   flex-shrink: 0;
 
-  &.green  { background: #22c55e; }
-  &.red    { background: #ef4444; }
-  &.orange { background: #f97316; }
-  &.grey   { background: rgba(255,255,255,0.2); }
+  &.green  { background: var(--fh-success); }
+  &.red    { background: var(--fh-error); }
+  &.orange { background: var(--fh-primary); }
+  &.grey   { background: var(--fh-text-2); }
 }
 
 .asist-tipo {
   flex: 1;
-  font-size: 11px;
-  color: var(--white-35);
+  font-size: 12.5px;
+  color: var(--fh-text-2);
   font-weight: 600;
 }
 
 .asist-val {
-  font-family: var(--font-display);
   font-size: 13px;
   font-weight: 800;
-  color: var(--white);
+  color: var(--fh-text);
+}
+
+// ── iPad: aprovechar el ancho en landscape / pantallas grandes ──
+@media (min-width: 768px) {
+  .alumno-card,
+  .stats-row,
+  .tabs-scroll,
+  .materia-header,
+  .materia-stats {
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .boleta-card,
+  .asistencia-card,
+  .empty-card {
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }

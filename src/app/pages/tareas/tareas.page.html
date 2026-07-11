@@ -7,7 +7,6 @@
     </ion-buttons>
     <ion-title class="header-title">{{ esDocente ? 'Mis Tareas' : 'Tareas' }}</ion-title>
   </ion-toolbar>
-  <div class="header-accent-bar"></div>
 </ion-header>
 
 <ion-content class="tareas-content">
@@ -15,6 +14,8 @@
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
+
+  <div class="page-shell">
 
   <!-- ═══════════════════════════════════════════ -->
   <!-- VISTA DOCENTE                               -->
@@ -87,63 +88,67 @@
         </button>
       </div>
 
-      <div class="input-group">
-        <label class="input-label">Título</label>
-        <div class="input-wrap">
-          <ion-icon name="create-outline" class="field-icon"></ion-icon>
-          <input type="text" [(ngModel)]="newTask.titulo" placeholder="Ej: Ensayo de historia" />
-        </div>
-      </div>
+      <div class="form-grid">
 
-      <div class="input-group">
-        <label class="input-label">Materia</label>
-        <div class="input-wrap select-wrap">
-          <ion-icon name="book-outline" class="field-icon"></ion-icon>
-          <select [(ngModel)]="newTask.materiaId" (ngModelChange)="onMateriaChange()" [disabled]="cargandoOpciones || materias.length === 0">
-            <option [ngValue]="null" disabled>
-              {{ materias.length === 0 && !cargandoOpciones ? 'Sin materias asignadas' : 'Elige una materia' }}
-            </option>
-            <option *ngFor="let m of materias" [ngValue]="m.id">{{ m.nombre }}</option>
-          </select>
+        <div class="input-group">
+          <label class="input-label">Título</label>
+          <div class="input-wrap">
+            <ion-icon name="create-outline" class="field-icon"></ion-icon>
+            <input type="text" [(ngModel)]="newTask.titulo" placeholder="Ej: Ensayo de historia" />
+          </div>
         </div>
-      </div>
 
-      <div class="input-group">
-        <label class="input-label">Grupo</label>
-        <div class="input-wrap select-wrap">
-          <ion-icon name="people-outline" class="field-icon"></ion-icon>
-          <select [(ngModel)]="newTask.grupoId" [disabled]="!newTask.materiaId || cargandoOpciones">
-            <option [ngValue]="null" disabled>
-              {{ !newTask.materiaId ? 'Primero elige la materia' :
-                 (gruposDeMateria.length === 0 && !cargandoOpciones ? 'Sin grupos para esta materia' : 'Elige un grupo') }}
-            </option>
-            <option *ngFor="let g of gruposDeMateria" [ngValue]="g.id">{{ formatGrupo(g) }}</option>
-          </select>
+        <div class="input-group">
+          <label class="input-label">Materia</label>
+          <div class="input-wrap select-wrap">
+            <ion-icon name="book-outline" class="field-icon"></ion-icon>
+            <select [(ngModel)]="newTask.materiaId" (ngModelChange)="onMateriaChange()" [disabled]="cargandoOpciones || materias.length === 0">
+              <option [ngValue]="null" disabled>
+                {{ materias.length === 0 && !cargandoOpciones ? 'Sin materias asignadas' : 'Elige una materia' }}
+              </option>
+              <option *ngFor="let m of materias" [ngValue]="m.id">{{ m.nombre }}</option>
+            </select>
+          </div>
         </div>
-        <p class="input-hint" *ngIf="newTask.materiaId && gruposDeMateria.length > 0">
-          Verifica bien el grado y el aula antes de asignar la tarea.
-        </p>
-      </div>
 
-      <div class="opciones-error" *ngIf="errorOpciones">
-        <ion-icon name="alert-circle-outline"></ion-icon>
-        <span>{{ errorOpciones }}</span>
-      </div>
-
-      <div class="input-group">
-        <label class="input-label">Fecha de entrega</label>
-        <div class="input-wrap">
-          <ion-icon name="calendar-outline" class="field-icon"></ion-icon>
-          <input type="date" [(ngModel)]="newTask.fecha" [min]="fechaMinima" />
+        <div class="input-group">
+          <label class="input-label">Grupo</label>
+          <div class="input-wrap select-wrap">
+            <ion-icon name="people-outline" class="field-icon"></ion-icon>
+            <select [(ngModel)]="newTask.grupoId" [disabled]="!newTask.materiaId || cargandoOpciones">
+              <option [ngValue]="null" disabled>
+                {{ !newTask.materiaId ? 'Primero elige la materia' :
+                   (gruposDeMateria.length === 0 && !cargandoOpciones ? 'Sin grupos para esta materia' : 'Elige un grupo') }}
+              </option>
+              <option *ngFor="let g of gruposDeMateria" [ngValue]="g.id">{{ formatGrupo(g) }}</option>
+            </select>
+          </div>
+          <p class="input-hint" *ngIf="newTask.materiaId && gruposDeMateria.length > 0">
+            Verifica bien el grado y el aula antes de asignar la tarea.
+          </p>
         </div>
-      </div>
 
-      <div class="input-group">
-        <label class="input-label">Descripción</label>
-        <div class="input-wrap textarea-wrap">
-          <ion-icon name="reader-outline" class="field-icon"></ion-icon>
-          <textarea [(ngModel)]="newTask.descripcion" placeholder="Detalles de la tarea..." rows="3"></textarea>
+        <div class="opciones-error" *ngIf="errorOpciones">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>{{ errorOpciones }}</span>
         </div>
+
+        <div class="input-group">
+          <label class="input-label">Fecha de entrega</label>
+          <div class="input-wrap">
+            <ion-icon name="calendar-outline" class="field-icon"></ion-icon>
+            <input type="date" [(ngModel)]="newTask.fecha" [min]="fechaMinima" />
+          </div>
+        </div>
+
+        <div class="input-group span-2">
+          <label class="input-label">Descripción</label>
+          <div class="input-wrap textarea-wrap">
+            <ion-icon name="reader-outline" class="field-icon"></ion-icon>
+            <textarea [(ngModel)]="newTask.descripcion" placeholder="Detalles de la tarea..." rows="3"></textarea>
+          </div>
+        </div>
+
       </div>
 
       <div class="publish-toggle-row">
@@ -539,5 +544,7 @@
     </div>
 
   </ng-container>
+
+  </div>
 
 </ion-content>

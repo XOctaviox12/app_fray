@@ -1,12 +1,26 @@
 @import "src/theme/variables";
 
-$verde:   #22c55e;
-$naranja: #ff6b00;
-$rojo:    #ef4444;
+// ─────────────────────────────────────────────────────────────
+// OVERRIDE LOCAL DE PALETA (solo este archivo, no toca variables.scss)
+// ─────────────────────────────────────────────────────────────
+$navy:         #F8F9FB;
+$navy-2:       #FFFFFF;
+$white:        #1F2937;
+$white-60:     #4B5563;
+$white-35:     #6B7280;
+$white-08:     #E5E7EB;
+$orange:       #F57C00;
+$orange-glow:  rgba(245, 124, 0, 0.22);
+$card-bg:      #FFFFFF;
+$card-border:  #E5E7EB;
+
+$verde:   #16A34A;
+$naranja: #F57C00;
+$rojo:    #D32F2F;
 
 // ── HEADER ──────────────────────────────────────────────
-.asist-toolbar      { --background: #{$navy-2}; --border-style: none; }
-.asist-header-title { font-size: 16px; font-weight: 800; color: $white; letter-spacing: -0.3px; }
+.asist-toolbar      { --background: #{$navy-2}; --border-style: none; --min-height: 60px; border-bottom: 1px solid $card-border; }
+.asist-header-title { font-size: 16px; font-weight: 700; color: $white; letter-spacing: -0.2px; }
 
 .asist-header-title-stacked {
   display: flex;
@@ -16,12 +30,12 @@ $rojo:    #ef4444;
 
   .title-line-1 {
     font-size: 15px;
-    font-weight: 800;
+    font-weight: 700;
     color: $white;
   }
 
   .title-line-2 {
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 600;
     color: $white-35;
   }
@@ -34,20 +48,21 @@ $rojo:    #ef4444;
 // ── SEGMENTO ────────────────────────────────────────────
 .segment-wrap {
   background: $navy-2;
-  padding: 0 18px 12px;
+  padding: 0 20px 14px;
   border-bottom: 1px solid $card-border;
 }
 .asist-segment {
-  --background: rgba(255,255,255,0.05);
-  border-radius: 12px;
+  --background: #EEF2F7;
+  border-radius: 14px;
 
   ion-segment-button {
     --color: #{$white-35};
     --color-checked: #{$white};
-    --indicator-color: #{$orange};
-    --border-radius: 10px;
-    font-size: 12px; font-weight: 600;
-    min-height: 38px;
+    --indicator-color: #{$card-bg};
+    --indicator-box-shadow: 0 2px 8px rgba(15,23,42,0.08);
+    --border-radius: 12px;
+    font-size: 12.5px; font-weight: 600;
+    min-height: 40px;
     ion-icon { font-size: 15px; margin-right: 4px; }
   }
 }
@@ -58,64 +73,66 @@ $rojo:    #ef4444;
 // ── LOADING / ERROR ─────────────────────────────────────
 .loading-overlay {
   display: flex; flex-direction: column; align-items: center;
-  justify-content: center; padding: 60px 24px; gap: 14px;
+  justify-content: center; padding: 64px 24px; gap: 14px;
   ion-spinner { color: $orange; width: 36px; height: 36px; }
   p { font-size: 13px; color: $white-35; margin: 0; }
 }
 .error-state {
   display: flex; flex-direction: column; align-items: center;
-  padding: 48px 24px; text-align: center; gap: 12px;
+  padding: 52px 24px; text-align: center; gap: 12px;
   ion-icon { font-size: 44px; color: $white-35; }
   p { font-size: 13px; color: $white-35; margin: 0; }
 }
 .retry-btn {
   display: flex; align-items: center; gap: 6px;
-  background: rgba(255,107,0,0.1); border: 1px solid rgba(255,107,0,0.3);
-  border-radius: 10px; padding: 10px 18px;
+  background: rgba(245,124,0,0.07); border: 1px solid rgba(245,124,0,0.25);
+  border-radius: 14px; padding: 11px 20px;
   color: $orange; font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: background 0.15s ease;
+  &:hover { background: rgba(245,124,0,0.12); }
 }
 
 // ── BANNER GUARDADA ─────────────────────────────────────
 .banner-guardada {
   display: flex; align-items: center; gap: 8px;
-  margin: 12px 18px 0;
-  padding: 10px 14px;
-  background: rgba(34, 197, 94, 0.08);
-  border: 1px solid rgba(34, 197, 94, 0.2);
-  border-radius: 12px;
-  font-size: 12px; color: $verde;
+  margin: 14px 20px 0;
+  padding: 11px 15px;
+  background: rgba(22, 163, 74, 0.06);
+  border: 1px solid rgba(22, 163, 74, 0.18);
+  border-radius: 14px;
+  font-size: 12.5px; color: $verde;
   ion-icon { font-size: 18px; flex-shrink: 0; }
 }
 
 // ── BANNER CAMBIOS SIN GUARDAR ───────────────────────────
 .banner-sin-guardar {
   display: flex; align-items: center; gap: 8px;
-  margin: 12px 18px 0;
-  padding: 10px 14px;
-  background: rgba(255, 107, 0, 0.08);
-  border: 1px solid rgba(255, 107, 0, 0.25);
-  border-radius: 12px;
-  font-size: 12px; color: $orange; font-weight: 600;
+  margin: 14px 20px 0;
+  padding: 11px 15px;
+  background: rgba(245, 124, 0, 0.06);
+  border: 1px solid rgba(245, 124, 0, 0.2);
+  border-radius: 14px;
+  font-size: 12.5px; color: $orange; font-weight: 600;
   ion-icon { font-size: 18px; flex-shrink: 0; }
 }
 
 // ── BANNER FECHA DISTINTA A HOY ──────────────────────────
 .banner-fecha-distinta {
   display: flex; align-items: center; gap: 8px;
-  margin: 12px 18px 0;
-  padding: 10px 14px;
-  background: rgba(96, 165, 250, 0.08);
-  border: 1px solid rgba(96, 165, 250, 0.25);
-  border-radius: 12px;
-  font-size: 12px; color: #60a5fa;
+  margin: 14px 20px 0;
+  padding: 11px 15px;
+  background: rgba(13, 71, 161, 0.06);
+  border: 1px solid rgba(13, 71, 161, 0.2);
+  border-radius: 14px;
+  font-size: 12.5px; color: #0D47A1;
   ion-icon { font-size: 18px; flex-shrink: 0; }
   strong { color: $white; }
 }
 
 // ── FECHA + CONTADORES ──────────────────────────────────
 .asist-header-info {
-  padding: 14px 18px 10px;
-  display: flex; flex-direction: column; gap: 10px;
+  padding: 18px 20px 12px;
+  display: flex; flex-direction: column; gap: 12px;
 }
 .header-info-row {
   display: flex;
@@ -126,13 +143,14 @@ $rojo:    #ef4444;
 .fecha-pill {
   display: inline-flex; align-items: center; gap: 6px;
   font-size: 13px; font-weight: 600; color: $white-60;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: $card-bg;
+  border: 1px solid $card-border;
   border-radius: 20px;
-  padding: 7px 12px;
+  padding: 8px 13px;
   cursor: pointer;
   width: fit-content;
   font-family: inherit;
+  box-shadow: 0 3px 10px rgba(15,23,42,0.04);
   ion-icon { font-size: 15px; color: $orange; }
 }
 .fecha-pill-chevron {
@@ -141,68 +159,71 @@ $rojo:    #ef4444;
 }
 .grupo-meta-pill {
   display: inline-flex; align-items: center; gap: 6px;
-  font-size: 12px; font-weight: 600; color: $white-60;
-  background: rgba(255, 107, 0, 0.06);
-  border: 1px solid rgba(255, 107, 0, 0.2);
+  font-size: 12.5px; font-weight: 600; color: $white-60;
+  background: rgba(245, 124, 0, 0.06);
+  border: 1px solid rgba(245, 124, 0, 0.18);
   border-radius: 20px;
-  padding: 7px 12px;
+  padding: 8px 13px;
   width: fit-content;
   ion-icon { font-size: 14px; color: $orange; }
 }
 .contadores {
-  display: flex; gap: 8px;
+  display: flex; gap: 10px;
 }
 .contador {
   flex: 1; text-align: center;
   background: $card-bg; border: 1px solid $card-border;
-  border-radius: 12px; padding: 10px 4px;
+  border-radius: 16px; padding: 12px 4px;
   display: flex; flex-direction: column; gap: 2px;
+  box-shadow: 0 4px 14px rgba(15,23,42,0.04);
 
-  .cnt-num { font-size: 20px; font-weight: 800; }
+  .cnt-num { font-size: 20px; font-weight: 700; }
   .cnt-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-  &.verde   { .cnt-num { color: $verde;   } .cnt-lbl { color: $verde; opacity: 0.7; } }
-  &.naranja { .cnt-num { color: $naranja; } .cnt-lbl { color: $naranja; opacity: 0.7; } }
-  &.rojo    { .cnt-num { color: $rojo;    } .cnt-lbl { color: $rojo; opacity: 0.7; } }
+  &.verde   { .cnt-num { color: $verde;   } .cnt-lbl { color: $verde; opacity: 0.75; } }
+  &.naranja { .cnt-num { color: $naranja; } .cnt-lbl { color: $naranja; opacity: 0.75; } }
+  &.rojo    { .cnt-num { color: $rojo;    } .cnt-lbl { color: $rojo; opacity: 0.75; } }
   &.pct     { .cnt-num { color: $white;   } .cnt-lbl { color: $white-35; } }
 }
 
 // ── AVISO: ALUMNOS SIN REVISAR ───────────────────────────
 .banner-sin-revisar {
   display: flex; align-items: center; gap: 8px;
-  margin: 0 18px 12px;
-  padding: 10px 14px;
-  background: rgba(96, 165, 250, 0.08);
-  border: 1px solid rgba(96, 165, 250, 0.22);
-  border-radius: 12px;
-  font-size: 12px; color: #60a5fa; font-weight: 600;
+  margin: 0 20px 14px;
+  padding: 11px 15px;
+  background: rgba(13, 71, 161, 0.06);
+  border: 1px solid rgba(13, 71, 161, 0.18);
+  border-radius: 14px;
+  font-size: 12.5px; color: #0D47A1; font-weight: 600;
   ion-icon { font-size: 16px; flex-shrink: 0; }
 }
 
 // ── BUSCADOR DE ALUMNO ────────────────────────────────────
 .buscador-wrap {
   display: flex; align-items: center; gap: 8px;
-  margin: 0 18px 12px;
-  padding: 0 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  margin: 0 20px 14px;
+  padding: 0 14px;
+  background: $card-bg;
+  border: 1px solid $card-border;
+  border-radius: 16px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  &:focus-within { border-color: rgba(245,124,0,0.4); box-shadow: 0 0 0 4px rgba(245,124,0,0.08); }
 }
 .buscador-icon { font-size: 16px; color: $white-35; flex-shrink: 0; }
 .buscador-input {
   flex: 1; min-width: 0;
   border: none; background: transparent; outline: none;
-  padding: 10px 0;
-  font-size: 13px; color: $white; font-family: inherit;
-  &::placeholder { color: $white-35; }
+  padding: 11px 0;
+  font-size: 13.5px; color: $white; font-family: inherit;
+  &::placeholder { color: #9CA3AF; }
 }
 .buscador-clear {
   font-size: 16px; color: $white-35; cursor: pointer; flex-shrink: 0;
 }
 
 .filtro-activo-hint {
-  margin: 0 18px 12px;
-  font-size: 11px;
+  margin: 0 20px 14px;
+  font-size: 11.5px;
   color: $white-35;
   font-style: italic;
 }
@@ -210,19 +231,24 @@ $rojo:    #ef4444;
 // ── ACCIONES RÁPIDAS ────────────────────────────────────
 .acciones-rapidas {
   display: flex; gap: 8px;
-  padding: 0 18px 12px;
+  padding: 0 20px 14px;
 }
 .accion-btn {
   flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 10px; border-radius: 12px; border: 1px solid;
+  padding: 11px; border-radius: 14px; border: 1px solid;
   font-size: 12px; font-weight: 700; cursor: pointer;
+  background: $card-bg;
+  transition: transform 0.15s ease;
   ion-icon { font-size: 16px; }
 
   &.verde {
-    background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.25); color: $verde;
+    border-color: rgba(22,163,74,0.22); color: $verde;
+  }
+  &.naranja {
+    border-color: rgba(245,124,0,0.22); color: $naranja;
   }
   &.rojo {
-    background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.25); color: $rojo;
+    border-color: rgba(211,47,47,0.22); color: $rojo;
   }
   &:active { transform: scale(0.97); }
 }
@@ -230,24 +256,25 @@ $rojo:    #ef4444;
 // ── EMPTY STATE ─────────────────────────────────────────
 .empty-state {
   display: flex; flex-direction: column; align-items: center;
-  padding: 48px 24px; text-align: center; gap: 12px;
-  ion-icon { font-size: 48px; color: $white-35; }
+  padding: 52px 24px; text-align: center; gap: 12px;
+  ion-icon { font-size: 48px; color: #D1D5DB; }
   h3 { font-size: 15px; font-weight: 700; color: $white-60; margin: 0; }
-  p  { font-size: 12px; color: $white-35; margin: 0; }
+  p  { font-size: 12.5px; color: $white-35; margin: 0; }
 }
 
 // ── LISTA DE ALUMNOS ────────────────────────────────────
-.alumnos-list { padding: 0 18px; padding-bottom: 100px; }
+.alumnos-list { padding: 0 20px; padding-bottom: 110px; }
 
 .alumno-card {
   display: flex; align-items: center; gap: 12px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
+  padding: 11px 14px;
+  margin-bottom: 10px;
   background: $card-bg;
   border: 1px solid $card-border;
-  border-radius: 14px;
-  transition: border-color 0.15s;
+  border-radius: 18px;
+  transition: border-color 0.15s ease;
   position: relative; overflow: hidden;
+  box-shadow: 0 4px 14px rgba(15,23,42,0.04);
 
   // Línea izquierda de color por estado
   &::before {
@@ -257,14 +284,14 @@ $rojo:    #ef4444;
   &.R::before { background: $naranja; }
   &.A::before { background: $rojo; }
 
-  &.P { border-color: rgba(34,197,94,0.2); }
-  &.R { border-color: rgba(255,107,0,0.2); }
-  &.A { border-color: rgba(239,68,68,0.2); }
+  &.P { border-color: rgba(22,163,74,0.16); }
+  &.R { border-color: rgba(245,124,0,0.16); }
+  &.A { border-color: rgba(211,47,47,0.16); }
 }
 
 // Avatar
 .alumno-avatar {
-  width: 40px; height: 40px; border-radius: 12px;
+  width: 42px; height: 42px; border-radius: 14px;
   overflow: hidden; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   border: 2px solid;
@@ -272,9 +299,9 @@ $rojo:    #ef4444;
 
   img { width: 100%; height: 100%; object-fit: cover; }
 
-  &.P { border-color: rgba(34,197,94,0.4);  background: rgba(34,197,94,0.1); }
-  &.R { border-color: rgba(255,107,0,0.4);  background: rgba(255,107,0,0.1); }
-  &.A { border-color: rgba(239,68,68,0.4);  background: rgba(239,68,68,0.1); }
+  &.P { border-color: rgba(22,163,74,0.35);  background: rgba(22,163,74,0.08); }
+  &.R { border-color: rgba(245,124,0,0.35);  background: rgba(245,124,0,0.08); }
+  &.A { border-color: rgba(211,47,47,0.35);  background: rgba(211,47,47,0.08); }
 }
 .sin-revisar-dot {
   position: absolute;
@@ -283,11 +310,11 @@ $rojo:    #ef4444;
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #60a5fa;
-  border: 2px solid $navy;
+  background: #0D47A1;
+  border: 2px solid $card-bg;
 }
 .avatar-initials {
-  font-size: 14px; font-weight: 800; color: $white;
+  font-size: 14px; font-weight: 700; color: $white;
   text-transform: uppercase;
 }
 
@@ -296,7 +323,7 @@ $rojo:    #ef4444;
 .alumno-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .alumno-num  { font-size: 9px; color: $white-35; letter-spacing: 0.5px; }
 .alumno-nombre {
-  font-size: 13px; font-weight: 600; color: $white;
+  font-size: 13.5px; font-weight: 600; color: $white;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
@@ -305,57 +332,61 @@ $rojo:    #ef4444;
   display: flex; gap: 6px; flex-shrink: 0;
 }
 .estado-btn {
-  width: 34px; height: 34px; border-radius: 10px;
-  font-size: 12px; font-weight: 800; cursor: pointer;
-  border: 1.5px solid; transition: all 0.12s ease;
+  width: 36px; height: 36px; border-radius: 12px;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  border: 1.5px solid; transition: all 0.15s ease;
   display: flex; align-items: center; justify-content: center;
+  background: $card-bg;
 
   &.P {
-    border-color: rgba(34,197,94,0.3); color: rgba(34,197,94,0.5); background: transparent;
-    &.activo { background: $verde; border-color: $verde; color: #fff; }
+    border-color: rgba(22,163,74,0.28); color: rgba(22,163,74,0.55);
+    &.activo { background: $verde; border-color: $verde; color: #FFFFFF; box-shadow: 0 4px 10px rgba(22,163,74,0.3); }
   }
   &.R {
-    border-color: rgba(255,107,0,0.3); color: rgba(255,107,0,0.5); background: transparent;
-    &.activo { background: $naranja; border-color: $naranja; color: #fff; }
+    border-color: rgba(245,124,0,0.28); color: rgba(245,124,0,0.55);
+    &.activo { background: $naranja; border-color: $naranja; color: #FFFFFF; box-shadow: 0 4px 10px rgba(245,124,0,0.3); }
   }
   &.A {
-    border-color: rgba(239,68,68,0.3); color: rgba(239,68,68,0.5); background: transparent;
-    &.activo { background: $rojo; border-color: $rojo; color: #fff; }
+    border-color: rgba(211,47,47,0.28); color: rgba(211,47,47,0.55);
+    &.activo { background: $rojo; border-color: $rojo; color: #FFFFFF; box-shadow: 0 4px 10px rgba(211,47,47,0.3); }
   }
   &:active { transform: scale(0.92); }
 }
 
-// ── FAB GUARDAR ─────────────────────────────────────────
+// ── FAB GUARDAR (Neumorphism permitido: botón principal) ─
 .fab-guardar-wrap {
   position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
-  z-index: 100; width: calc(100% - 36px); max-width: 440px;
+  z-index: 100; width: calc(100% - 40px); max-width: 460px;
 }
 .fab-guardar {
-  width: 100%; height: 52px;
-  background: $verde;
-  border: none; border-radius: 16px;
-  color: #fff; font-size: 15px; font-weight: 800;
+  width: 100%; height: 54px;
+  background: linear-gradient(160deg, lighten($verde, 4%), $verde);
+  border: none; border-radius: 18px;
+  color: #FFFFFF; font-size: 15px; font-weight: 700;
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  cursor: pointer; box-shadow: 0 4px 24px rgba(34,197,94,0.35);
-  transition: transform 0.12s, box-shadow 0.12s;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(22,163,74,0.32), inset 0 1px 0 rgba(255,255,255,0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
   ion-icon { font-size: 20px; }
 
-  &:active  { transform: scale(0.97); box-shadow: 0 2px 12px rgba(34,197,94,0.2); }
-  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  &:active  { transform: scale(0.98); box-shadow: 0 4px 14px rgba(22,163,74,0.22); }
+  &:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
 }
 
 // ── HISTORIAL ───────────────────────────────────────────
-.historial-list { padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; }
+.historial-list { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
 
 .historial-card {
   display: flex; align-items: center; gap: 12px;
   background: $card-bg; border: 1px solid $card-border;
-  border-radius: 14px; padding: 12px 14px;
+  border-radius: 18px; padding: 13px 15px;
   width: 100%;
   text-align: left;
   cursor: pointer;
   font-family: inherit;
-  &:active { opacity: 0.85; }
+  box-shadow: 0 4px 14px rgba(15,23,42,0.04);
+  transition: box-shadow 0.15s ease;
+  &:active { opacity: 0.9; }
 }
 
 .hist-card-arrow {
@@ -366,16 +397,16 @@ $rojo:    #ef4444;
 
 .hist-fecha-col {
   display: flex; flex-direction: column; align-items: center;
-  width: 36px; flex-shrink: 0;
+  width: 38px; flex-shrink: 0;
 }
-.hist-dia { font-size: 20px; font-weight: 800; color: $white; line-height: 1; }
+.hist-dia { font-size: 20px; font-weight: 700; color: $white; line-height: 1; }
 .hist-mes { font-size: 9px;  font-weight: 700; color: $white-35; text-transform: uppercase; letter-spacing: 0.5px; }
 
-.hist-info { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.hist-info { flex: 1; display: flex; flex-direction: column; gap: 7px; }
 .hist-bar-wrap { }
 .hist-bar {
   height: 6px; border-radius: 3px; display: flex; overflow: hidden;
-  background: rgba(255,255,255,0.05);
+  background: $card-border;
 }
 .hist-bar-seg {
   height: 100%;
@@ -392,21 +423,21 @@ $rojo:    #ef4444;
 .hist-total { font-size: 11px; color: $white-35; }
 
 .hist-pct {
-  font-size: 15px; font-weight: 800; width: 44px; text-align: right; flex-shrink: 0;
+  font-size: 15px; font-weight: 700; width: 46px; text-align: right; flex-shrink: 0;
   &.verde   { color: $verde;   }
   &.naranja { color: $naranja; }
   &.rojo    { color: $rojo;    }
 }
 
 // ── TOAST ───────────────────────────────────────────────
-.asist-toast { --border-radius: 14px; --min-width: 260px; font-weight: 600; }
+.asist-toast { --border-radius: 16px; --min-width: 260px; font-weight: 600; }
 
 // ══════════════════════════════════════════════════════
 // SELECTOR DE GRUPO
 // ══════════════════════════════════════════════════════
 
 .selector-intro {
-  padding: 16px 18px 6px;
+  padding: 20px 20px 8px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -414,7 +445,7 @@ $rojo:    #ef4444;
 }
 .selector-hint {
   margin: 0;
-  font-size: 13px;
+  font-size: 13.5px;
   color: $white-35;
 }
 .fecha-pill-selector {
@@ -425,7 +456,7 @@ $rojo:    #ef4444;
   border: none;
   padding: 0;
   margin-top: -2px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
   color: $orange;
   cursor: pointer;
@@ -435,21 +466,21 @@ $rojo:    #ef4444;
 .grupo-selector-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 10px 18px 24px;
+  gap: 12px;
+  padding: 10px 20px 26px;
 }
 
 .materia-section {
   & + .materia-section {
-    margin-top: 4px;
+    margin-top: 6px;
   }
 }
 
 .materia-section-title {
   margin: 0;
-  padding: 0 18px;
+  padding: 0 20px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   color: $orange;
@@ -462,21 +493,22 @@ $rojo:    #ef4444;
   width: 100%;
   background: $card-bg;
   border: 1px solid $card-border;
-  border-radius: 16px;
-  padding: 14px;
-  backdrop-filter: blur(10px);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 6px 20px rgba(15,23,42,0.05);
   cursor: pointer;
   text-align: left;
   font-family: inherit;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 
-  &:active { opacity: 0.85; }
+  &:active { transform: scale(0.99); box-shadow: 0 3px 10px rgba(15,23,42,0.05); }
 }
 
 .grupo-card-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 13px;
-  background: rgba(255, 107, 0, 0.12);
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(245, 124, 0, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -485,7 +517,7 @@ $rojo:    #ef4444;
   ion-icon { font-size: 20px; color: $orange; }
 
   &.tomada {
-    background: rgba(34, 197, 94, 0.12);
+    background: rgba(22, 163, 74, 0.08);
     ion-icon { color: $verde; }
   }
 }
@@ -499,7 +531,7 @@ $rojo:    #ef4444;
 }
 
 .grupo-card-nombre {
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 700;
   color: $white;
   white-space: nowrap;
@@ -508,7 +540,7 @@ $rojo:    #ef4444;
 }
 
 .grupo-card-meta {
-  font-size: 11px;
+  font-size: 11.5px;
   color: $white-35;
   display: flex;
   align-items: center;
@@ -547,16 +579,17 @@ $rojo:    #ef4444;
 
 .fecha-modal {
   --height: auto;
-  --border-radius: 20px 20px 0 0;
+  --border-radius: 24px 24px 0 0;
   align-items: flex-end;
 
   &::part(content) {
     background: $navy-2;
+    box-shadow: 0 -8px 30px rgba(15,23,42,0.12);
   }
 }
 
 .fecha-modal-inner {
-  padding: 18px 18px 24px;
+  padding: 20px 20px 26px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -564,7 +597,7 @@ $rojo:    #ef4444;
 
 .fecha-modal-title {
   margin: 0 0 6px;
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 700;
   color: $white;
   align-self: flex-start;
@@ -579,13 +612,56 @@ $rojo:    #ef4444;
 .fecha-modal-close {
   width: 100%;
   margin-top: 8px;
-  padding: 12px;
+  padding: 13px;
   border: none;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  background: #EEF2F7;
   color: $white-60;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
+}
+// ─────────────────────────────────────────────────────────
+// RESPONSIVE — iPad: contenido centrado, grid flexible en selector
+// ─────────────────────────────────────────────────────────
+@media (min-width: 768px) {
+  .selector-intro,
+  .asist-header-info,
+  .buscador-wrap,
+  .acciones-rapidas,
+  .alumnos-list,
+  .historial-list {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .materia-section {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .grupo-selector-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .selector-intro,
+  .asist-header-info,
+  .buscador-wrap,
+  .acciones-rapidas,
+  .alumnos-list,
+  .historial-list,
+  .materia-section {
+    max-width: 900px;
+  }
+
+  .grupo-selector-list {
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  }
 }

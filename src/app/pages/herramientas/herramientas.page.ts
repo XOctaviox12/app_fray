@@ -7,6 +7,7 @@ import { SesionService } from '../../services/sesion.service';
 import { CloudinaryService, ArchivoSubido } from '../../services/cloudinary.service';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from 'src/environments/environment';
+import { VisorArchivosService } from '../../services/visor-archivos.service';
 
 // ─── Tipos ──────────────────────────────────────────────────────────────────
 
@@ -181,6 +182,7 @@ export class HerramientasPage implements OnInit {
     private cloudinary: CloudinaryService,
     private alertCtrl:  AlertController,
     private toastCtrl:  ToastController,
+    private visorArchivos: VisorArchivosService,
   ) {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
@@ -578,7 +580,7 @@ export class HerramientasPage implements OnInit {
   // ── Abrir material ────────────────────────────────────────
   abrirMaterial(mat: MaterialItem) {
     const url = mat.url_externa || this.urlArchivo(mat.archivo_url);
-    if (url) window.open(url, '_blank');
+    if (url) this.visorArchivos.abrir(url);
   }
 
   // ══════════════════════════════════════════════════════════
@@ -622,7 +624,7 @@ export class HerramientasPage implements OnInit {
 
   scrollTo(id: string) { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); }
   goToTareas()         { this.router.navigate(['/tareas']); }
-  openContent(item: any) { if (item.url) window.open(item.url, '_blank'); }
+  openContent(item: any) { if (item.url) this.visorArchivos.abrir(item.url); }
 
   getTypeIcon(tipo: string): string { return ICON_MAP[tipo] || 'attach-outline'; }
 

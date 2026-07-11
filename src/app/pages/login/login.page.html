@@ -1,155 +1,158 @@
 <ion-content class="login-content">
   <div class="login-wrapper">
 
-    <!-- Logo -->
-    <div class="logo-section">
-      <div class="logo-tile">
-        <img src="assets/img/logotipo_lisboa.png" alt="Logo" class="logo" />
-      </div>
-      <h2 class="app-title">Universidad Lisboa</h2>
-      <p class="app-subtitle">Portal Estudiantil</p>
-    </div>
+    <div class="login-card">
 
-    <!-- Selector de modo -->
-    <div class="mode-selector">
-      <button class="mode-btn" [class.active]="modo === 'escolar'" (click)="setModo('escolar')">
-        <ion-icon name="school-outline"></ion-icon>
-        Alumnos / Maestros
-      </button>
-      <button class="mode-btn" [class.active]="modo === 'tutor'" (click)="setModo('tutor')">
-        <ion-icon name="people-outline"></ion-icon>
-        Tutores
-      </button>
-    </div>
-
-    <!-- Formulario -->
-    <div class="form-section">
-
-      <!-- Banner de bloqueo -->
-      <div class="lockout-banner" *ngIf="bloqueado">
-        <ion-icon name="lock-closed-outline"></ion-icon>
-        <div class="lockout-text">
-          <strong>Acceso bloqueado</strong>
-          <span>Espera {{ segundosRestantes }} segundos para volver a intentarlo.</span>
+      <!-- Logo -->
+      <div class="logo-section">
+        <div class="logo-tile">
+          <img src="assets/img/logotipo_lisboa.png" alt="Logo" class="logo" />
         </div>
+        <h2 class="app-title">Universidad Lisboa</h2>
+        <p class="app-subtitle">Portal Estudiantil</p>
       </div>
 
-      <!-- Banner de error -->
-      <div class="error-banner" *ngIf="error && !bloqueado">
-        <ion-icon name="alert-circle-outline"></ion-icon>
-        <span>{{ error }}</span>
+      <!-- Selector de modo -->
+      <div class="mode-selector">
+        <button class="mode-btn" [class.active]="modo === 'escolar'" (click)="setModo('escolar')">
+          <ion-icon name="school-outline"></ion-icon>
+          Alumnos / Maestros
+        </button>
+        <button class="mode-btn" [class.active]="modo === 'tutor'" (click)="setModo('tutor')">
+          <ion-icon name="people-outline"></ion-icon>
+          Tutores
+        </button>
       </div>
 
-      <!-- Advertencia de intentos bajos -->
-      <div class="warn-banner" *ngIf="mostrarAdvertenciaIntentos">
-        <ion-icon name="warning-outline"></ion-icon>
-        <span>
-          {{ intentosRestantes === 1
-            ? 'Te queda 1 intento antes del bloqueo temporal.'
-            : 'Te quedan ' + intentosRestantes + ' intentos antes del bloqueo.' }}
-        </span>
-      </div>
+      <!-- Formulario -->
+      <div class="form-section">
 
-      <!-- MODO ESCOLAR -->
-      <ng-container *ngIf="modo === 'escolar'">
-
-        <div class="input-group">
-          <label class="input-label">Usuario</label>
-          <div class="input-wrapper" [class.input-disabled]="bloqueado">
-            <ion-icon name="person-outline" class="input-icon"></ion-icon>
-            <input
-              type="text"
-              class="custom-input"
-              placeholder="Ingresa tu usuario"
-              [(ngModel)]="username"
-              (keyup.enter)="login()"
-              autocomplete="username"
-              [disabled]="bloqueado"
-              maxlength="80"
-            />
+        <!-- Banner de bloqueo -->
+        <div class="lockout-banner" *ngIf="bloqueado">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          <div class="lockout-text">
+            <strong>Acceso bloqueado</strong>
+            <span>Espera {{ segundosRestantes }} segundos para volver a intentarlo.</span>
           </div>
         </div>
 
-        <div class="input-group">
-          <label class="input-label">Contraseña</label>
-          <div class="input-wrapper" [class.input-disabled]="bloqueado">
-            <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
-            <input
-              [type]="mostrarPassword ? 'text' : 'password'"
-              class="custom-input"
-              placeholder="Ingresa tu contraseña"
-              [(ngModel)]="password"
-              (keyup.enter)="login()"
-              autocomplete="current-password"
-              [disabled]="bloqueado"
-              maxlength="128"
-            />
-            <ion-icon
-              [name]="mostrarPassword ? 'eye-off-outline' : 'eye-outline'"
-              class="input-icon-right"
-              (click)="togglePassword()"
-            ></ion-icon>
+        <!-- Banner de error -->
+        <div class="error-banner" *ngIf="error && !bloqueado">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>{{ error }}</span>
+        </div>
+
+        <!-- Advertencia de intentos bajos -->
+        <div class="warn-banner" *ngIf="mostrarAdvertenciaIntentos">
+          <ion-icon name="warning-outline"></ion-icon>
+          <span>
+            {{ intentosRestantes === 1
+              ? 'Te queda 1 intento antes del bloqueo temporal.'
+              : 'Te quedan ' + intentosRestantes + ' intentos antes del bloqueo.' }}
+          </span>
+        </div>
+
+        <!-- MODO ESCOLAR -->
+        <ng-container *ngIf="modo === 'escolar'">
+
+          <div class="input-group">
+            <label class="input-label">Usuario</label>
+            <div class="input-wrapper" [class.input-disabled]="bloqueado">
+              <ion-icon name="person-outline" class="input-icon"></ion-icon>
+              <input
+                type="text"
+                class="custom-input"
+                placeholder="Ingresa tu usuario"
+                [(ngModel)]="username"
+                (keyup.enter)="login()"
+                autocomplete="username"
+                [disabled]="bloqueado"
+                maxlength="80"
+              />
+            </div>
           </div>
-        </div>
 
-      </ng-container>
-
-      <!-- MODO TUTOR -->
-      <ng-container *ngIf="modo === 'tutor'">
-
-        <div class="tutor-hint">
-          <ion-icon name="information-circle-outline"></ion-icon>
-          Ingresa el código de acceso que te proporcionó la institución.
-        </div>
-
-        <div class="input-group">
-          <label class="input-label">Código de acceso</label>
-          <div class="input-wrapper" [class.input-disabled]="bloqueado">
-            <ion-icon name="key-outline" class="input-icon"></ion-icon>
-            <input
-              type="text"
-              class="custom-input codigo-input"
-              placeholder="Ej: ABC12345"
-              [(ngModel)]="codigoTutor"
-              (keyup.enter)="loginTutor()"
-              autocomplete="off"
-              [disabled]="bloqueado"
-              maxlength="10"
-            />
+          <div class="input-group">
+            <label class="input-label">Contraseña</label>
+            <div class="input-wrapper" [class.input-disabled]="bloqueado">
+              <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+              <input
+                [type]="mostrarPassword ? 'text' : 'password'"
+                class="custom-input"
+                placeholder="Ingresa tu contraseña"
+                [(ngModel)]="password"
+                (keyup.enter)="login()"
+                autocomplete="current-password"
+                [disabled]="bloqueado"
+                maxlength="128"
+              />
+              <ion-icon
+                [name]="mostrarPassword ? 'eye-off-outline' : 'eye-outline'"
+                class="input-icon-right"
+                (click)="togglePassword()"
+              ></ion-icon>
+            </div>
           </div>
-        </div>
 
-      </ng-container>
-
-      <!-- Botón principal -->
-      <button
-        class="btn-login"
-        (click)="modo === 'escolar' ? login() : loginTutor()"
-        [disabled]="cargando || bloqueado"
-        [class.btn-bloqueado]="bloqueado"
-      >
-        <ion-spinner *ngIf="cargando" name="crescent" class="spinner"></ion-spinner>
-        <ng-container *ngIf="!cargando && !bloqueado">
-          <ion-icon name="log-in-outline"></ion-icon>
-          Iniciar sesión
         </ng-container>
-        <ng-container *ngIf="!cargando && bloqueado">
-          <ion-icon name="timer-outline"></ion-icon>
-          Bloqueado ({{ segundosRestantes }}s)
+
+        <!-- MODO TUTOR -->
+        <ng-container *ngIf="modo === 'tutor'">
+
+          <div class="tutor-hint">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            Ingresa el código de acceso que te proporcionó la institución.
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Código de acceso</label>
+            <div class="input-wrapper" [class.input-disabled]="bloqueado">
+              <ion-icon name="key-outline" class="input-icon"></ion-icon>
+              <input
+                type="text"
+                class="custom-input codigo-input"
+                placeholder="Ej: ABC12345"
+                [(ngModel)]="codigoTutor"
+                (keyup.enter)="loginTutor()"
+                autocomplete="off"
+                [disabled]="bloqueado"
+                maxlength="10"
+              />
+            </div>
+          </div>
+
         </ng-container>
-      </button>
 
-      <div class="security-badges">
-        <div class="badge">
-          <div class="dot"></div>
-          Seguro
+        <!-- Botón principal -->
+        <button
+          class="btn-login"
+          (click)="modo === 'escolar' ? login() : loginTutor()"
+          [disabled]="cargando || bloqueado"
+          [class.btn-bloqueado]="bloqueado"
+        >
+          <ion-spinner *ngIf="cargando" name="crescent" class="spinner"></ion-spinner>
+          <ng-container *ngIf="!cargando && !bloqueado">
+            <ion-icon name="log-in-outline"></ion-icon>
+            Iniciar sesión
+          </ng-container>
+          <ng-container *ngIf="!cargando && bloqueado">
+            <ion-icon name="timer-outline"></ion-icon>
+            Bloqueado ({{ segundosRestantes }}s)
+          </ng-container>
+        </button>
+
+        <div class="security-badges">
+          <div class="badge">
+            <div class="dot"></div>
+            Seguro
+          </div>
+          <div class="badge">
+            <div class="dot"></div>
+            Cifrado
+          </div>
         </div>
-        <div class="badge">
-          <div class="dot"></div>
-          Cifrado
-        </div>
+
       </div>
-
     </div>
   </div>
 </ion-content>

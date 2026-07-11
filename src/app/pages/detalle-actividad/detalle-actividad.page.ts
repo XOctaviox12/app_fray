@@ -7,6 +7,7 @@ import { SesionService } from '../../services/sesion.service';
 import { CloudinaryService } from '../../services/cloudinary.service';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from 'src/environments/environment';
+import { VisorArchivosService } from '../../services/visor-archivos.service';
 
 // ─── Tipos ──────────────────────────────────────────────────────────────────
 
@@ -94,6 +95,7 @@ export class DetalleActividadPage implements OnInit {
     private cloudinary: CloudinaryService,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
+    private visorArchivos: VisorArchivosService,
   ) {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
@@ -404,8 +406,29 @@ export class DetalleActividadPage implements OnInit {
     return !!e && e.calificacion != null;
   }
 
-  urlArchivo(url: string | null): string {
-    return url || '';
+  // Abre un archivo (o enlace externo) normalizando su URL primero,
+  // igual que herramientas.page.ts / detalle-tarea.page.ts.
+  abrirArchivo(url: string | null | undefined) {
+    const normalizada = this.urlArchivo(url);
+    if (normalizada) this.visorArchivos.abrir(normalizada);
+  }
+
+  // Normaliza el valor guardado en "archivo" para poder abrirlo/mostrarlo.
+  // 1) Si ya trae "http" en algún punto, corta todo lo anterior (limpia prefijos corruptos).
+  // 2) Si no trae "http" para nada (ruta relativa "pura" de Cloudinary),
+  //    reconstruye la URL completa usando el cloud_name de environment.
+  urlArchivo(raw: string | null | undefined): string {
+    if (!raw) return '';
+    const idx = raw.indexOf('http');
+    if (idx > 0) return raw.slice(idx);
+    if (idx === 0) return raw;
+
+    const cloudName = (environment as any).cloudinaryCloudName;
+    if (cloudName) {
+      const rutaLimpia = raw.replace(/^\/+/, '');
+      return `https://res.cloudinary.com/${cloudName}/${rutaLimpia}`;
+    }
+    return raw;
   }
 
   getFileIcon(nameOrUrl: string): string {

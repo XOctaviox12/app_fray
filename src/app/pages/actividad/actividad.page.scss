@@ -1,10 +1,26 @@
 @import "src/theme/variables";
 
+// ─────────────────────────────────────────────────────────────
+// OVERRIDE LOCAL DE PALETA (solo este archivo, no toca variables.scss)
+// Sass resuelve variables por archivo compilado: reasignar aquí después
+// del @import cambia únicamente el CSS que sale de actividad.page.scss.
+// ─────────────────────────────────────────────────────────────
+$navy:         #F8F9FB;
+$navy-2:       #FFFFFF;
+$white:        #1F2937;
+$white-60:     #4B5563;
+$white-35:     #6B7280;
+$white-08:     #E5E7EB;
+$orange:       #F57C00;
+$orange-glow:  rgba(245, 124, 0, 0.22);
+$card-bg:      #FFFFFF;
+$card-border:  #E5E7EB;
+
 // ── HEADER ────────────────────────────────────────────────────
-.header-toolbar    { --background: #{$navy-2}; --color: #{$white}; --border-style: none; --min-height: 56px; }
-.header-title      { color: $white; font-size: 1rem; font-weight: 800; letter-spacing: -0.3px; }
+.header-toolbar    { --background: #{$navy-2}; --color: #{$white}; --border-style: none; --min-height: 60px; border-bottom: 1px solid $card-border; }
+.header-title      { color: $white; font-size: 1.05rem; font-weight: 700; letter-spacing: -0.2px; }
 .header-accent-bar { height: 3px; background: linear-gradient(90deg, $orange, transparent); }
-.header-add-btn    { --color: rgba(255,255,255,0.85); }
+.header-add-btn    { --color: #{rgba(31,41,55,0.5)}; }
 
 // ── CONTENT ───────────────────────────────────────────────────
 .actividad-content { --background: #{$navy}; }
@@ -12,92 +28,96 @@
 // ── ERROR GLOBAL ──────────────────────────────────────────────
 .global-error {
   display: flex; align-items: center; gap: 8px;
-  margin: 14px 16px; padding: 12px 14px;
-  background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25);
-  border-radius: 12px; font-size: 12px; color: #ef4444;
-  ion-icon { font-size: 16px; flex-shrink: 0; }
+  margin: 16px 18px; padding: 13px 14px;
+  background: rgba(211,47,47,0.06); border: 1px solid rgba(211,47,47,0.18);
+  border-radius: 14px; font-size: 13px; color: #D32F2F;
+  ion-icon { font-size: 17px; flex-shrink: 0; }
 }
 
 // ── HERO + ANILLO ─────────────────────────────────────────────
 .hero-section {
-  background: $navy-2; padding: 18px 18px 22px;
+  background: transparent; padding: 22px 20px 20px;
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
 }
 .hero-info  { flex: 1; }
-.hero-title { margin: 0; color: $white; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
-.hero-sub   { margin: 4px 0 0; color: $white-35; font-size: 12px; }
+.hero-title { margin: 0; color: $white; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+.hero-sub   { margin: 5px 0 0; color: $white-35; font-size: 13px; }
 
 .progress-ring-container { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
 .progress-ring           { width: 100%; height: 100%; transform: rotate(-90deg); }
-.ring-bg   { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; }
+.ring-bg   { fill: none; stroke: $card-border; stroke-width: 8; }
 .ring-fill { fill: none; stroke: $orange; stroke-width: 8; stroke-linecap: round; stroke-dasharray: 314.16; transition: stroke-dashoffset 0.8s ease; }
 .ring-label   { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.ring-percent { font-size: 18px; font-weight: 800; color: $white; line-height: 1; }
+.ring-percent { font-size: 18px; font-weight: 700; color: $white; line-height: 1; }
 .ring-text    { font-size: 9px; color: $white-35; text-transform: uppercase; letter-spacing: 0.5px; }
 
-// ── STATS / FILTROS ───────────────────────────────────────────
-.quick-stats { display: flex; gap: 6px; padding: 12px 16px 0; }
+// ── STATS / FILTROS (detalle Neumorphism sutil, permitido en widgets) ──
+.quick-stats { display: flex; gap: 10px; padding: 12px 20px 0; }
 .stat-bubble {
   flex: 1; background: $card-bg; border: 1px solid $card-border;
-  border-radius: 13px; padding: 10px 6px; text-align: center; cursor: pointer; transition: all .15s;
-  .stat-num   { display: block; font-size: 18px; font-weight: 800; color: $white; }
-  .stat-label { font-size: 8px; color: $white-35; text-transform: uppercase; letter-spacing: 0.5px; }
-  &.active        { border-color: $orange; background: rgba(255,107,0,0.1); }
+  border-radius: 16px; padding: 12px 8px; text-align: center; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(15,23,42,0.04); transition: all .18s ease;
+  .stat-num   { display: block; font-size: 19px; font-weight: 700; color: $white; }
+  .stat-label { font-size: 8.5px; color: $white-35; text-transform: uppercase; letter-spacing: 0.5px; }
+  &.active        { border-color: $orange; background: rgba(245,124,0,0.06); box-shadow: 0 6px 16px rgba(245,124,0,0.12); }
   &.pending   .stat-num { color: $orange; }
-  &.done      .stat-num { color: #22c55e; }
-  &.calificada .stat-num { color: #60a5fa; }
+  &.done      .stat-num { color: #16A34A; }
+  &.calificada .stat-num { color: #0D47A1; }
 }
 
 // ════════════════════════════════════════════════════════════
 // FORMULARIO ACTIVIDAD
 // ════════════════════════════════════════════════════════════
 .act-form {
-  margin: 14px 16px;
-  background: $card-bg; border: 1px solid $card-border; border-top: 2px solid $orange;
-  border-radius: 16px; padding: 16px; backdrop-filter: blur(10px);
+  margin: 16px 20px;
+  background: $card-bg; border: 1px solid $card-border; border-top: 3px solid $orange;
+  border-radius: 22px; padding: 20px;
+  box-shadow: 0 8px 30px rgba(15,23,42,0.08);
 }
 
 .form-header {
-  display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
 }
-.form-title    { margin: 0; font-size: 14px; font-weight: 800; color: $white; }
+.form-title    { margin: 0; font-size: 15px; font-weight: 700; color: $white; }
 .form-close-btn {
-  width: 28px; height: 28px; border-radius: 50%; border: none;
-  background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; cursor: pointer;
+  width: 30px; height: 30px; border-radius: 50%; border: none;
+  background: $navy-3, $card-border; background: #EEF2F7; display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: background 0.15s ease;
   ion-icon { font-size: 16px; color: $white-35; }
+  &:hover { background: darken(#EEF2F7, 4%); }
 }
 
-.input-group  { margin-bottom: 12px; }
-.input-label  { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: $white-35; margin-bottom: 5px; }
-.input-hint   { margin: 5px 2px 0; font-size: 10px; color: $white-35; line-height: 1.4; }
+.input-group  { margin-bottom: 14px; }
+.input-label  { display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: $white-35; margin-bottom: 6px; }
+.input-hint   { margin: 5px 2px 0; font-size: 10.5px; color: $white-35; line-height: 1.4; }
 .label-opt    { text-transform: none; font-weight: 500; color: $white-35; letter-spacing: 0; }
 
 .input-wrap {
-  display: flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px; padding: 0 10px; transition: border-color 0.2s;
-  &:focus-within { border-color: $orange; }
+  display: flex; align-items: center; gap: 9px;
+  background: #EEF2F7; border: 1.5px solid transparent;
+  border-radius: 16px; padding: 0 12px; transition: border-color 0.2s, background 0.2s;
+  &:focus-within { border-color: rgba(245,124,0,0.4); background: $card-bg; box-shadow: 0 0 0 4px rgba(245,124,0,0.08); }
   input, textarea, select {
     flex: 1; min-width: 0; border: none; background: transparent; outline: none;
-    font-size: 13px; color: $white; padding: 10px 0;
-    &::placeholder { color: $white-35; }
+    font-size: 14px; color: $white; padding: 11px 0;
+    &::placeholder { color: #9CA3AF; }
   }
-  select { appearance: none; -webkit-appearance: none; option { background: $navy-2; color: $white; } }
+  select { appearance: none; -webkit-appearance: none; option { background: $card-bg; color: $white; } }
 }
 .textarea-wrap { align-items: flex-start; textarea { resize: none; } }
 .select-wrap:has(select:disabled) { opacity: 0.5; }
-.field-icon { font-size: 15px; color: $white-35; flex-shrink: 0; }
+.field-icon { font-size: 16px; color: $white-35; flex-shrink: 0; }
 
 // Tipo de actividad
 .tipo-selector { display: flex; gap: 8px; flex-wrap: wrap; }
 .tipo-opt {
   flex: 1; min-width: 80px; display: flex; flex-direction: column; align-items: center; gap: 5px;
-  padding: 10px 8px; border-radius: 12px; border: 1px solid $card-border;
+  padding: 11px 8px; border-radius: 14px; border: 1px solid $card-border;
   background: $card-bg; color: $white-35; font-size: 10px; font-weight: 700; cursor: pointer;
   ion-icon { font-size: 18px; }
-  transition: all 0.15s;
-  &.selected { border-color: $orange; background: rgba(255,107,0,0.1); color: $orange; }
-  &:active   { transform: scale(0.96); }
+  transition: all 0.18s ease;
+  &.selected { border-color: $orange; background: rgba(245,124,0,0.07); color: $orange; }
+  &:active   { transform: scale(0.97); }
 }
 
 // Fila de fecha + hora
@@ -107,76 +127,80 @@
 // Toggle publicar
 .publish-toggle-row {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px; padding: 10px 12px; margin-bottom: 12px;
+  background: #EEF2F7; border: 1px solid $card-border;
+  border-radius: 16px; padding: 12px 14px; margin-bottom: 14px;
   ion-toggle { flex-shrink: 0; }
 }
 .publish-toggle-text  { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.publish-toggle-title { font-size: 11.5px; font-weight: 700; color: $white; }
-.publish-toggle-sub   { font-size: 10px; color: $white-35; line-height: 1.3; }
+.publish-toggle-title { font-size: 12px; font-weight: 700; color: $white; }
+.publish-toggle-sub   { font-size: 10.5px; color: $white-35; line-height: 1.3; }
 
 // Acciones formulario / modales (compartidas)
-.form-actions { display: flex; gap: 10px; margin-top: 4px; }
+.form-actions { display: flex; gap: 10px; margin-top: 6px; }
 .btn-cancel, .btn-save {
   flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 11px; border-radius: 10px; border: none; font-size: 12.5px; font-weight: 700; cursor: pointer;
-  ion-icon   { font-size: 15px; }
+  padding: 13px; border-radius: 18px; border: none; font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  ion-icon   { font-size: 16px; }
   ion-spinner{ width: 15px; height: 15px; }
-  &[disabled]{ opacity: 0.6; cursor: not-allowed; }
+  &[disabled]{ opacity: 0.55; cursor: not-allowed; }
+  &:active:not([disabled]) { transform: scale(0.98); }
 }
-.btn-cancel { background: rgba(255,255,255,0.06); color: $white-60; }
-.btn-save   { background: $orange; color: $white; box-shadow: 0 4px 14px $orange-glow; }
+.btn-cancel { background: #EEF2F7; color: $white-60; }
+.btn-save   { background: linear-gradient(160deg, lighten($orange,4%), $orange); color: #FFFFFF; box-shadow: 0 8px 22px $orange-glow; }
 .btn-spinner{ width: 15px; height: 15px; }
 
 // ── ARCHIVOS (formulario docente) ────────────────────────────
 .file-upload-zone {
-  border: 1.5px dashed rgba(255,255,255,0.15); border-radius: 12px;
-  padding: 18px 12px; text-align: center; cursor: pointer; margin-bottom: 10px;
+  border: 1.5px dashed $card-border; border-radius: 16px;
+  padding: 20px 12px; text-align: center; cursor: pointer; margin-bottom: 10px;
   transition: border-color 0.2s, background 0.2s;
-  &:hover, &.dragging { border-color: $orange; background: rgba(255,107,0,0.04); }
+  &:hover, &.dragging { border-color: $orange; background: rgba(245,124,0,0.03); }
 }
 .upload-icon { font-size: 24px; color: $white-35; margin-bottom: 6px; }
-.upload-text { margin: 0; font-size: 12px; color: $white-60; span { color: $orange; font-weight: 700; } }
-.upload-hint { margin: 4px 0 0; font-size: 10px; color: $white-35; }
+.upload-text { margin: 0; font-size: 12.5px; color: $white-60; span { color: $orange; font-weight: 700; } }
+.upload-hint { margin: 4px 0 0; font-size: 10.5px; color: $white-35; }
 
-.files-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.files-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 10px; }
 .file-chip {
   display: flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 10px; padding: 8px 10px;
-  &.error { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); }
+  background: #EEF2F7; border: 1px solid $card-border;
+  border-radius: 12px; padding: 9px 11px;
+  &.error { border-color: rgba(211,47,47,0.3); background: rgba(211,47,47,0.05); }
 }
 .file-type-icon { font-size: 15px; color: $orange; flex-shrink: 0; }
 .file-chip-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.file-name          { font-size: 11px; color: $white; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-name          { font-size: 11.5px; color: $white; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .file-size          { font-size: 10px; color: $white-35; }
 .file-progress-text { font-size: 10px; color: $orange; font-weight: 600; }
-.file-error-text    { font-size: 10px; color: #ef4444; font-weight: 600; }
-.file-progress-bar  { width: 100%; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.08); overflow: hidden; }
+.file-error-text    { font-size: 10px; color: #D32F2F; font-weight: 600; }
+.file-progress-bar  { width: 100%; height: 3px; border-radius: 2px; background: $card-border; overflow: hidden; }
 .file-progress-fill { height: 100%; background: $orange; transition: width 0.15s ease; }
 .retry-file  { font-size: 16px; color: $orange;   flex-shrink: 0; cursor: pointer; }
-.remove-file { font-size: 16px; color: $white-35; flex-shrink: 0; cursor: pointer; &:hover { color: #ef4444; } }
+.remove-file { font-size: 16px; color: $white-35; flex-shrink: 0; cursor: pointer; &:hover { color: #D32F2F; } }
 
 // ════════════════════════════════════════════════════════════
 // LISTA DE ACTIVIDADES
 // ════════════════════════════════════════════════════════════
 .skeleton-card {
   display: flex; align-items: flex-start;
-  margin: 10px 16px; padding: 14px;
-  background: $card-bg; border: 1px solid $card-border; border-radius: 14px;
+  margin: 10px 20px; padding: 16px;
+  background: $card-bg; border: 1px solid $card-border; border-radius: 18px;
+  box-shadow: 0 4px 14px rgba(15,23,42,0.04);
 }
 
-.activities-container { padding: 10px 16px 0; }
+.activities-container { padding: 12px 20px 0; }
 
 .activity-card {
   background: $card-bg; border: 1px solid $card-border;
-  border-left: 3px solid rgba(255,255,255,0.08);
-  border-radius: 14px; padding: 14px; margin-bottom: 10px;
-  backdrop-filter: blur(8px);
+  border-left: 3px solid $card-border;
+  border-radius: 20px; padding: 18px; margin-bottom: 14px;
+  box-shadow: 0 6px 20px rgba(15,23,42,0.05);
   animation: fade-in-up 0.3s ease both;
+  transition: box-shadow 0.2s ease;
 
-  &.critica     { border-left-color: #f97316; background: rgba(249,115,22,0.04); }
-  &.vencida-card{ border-left-color: #ef4444; opacity: .7; }
+  &.critica     { border-left-color: #f97316; background: rgba(249,115,22,0.02); }
+  &.vencida-card{ border-left-color: #D32F2F; opacity: .8; }
   &.draft       { border-left-color: $white-35; border-style: dashed; }
 }
 
@@ -187,236 +211,241 @@
 
 // Card header
 .card-header {
-  display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px;
+  display: flex; align-items: flex-start; gap: 11px; margin-bottom: 10px;
 }
 
 .tipo-icon-wrap {
-  width: 38px; height: 38px; border-radius: 11px;
+  width: 40px; height: 40px; border-radius: 13px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; font-size: 18px;
-  &.estado-pendiente    { background: rgba(255,107,0,0.12);  ion-icon { color: $orange; } }
-  &.estado-entregada    { background: rgba(34,197,94,0.12);  ion-icon { color: #22c55e; } }
-  &.estado-calificada   { background: rgba(96,165,250,0.12); ion-icon { color: #60a5fa; } }
-  &.estado-no-entregada { background: rgba(239,68,68,0.12);  ion-icon { color: #ef4444; } }
+  &.estado-pendiente    { background: rgba(245,124,0,0.09);  ion-icon { color: $orange; } }
+  &.estado-entregada    { background: rgba(22,163,74,0.09);  ion-icon { color: #16A34A; } }
+  &.estado-calificada   { background: rgba(13,71,161,0.09);  ion-icon { color: #0D47A1; } }
+  &.estado-no-entregada { background: rgba(211,47,47,0.09);  ion-icon { color: #D32F2F; } }
 }
 
 .card-info      { flex: 1; min-width: 0; }
 .card-title-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
-.activity-title { margin: 0; font-size: 13.5px; font-weight: 700; color: $white; line-height: 1.3; }
+.activity-title { margin: 0; font-size: 14.5px; font-weight: 700; color: $white; line-height: 1.3; }
 
 .draft-badge {
-  font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
-  color: $white-60; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+  font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+  color: $white-60; background: #EEF2F7; border: 1px solid $card-border;
   border-radius: 6px; padding: 2px 6px; flex-shrink: 0;
 }
 
 .card-meta-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
 .meta-icon { font-size: 11px; color: $orange; flex-shrink: 0; }
 .meta-sep  { color: $white-35; font-size: 10px; }
-.meta-txt  { font-size: 10.5px; color: $white-35; }
+.meta-txt  { font-size: 11px; color: $white-35; }
 
 // Acciones docente (editar / eliminar)
 .card-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
 .act-btn {
-  width: 28px; height: 28px; border-radius: 50%; border: none; background: transparent;
+  width: 30px; height: 30px; border-radius: 50%; border: none; background: transparent;
   display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: background 0.15s ease;
   ion-icon { font-size: 15px; color: $white-35; }
-  &:active { background: rgba(255,107,0,0.12); ion-icon { color: $orange; } }
-  &.delete:active { background: rgba(239,68,68,0.12); ion-icon { color: #ef4444; } }
+  &:active { background: rgba(245,124,0,0.1); ion-icon { color: $orange; } }
+  &.delete:active { background: rgba(211,47,47,0.1); ion-icon { color: #D32F2F; } }
 }
 
 // Nota badge
 .nota-badge {
-  flex-shrink: 0; min-width: 36px; padding: 4px 8px; border-radius: 8px;
-  font-size: 14px; font-weight: 800; text-align: center;
-  &.nota-excelente { background: rgba(34,197,94,0.15);  color: #22c55e; }
-  &.nota-bien      { background: rgba(96,165,250,0.15); color: #60a5fa; }
-  &.nota-regular   { background: rgba(249,115,22,0.15); color: #f97316; }
-  &.nota-reprobado { background: rgba(239,68,68,0.15);  color: #ef4444; }
+  flex-shrink: 0; min-width: 38px; padding: 5px 9px; border-radius: 10px;
+  font-size: 14px; font-weight: 700; text-align: center;
+  &.nota-excelente { background: rgba(22,163,74,0.1);  color: #16A34A; }
+  &.nota-bien      { background: rgba(13,71,161,0.1);  color: #0D47A1; }
+  &.nota-regular   { background: rgba(249,115,22,0.1); color: #f97316; }
+  &.nota-reprobado { background: rgba(211,47,47,0.1);  color: #D32F2F; }
 }
 .nota-badge-sm {
-  flex-shrink: 0; min-width: 30px; padding: 3px 7px; border-radius: 7px;
-  font-size: 11.5px; font-weight: 800; text-align: center;
-  &.nota-excelente { background: rgba(34,197,94,0.15);  color: #22c55e; }
-  &.nota-bien      { background: rgba(96,165,250,0.15); color: #60a5fa; }
-  &.nota-regular   { background: rgba(249,115,22,0.15); color: #f97316; }
-  &.nota-reprobado { background: rgba(239,68,68,0.15);  color: #ef4444; }
+  flex-shrink: 0; min-width: 32px; padding: 4px 8px; border-radius: 9px;
+  font-size: 11.5px; font-weight: 700; text-align: center;
+  &.nota-excelente { background: rgba(22,163,74,0.1);  color: #16A34A; }
+  &.nota-bien      { background: rgba(13,71,161,0.1);  color: #0D47A1; }
+  &.nota-regular   { background: rgba(249,115,22,0.1); color: #f97316; }
+  &.nota-reprobado { background: rgba(211,47,47,0.1);  color: #D32F2F; }
 }
 
 // Descripción
-.activity-desc { font-size: 11.5px; color: $white-60; margin: 0 0 10px; line-height: 1.45; }
+.activity-desc { font-size: 12px; color: $white-60; margin: 0 0 12px; line-height: 1.5; }
 
 // Chips tipo / valor / link
-.chips-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.chips-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
 .tipo-chip, .valor-chip {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 8px; border-radius: 6px; font-size: 9.5px; font-weight: 700;
+  padding: 4px 9px; border-radius: 8px; font-size: 9.5px; font-weight: 700;
   ion-icon { font-size: 10px; }
 }
-.tipo-chip  { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); color: $white-60; }
-.valor-chip { background: rgba(255,107,0,0.1);    border: 1px solid rgba(255,107,0,0.2);    color: $orange; }
+.tipo-chip  { background: #EEF2F7; border: 1px solid $card-border; color: $white-60; }
+.valor-chip { background: rgba(245,124,0,0.08); border: 1px solid rgba(245,124,0,0.2); color: $orange; }
 .link-chip  {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 9px; border-radius: 6px; font-size: 9.5px; font-weight: 700;
-  background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.25);
-  color: #60a5fa; text-decoration: none;
+  padding: 4px 10px; border-radius: 8px; font-size: 9.5px; font-weight: 700;
+  background: rgba(13,71,161,0.08); border: 1px solid rgba(13,71,161,0.2);
+  color: #0D47A1; text-decoration: none;
   ion-icon { font-size: 10px; }
 }
 
 // Alerta crítica
 .alerta-critica {
-  display: flex; align-items: center; gap: 6px; margin-bottom: 8px; padding: 8px 10px;
-  background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.25);
-  border-radius: 8px; font-size: 11px; font-weight: 700; color: #f97316;
+  display: flex; align-items: center; gap: 6px; margin-bottom: 10px; padding: 9px 11px;
+  background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.22);
+  border-radius: 10px; font-size: 11.5px; font-weight: 700; color: #ca6510;
   ion-icon { font-size: 14px; flex-shrink: 0; }
 }
 
 // Feedback
 .feedback-box {
-  display: flex; align-items: flex-start; gap: 7px; margin-bottom: 8px; padding: 9px 11px;
-  background: rgba(96,165,250,0.07); border: 1px solid rgba(96,165,250,0.15); border-radius: 9px;
-  ion-icon { font-size: 15px; color: #60a5fa; flex-shrink: 0; margin-top: 1px; }
-  p { margin: 0; font-size: 11.5px; color: $white-60; line-height: 1.45; font-style: italic; }
+  display: flex; align-items: flex-start; gap: 7px; margin-bottom: 10px; padding: 10px 12px;
+  background: rgba(13,71,161,0.05); border: 1px solid rgba(13,71,161,0.14); border-radius: 12px;
+  ion-icon { font-size: 15px; color: #0D47A1; flex-shrink: 0; margin-top: 1px; }
+  p { margin: 0; font-size: 12px; color: $white-60; line-height: 1.5; font-style: italic; }
 }
 
 // ════════════════════════════════════════════════════════════
 // PANEL DE ENTREGAS (docente, expandible dentro de la card)
 // ════════════════════════════════════════════════════════════
 .entregas-panel {
-  margin: 4px 0 10px; padding: 10px 0 2px;
-  border-top: 1px dashed rgba(255,255,255,0.1);
+  margin: 6px 0 10px; padding: 12px 0 2px;
+  border-top: 1px dashed $card-border;
   animation: fade-in-up 0.25s ease both;
 }
 
 .entregas-loading {
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 18px 0; color: $white-35; font-size: 11.5px;
+  padding: 20px 0; color: $white-35; font-size: 12px;
   ion-spinner { width: 16px; height: 16px; }
 }
 
 .empty-entregas {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 18px 0; color: $white-35; text-align: center;
+  padding: 20px 0; color: $white-35; text-align: center;
   ion-icon { font-size: 22px; }
-  p { margin: 0; font-size: 11.5px; }
+  p { margin: 0; font-size: 12px; }
 }
 
 .entrega-row {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  padding: 9px 8px; border-radius: 10px;
-  &:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.05); }
+  padding: 10px 8px; border-radius: 12px;
+  &:not(:last-child) { border-bottom: 1px solid $card-border; }
 }
 
 .entrega-alumno { display: flex; align-items: center; gap: 9px; min-width: 0; flex: 1; }
 .entrega-avatar {
-  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(255,107,0,0.12); color: $orange; font-size: 13px; font-weight: 800;
+  background: rgba(245,124,0,0.1); color: $orange; font-size: 13px; font-weight: 700;
   text-transform: uppercase;
 }
 .entrega-info      { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.entrega-nombre    { font-size: 12px; font-weight: 700; color: $white; }
+.entrega-nombre    { font-size: 12.5px; font-weight: 700; color: $white; }
 .entrega-fecha     { font-size: 10px; color: $white-35; }
 .entrega-respuesta {
-  font-size: 10.5px; color: $white-60; font-style: italic;
+  font-size: 11px; color: $white-60; font-style: italic;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px;
 }
 .entrega-archivo-link {
   display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;
-  font-size: 10.5px; font-weight: 700; color: #60a5fa; text-decoration: none;
+  font-size: 10.5px; font-weight: 700; color: #0D47A1; text-decoration: none;
   ion-icon { font-size: 12px; }
 }
 
 .entrega-calificacion { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .btn-calificar {
   display: flex; align-items: center; gap: 4px;
-  border: 1px solid rgba(255,107,0,0.25); background: rgba(255,107,0,0.08);
-  color: $orange; font-size: 10px; font-weight: 700;
-  padding: 5px 9px; border-radius: 8px; cursor: pointer; white-space: nowrap;
+  border: 1px solid rgba(245,124,0,0.22); background: rgba(245,124,0,0.06);
+  color: $orange; font-size: 10.5px; font-weight: 700;
+  padding: 6px 10px; border-radius: 10px; cursor: pointer; white-space: nowrap;
   ion-icon { font-size: 12px; }
 }
 
 // Footer card
 .card-footer {
   display: flex; align-items: center; justify-content: space-between;
-  padding-top: 10px; margin-top: 6px; border-top: 1px solid $white-08;
+  padding-top: 12px; margin-top: 8px; border-top: 1px solid $card-border;
   gap: 8px; flex-wrap: wrap;
 }
 .footer-left  { display: flex; flex-direction: column; gap: 3px; }
 .footer-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-.fecha-txt { display: flex; align-items: center; gap: 4px; font-size: 10.5px; color: $white-35; ion-icon { font-size: 12px; } }
-.dias-restantes { font-size: 10px; font-weight: 700; color: $white-35; &.vence-hoy { color: #f97316; } &.vencido { color: #ef4444; } }
+.fecha-txt { display: flex; align-items: center; gap: 4px; font-size: 11px; color: $white-35; ion-icon { font-size: 12px; } }
+.dias-restantes { font-size: 10px; font-weight: 700; color: $white-35; &.vence-hoy { color: #ca6510; } &.vencido { color: #D32F2F; } }
 
 // Ver entregas / publicar
 .btn-ver-entregas {
   display: flex; align-items: center; gap: 4px;
-  border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
-  color: $white-60; font-size: 10px; font-weight: 700;
-  padding: 4px 8px; border-radius: 8px; cursor: pointer;
+  border: 1px solid $card-border; background: #EEF2F7;
+  color: $white-60; font-size: 10.5px; font-weight: 700;
+  padding: 5px 10px; border-radius: 10px; cursor: pointer;
   ion-icon { font-size: 12px; }
 }
 .publish-mini-btn {
   display: flex; align-items: center; gap: 4px;
-  border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
-  color: $white-35; font-size: 10px; font-weight: 700;
-  padding: 4px 8px; border-radius: 8px; cursor: pointer;
+  border: 1px solid $card-border; background: #EEF2F7;
+  color: $white-35; font-size: 10.5px; font-weight: 700;
+  padding: 5px 10px; border-radius: 10px; cursor: pointer;
   ion-icon { font-size: 12px; }
-  &.is-published { border-color: rgba(34,197,94,0.25); background: rgba(34,197,94,0.08); color: #22c55e; }
+  &.is-published { border-color: rgba(22,163,74,0.22); background: rgba(22,163,74,0.06); color: #16A34A; }
 }
 
 // Entregar / editar entrega (alumno)
 .btn-entregar {
   display: flex; align-items: center; gap: 4px;
-  border: none; background: $orange; color: $white; font-size: 10.5px; font-weight: 700;
-  padding: 6px 11px; border-radius: 8px; cursor: pointer;
-  box-shadow: 0 3px 10px $orange-glow;
+  border: none; background: $orange; color: #FFFFFF; font-size: 11px; font-weight: 700;
+  padding: 7px 12px; border-radius: 10px; cursor: pointer;
+  box-shadow: 0 4px 12px $orange-glow;
   ion-icon { font-size: 12px; }
   &.editar {
-    background: rgba(96,165,250,0.12); color: #60a5fa; box-shadow: none;
-    border: 1px solid rgba(96,165,250,0.25);
+    background: rgba(13,71,161,0.08); color: #0D47A1; box-shadow: none;
+    border: 1px solid rgba(13,71,161,0.2);
   }
 }
 
 // Estado chip alumno / tutor
 .estado-chip {
-  display: flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700;
+  display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700;
   ion-icon { font-size: 13px; }
-  &.chip-pendiente    { color: $orange;   }
-  &.chip-entregada    { color: #22c55e;  }
-  &.chip-calificada   { color: #60a5fa;  }
-  &.chip-no-entregada { color: #ef4444;  }
+  &.chip-pendiente    { color: $orange;  }
+  &.chip-entregada    { color: #16A34A; }
+  &.chip-calificada   { color: #0D47A1; }
+  &.chip-no-entregada { color: #D32F2F; }
 }
 
 // ── EMPTY STATE ───────────────────────────────────────────────
 .empty-state {
-  display: flex; flex-direction: column; align-items: center; text-align: center; padding: 52px 24px;
+  display: flex; flex-direction: column; align-items: center; text-align: center; padding: 56px 24px;
 }
 .empty-icon-wrap {
-  width: 70px; height: 70px; border-radius: 50%;
-  background: rgba(255,107,0,0.08); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
+  width: 72px; height: 72px; border-radius: 50%;
+  background: rgba(245,124,0,0.07); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
   ion-icon { font-size: 30px; color: $orange; }
 }
-.empty-title { margin: 0 0 6px; font-size: 15px; font-weight: 700; color: $white; }
-.empty-sub   { margin: 0 0 16px; font-size: 12px; color: $white-35; }
+.empty-title { margin: 0 0 6px; font-size: 16px; font-weight: 700; color: $white; }
+.empty-sub   { margin: 0 0 18px; font-size: 12.5px; color: $white-35; }
 
 .btn-nueva-act {
   display: flex; align-items: center; gap: 6px;
-  padding: 10px 20px; border-radius: 12px; border: none;
-  background: $orange; color: $white; font-size: 13px; font-weight: 700; cursor: pointer;
+  padding: 12px 22px; border-radius: 18px; border: none;
+  background: linear-gradient(160deg, lighten($orange,4%), $orange); color: #FFFFFF; font-size: 13.5px; font-weight: 700; cursor: pointer;
   ion-icon { font-size: 16px; }
-  box-shadow: 0 4px 14px $orange-glow;
+  box-shadow: 0 8px 22px $orange-glow;
 }
 
-// ── FAB ───────────────────────────────────────────────────────
-.fab-agregar { --background: #{$orange}; --color: #{$white}; --box-shadow: 0 6px 18px #{$orange-glow}; }
+// ── FAB (Neumorphism permitido aquí, según spec) ──────────────
+.fab-agregar {
+  --background: #{$orange};
+  --color: #FFFFFF;
+  --box-shadow: 0 10px 26px #{$orange-glow}, inset 0 1px 0 rgba(255,255,255,0.2);
+}
 
 // ════════════════════════════════════════════════════════════
 // MODALES (Entregar actividad / Calificar entrega)
 // ════════════════════════════════════════════════════════════
 .modal-overlay {
   position: fixed; inset: 0; z-index: 1000;
-  background: rgba(0,0,0,0.55); backdrop-filter: blur(3px);
+  background: rgba(15,23,42,0.4); backdrop-filter: blur(3px);
   display: flex; align-items: flex-end; justify-content: center;
   padding: 0;
   animation: overlay-in 0.2s ease both;
@@ -428,15 +457,16 @@
 @keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
 
 .modal-card {
-  width: 100%; max-width: 440px; max-height: 88vh;
+  width: 100%; max-width: 460px; max-height: 88vh;
   background: $navy-2; border: 1px solid $card-border;
-  border-top: 2px solid $orange;
-  border-radius: 20px 20px 0 0;
+  border-top: 3px solid $orange;
+  border-radius: 24px 24px 0 0;
   display: flex; flex-direction: column; overflow: hidden;
-  animation: modal-up 0.25s ease both;
+  box-shadow: 0 20px 50px rgba(15,23,42,0.18);
+  animation: modal-up 0.25s cubic-bezier(0.22,1,0.36,1) both;
 
   @media (min-width: 600px) {
-    border-radius: 18px;
+    border-radius: 24px;
     animation: modal-pop 0.2s ease both;
   }
 }
@@ -445,58 +475,58 @@
 
 .modal-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 16px 14px; border-bottom: 1px solid $white-08; flex-shrink: 0;
+  padding: 18px 18px 16px; border-bottom: 1px solid $card-border; flex-shrink: 0;
 }
 .modal-header-left {
   display: flex; align-items: center; gap: 8px;
   ion-icon { font-size: 17px; color: $orange; }
-  h3 { margin: 0; font-size: 14px; font-weight: 800; color: $white; }
+  h3 { margin: 0; font-size: 15px; font-weight: 700; color: $white; }
 }
 .modal-close {
-  width: 28px; height: 28px; border-radius: 50%; border: none;
-  background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; cursor: pointer;
+  width: 30px; height: 30px; border-radius: 50%; border: none;
+  background: #EEF2F7; display: flex; align-items: center; justify-content: center; cursor: pointer;
   ion-icon { font-size: 16px; color: $white-35; }
 }
 
 .modal-body {
-  padding: 16px; overflow-y: auto; flex: 1;
+  padding: 18px; overflow-y: auto; flex: 1;
 }
-.modal-act-titulo { margin: 0 0 2px; font-size: 13.5px; font-weight: 700; color: $white; }
-.modal-act-asig   { margin: 0 0 14px; font-size: 11px; color: $white-35; }
+.modal-act-titulo { margin: 0 0 2px; font-size: 14px; font-weight: 700; color: $white; }
+.modal-act-asig   { margin: 0 0 16px; font-size: 11.5px; color: $white-35; }
 
 .modal-footer {
-  display: flex; gap: 10px; padding: 14px 16px;
-  border-top: 1px solid $white-08; flex-shrink: 0;
+  display: flex; gap: 10px; padding: 16px 18px;
+  border-top: 1px solid $card-border; flex-shrink: 0;
 }
 
 // Entrega: archivo ya subido
 .archivo-actual {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
-  padding: 9px 11px; border-radius: 10px;
-  background: rgba(34,197,94,0.07); border: 1px solid rgba(34,197,94,0.2);
-  font-size: 11.5px; color: $white-60;
-  ion-icon { font-size: 15px; color: #22c55e; flex-shrink: 0; }
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  padding: 10px 12px; border-radius: 12px;
+  background: rgba(22,163,74,0.06); border: 1px solid rgba(22,163,74,0.18);
+  font-size: 12px; color: $white-60;
+  ion-icon { font-size: 15px; color: #16A34A; flex-shrink: 0; }
   span { flex: 1; }
-  .ver-link { color: #22c55e; font-weight: 700; text-decoration: none; flex-shrink: 0; }
+  .ver-link { color: #16A34A; font-weight: 700; text-decoration: none; flex-shrink: 0; }
 }
 
 .upload-zone-simple {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
-  border: 1.5px dashed rgba(255,255,255,0.15); border-radius: 12px;
-  padding: 18px 12px; text-align: center; cursor: pointer; margin-bottom: 10px;
+  border: 1.5px dashed $card-border; border-radius: 16px;
+  padding: 20px 12px; text-align: center; cursor: pointer; margin-bottom: 10px;
   transition: border-color 0.2s, background 0.2s;
   ion-icon { font-size: 22px; color: $white-35; }
-  span { font-size: 12px; color: $white-60; font-weight: 600; }
-  &:hover { border-color: $orange; background: rgba(255,107,0,0.04); }
+  span { font-size: 12.5px; color: $white-60; font-weight: 600; }
+  &:hover { border-color: $orange; background: rgba(245,124,0,0.03); }
 }
 
 .upload-progress {
-  position: relative; height: 26px; border-radius: 8px; overflow: hidden;
-  background: rgba(255,255,255,0.06); margin-bottom: 10px;
+  position: relative; height: 28px; border-radius: 10px; overflow: hidden;
+  background: $card-border; margin-bottom: 10px;
   display: flex; align-items: center;
   span {
     position: relative; z-index: 1; margin: 0 auto;
-    font-size: 10.5px; font-weight: 700; color: $white;
+    font-size: 10.5px; font-weight: 700; color: #FFFFFF;
   }
 }
 .upload-progress-fill {
@@ -507,43 +537,43 @@
 // Tipos no entregables (MULTIPLE / INTERACTIVA)
 .no-entregable {
   display: flex; align-items: flex-start; gap: 9px;
-  padding: 12px; border-radius: 12px; margin-bottom: 4px;
-  background: rgba(96,165,250,0.07); border: 1px solid rgba(96,165,250,0.18);
-  ion-icon { font-size: 18px; color: #60a5fa; flex-shrink: 0; margin-top: 1px; }
-  strong { display: block; font-size: 12px; color: $white; margin-bottom: 3px; }
-  p { margin: 0 0 8px; font-size: 11px; color: $white-60; line-height: 1.4; }
+  padding: 14px; border-radius: 16px; margin-bottom: 4px;
+  background: rgba(13,71,161,0.05); border: 1px solid rgba(13,71,161,0.16);
+  ion-icon { font-size: 18px; color: #0D47A1; flex-shrink: 0; margin-top: 1px; }
+  strong { display: block; font-size: 12.5px; color: $white; margin-bottom: 3px; }
+  p { margin: 0 0 8px; font-size: 11.5px; color: $white-60; line-height: 1.45; }
 }
 
 // Calificar: respuesta y archivo del alumno
 .respuesta-alumno {
-  margin-bottom: 12px; padding: 10px 12px; border-radius: 10px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 14px; padding: 11px 13px; border-radius: 12px;
+  background: #EEF2F7; border: 1px solid $card-border;
 }
 .resp-label { margin: 0 0 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: $white-35; }
-.resp-texto { margin: 0; font-size: 12px; color: $white-60; line-height: 1.5; }
+.resp-texto { margin: 0; font-size: 12.5px; color: $white-60; line-height: 1.55; }
 
-.archivo-entregado { margin-bottom: 12px; }
+.archivo-entregado { margin-bottom: 14px; }
 .adjunto-link {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 12px; border-radius: 9px;
-  background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.25);
-  color: #60a5fa; font-size: 11.5px; font-weight: 700; text-decoration: none;
+  padding: 9px 13px; border-radius: 12px;
+  background: rgba(13,71,161,0.08); border: 1px solid rgba(13,71,161,0.2);
+  color: #0D47A1; font-size: 12px; font-weight: 700; text-decoration: none;
   ion-icon { font-size: 15px; }
 }
+
 // ══════════════════════════════════════════════════════════
 //  OPCIÓN MÚLTIPLE — Editor de preguntas (docente)
 // ══════════════════════════════════════════════════════════
 
 .pregunta-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 14px;
+  background: #EEF2F7;
+  border: 1px solid $card-border;
+  border-radius: 16px;
+  padding: 16px;
   margin-bottom: 12px;
+  transition: border-color 0.15s ease;
 
-  &:hover {
-    border-color: rgba(255, 107, 0, 0.25);
-  }
+  &:hover { border-color: rgba(245,124,0,0.3); }
 }
 
 .pregunta-header {
@@ -555,46 +585,46 @@
 
 .pregunta-texto-input {
   flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  background: $card-bg;
+  border: 1px solid $card-border;
+  border-radius: 12px;
   padding: 10px 12px;
-  color: #fff;
+  color: $white;
   font-size: 14px;
   font-weight: 500;
 
-  &::placeholder { color: rgba(255, 255, 255, 0.4); }
+  &::placeholder { color: #9CA3AF; }
   &:focus {
     outline: none;
-    border-color: #ff6b00;
-    background: rgba(255, 255, 255, 0.07);
+    border-color: $orange;
+    box-shadow: 0 0 0 3px rgba(245,124,0,0.08);
   }
 }
 
 .pregunta-puntos-input {
-  width: 56px;
+  width: 58px;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  background: $card-bg;
+  border: 1px solid $card-border;
+  border-radius: 12px;
   padding: 10px 8px;
-  color: #ff9a44;
+  color: $orange;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   text-align: center;
 
-  &:focus { outline: none; border-color: #ff6b00; }
+  &:focus { outline: none; border-color: $orange; }
 }
 
 .pregunta-quitar {
   font-size: 20px;
-  color: rgba(239, 68, 68, 0.7);
+  color: rgba(211,47,47,0.6);
   cursor: pointer;
   flex-shrink: 0;
   transition: color 0.15s ease, transform 0.15s ease;
 
   &:hover {
-    color: #ef4444;
+    color: #D32F2F;
     transform: scale(1.1);
   }
 }
@@ -609,35 +639,35 @@
     flex-shrink: 0;
     width: 18px;
     height: 18px;
-    accent-color: #ff6b00;
+    accent-color: $orange;
     cursor: pointer;
   }
 }
 
 .opcion-texto-input {
   flex: 1;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  background: $card-bg;
+  border: 1px solid $card-border;
+  border-radius: 10px;
   padding: 8px 10px;
-  color: #fff;
+  color: $white;
   font-size: 13px;
 
-  &::placeholder { color: rgba(255, 255, 255, 0.35); }
+  &::placeholder { color: #9CA3AF; }
   &:focus {
     outline: none;
-    border-color: rgba(255, 107, 0, 0.5);
+    border-color: rgba(245,124,0,0.5);
   }
 }
 
 .opcion-quitar {
   font-size: 18px;
-  color: rgba(255, 255, 255, 0.35);
+  color: $white-35;
   cursor: pointer;
   flex-shrink: 0;
   transition: color 0.15s ease;
 
-  &:hover { color: #ef4444; }
+  &:hover { color: #D32F2F; }
 }
 
 .btn-agregar-opcion {
@@ -645,11 +675,11 @@
   align-items: center;
   gap: 6px;
   background: none;
-  border: 1px dashed rgba(255, 107, 0, 0.35);
-  border-radius: 8px;
-  color: #ff9a44;
+  border: 1px dashed rgba(245,124,0,0.4);
+  border-radius: 10px;
+  color: $orange;
   font-size: 12.5px;
-  font-weight: 500;
+  font-weight: 600;
   padding: 7px 12px;
   margin-top: 8px;
   cursor: pointer;
@@ -658,8 +688,8 @@
   ion-icon { font-size: 15px; }
 
   &:hover {
-    background: rgba(255, 107, 0, 0.08);
-    border-color: #ff6b00;
+    background: rgba(245,124,0,0.06);
+    border-color: $orange;
   }
 }
 
@@ -669,21 +699,21 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  background: linear-gradient(135deg, rgba(10, 31, 68, 0.6), rgba(26, 58, 110, 0.6));
-  border: 1px solid rgba(255, 107, 0, 0.3);
-  border-radius: 12px;
-  color: #ff9a44;
+  background: $card-bg;
+  border: 1.5px dashed rgba(245,124,0,0.4);
+  border-radius: 16px;
+  color: $orange;
   font-size: 14px;
-  font-weight: 600;
-  padding: 12px;
+  font-weight: 700;
+  padding: 13px;
   cursor: pointer;
   transition: all 0.15s ease;
 
   ion-icon { font-size: 18px; }
 
   &:hover {
-    background: linear-gradient(135deg, #0a1f44, #1a3a6e);
-    border-color: #ff6b00;
+    background: rgba(245,124,0,0.05);
+    border-color: $orange;
   }
 }
 
@@ -692,17 +722,17 @@
 // ══════════════════════════════════════════════════════════
 
 .pregunta-alumno-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 14px;
+  background: #EEF2F7;
+  border: 1px solid $card-border;
+  border-radius: 16px;
+  padding: 16px;
   margin-bottom: 12px;
 }
 
 .pregunta-alumno-texto {
   font-size: 14.5px;
-  font-weight: 600;
-  color: #fff;
+  font-weight: 700;
+  color: $white;
   margin: 0 0 10px;
 }
 
@@ -710,9 +740,10 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 11px 13px;
+  border-radius: 12px;
+  border: 1px solid $card-border;
+  background: $card-bg;
   margin-bottom: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -720,27 +751,27 @@
   &:last-child { margin-bottom: 0; }
 
   &:hover {
-    background: rgba(255, 107, 0, 0.06);
-    border-color: rgba(255, 107, 0, 0.3);
+    background: rgba(245,124,0,0.04);
+    border-color: rgba(245,124,0,0.3);
   }
 
   input[type="radio"] {
     flex-shrink: 0;
     width: 18px;
     height: 18px;
-    accent-color: #ff6b00;
+    accent-color: $orange;
     cursor: pointer;
   }
 
   span {
     font-size: 13.5px;
-    color: rgba(255, 255, 255, 0.85);
+    color: $white-60;
   }
 
   &:has(input:checked) {
-    background: rgba(255, 107, 0, 0.1);
-    border-color: #ff6b00;
+    background: rgba(245,124,0,0.07);
+    border-color: $orange;
 
-    span { color: #fff; font-weight: 600; }
+    span { color: $white; font-weight: 700; }
   }
 }

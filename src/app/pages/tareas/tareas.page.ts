@@ -3,6 +3,8 @@ import { AlertController, ToastController } from '@ionic/angular';
 import { SesionService } from '../../services/sesion.service';
 import { CloudinaryService, ArchivoSubido } from '../../services/cloudinary.service';
 import { Router } from '@angular/router';   // ← agregar
+import { VisorArchivosService } from '../../services/visor-archivos.service';
+import { environment } from 'src/environments/environment';
 
 interface Materia { id: number; nombre: string; }
 interface Grupo { id: number; nombre: string; grado: number; aula: string; }
@@ -118,6 +120,7 @@ export class TareasPage implements OnInit {
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
     private router: Router,
+    private visorArchivos: VisorArchivosService,
   ) { }
 
   get esDocente(): boolean { return this.sesion.esDocente(); }
@@ -125,6 +128,14 @@ export class TareasPage implements OnInit {
 
   get fechaMinima(): string {
     return new Date().toISOString().split('T')[0];
+  }
+
+  // Abre un archivo (o enlace externo) normalizando su URL primero.
+  // Antes esto mandaba la URL cruda a Capacitor Browser: si venía como
+  // ruta relativa de Cloudinary ("image/upload/v.../archivo.pdf") no abría nada.
+  abrirArchivo(url: string) {
+    const normalizada = this.urlArchivo(url);
+    if (normalizada) this.visorArchivos.abrir(normalizada);
   }
 
   ngOnInit() {
@@ -796,9 +807,24 @@ async cargarTareasAlumno() {
 irADetalle(tarea: Tarea) {
   this.router.navigate(['/tareas', tarea.id]);
 }
+
+// Normaliza el valor guardado en "archivo" para poder abrirlo/mostrarlo.
+// 1) Si ya trae "http" en algún punto, corta todo lo anterior (limpia prefijos
+//    corruptos, ej. "raw/upload/https://...").
+// 2) Si no trae "http" para nada (ruta relativa "pura" de Cloudinary, ej.
+//    "image/upload/v.../archivo.pdf" o "raw/upload/v.../archivo.pdf"),
+//    reconstruye la URL completa usando el cloud_name de environment.
 urlArchivo(raw: string | null | undefined): string {
   if (!raw) return '';
   const idx = raw.indexOf('http');
-  return idx > 0 ? raw.slice(idx) : raw;
+  if (idx > 0) return raw.slice(idx);
+  if (idx === 0) return raw;
+
+  const cloudName = (environment as any).cloudinaryCloudName;
+  if (cloudName) {
+    const rutaLimpia = raw.replace(/^\/+/, '');
+    return `https://res.cloudinary.com/${cloudName}/${rutaLimpia}`;
+  }
+  return raw;
 }
 }

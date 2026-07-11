@@ -1,24 +1,41 @@
 // ============================================
 // INICIO.PAGE.SCSS
+// Rediseño: Soft UI + Cupertino + Neumorphism ligero (tema claro, iPad)
 // ============================================
+
+// ── Override de paleta SOLO dentro de esta página ──
+// No se toca variables.scss global: se redefine en :host, que Angular
+// aplica tanto al header (fuera de ion-content) como al contenido.
+:host {
+  --navy:          #F8F9FB;
+  --navy-2:        #FFFFFF;
+  --white:         #1F2937;
+  --white-35:      #6B7280;
+  --orange:        #F57C00;
+  --card-bg:       #FFFFFF;
+  --card-border:   #E5E7EB;
+  --orange-subtle: rgba(245, 124, 0, 0.08);
+  --orange-glow:   rgba(245, 124, 0, 0.25);
+}
 
 .header-toolbar {
   --background: var(--navy-2);
   --color: var(--white);
   --border-style: none;
-  --min-height: 56px;
+  --min-height: 60px;
+  border-bottom: 1px solid var(--card-border);
 }
 
 .header-title {
   color: var(--white);
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.05rem;
-  letter-spacing: -0.3px;
+  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.2px;
 }
 
 .header-notif-btn {
-  --color: #{rgba(255, 255, 255, 0.85)};
+  --color: #{rgba(31, 41, 55, 0.5)};
 }
 
 .header-accent-bar {
@@ -30,32 +47,54 @@
   --background: var(--navy);
 }
 
+// ── Contenedor centrado para iPad (Soft UI: mucho aire, contenido acotado) ──
+.inicio-content {
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 18px;
+  padding: 13px 14px;
+  background: rgba(211, 47, 47, 0.06);
+  border: 1px solid rgba(211, 47, 47, 0.16);
+  border-radius: 14px;
+  color: #D32F2F;
+  font-size: 13px;
+
+  ion-icon { font-size: 18px; flex-shrink: 0; }
+  p { margin: 0; }
+}
+
 // ── Hero ──────────────────────────────────────
 .hero-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 18px 18px 20px;
+  gap: 16px;
+  padding: 24px 20px 22px;
 }
 
 .hero-text { flex: 1; min-width: 0; }
 
 .hero-greeting {
   margin: 0 0 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--white-35);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
 }
 
 .hero-title {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 800;
+  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+  font-size: 26px;
+  font-weight: 700;
   color: var(--white);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.4px;
   line-height: 1.2;
 }
 
@@ -63,17 +102,18 @@
 
 .hero-sub {
   margin: 6px 0 0;
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--white-35);
 }
 
 .hero-avatar {
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   flex-shrink: 0;
   border: 2px solid var(--orange);
   padding: 2px;
+  box-shadow: 0 4px 14px rgba(245, 124, 0, 0.18);
 }
 
 .hero-avatar-img {
@@ -89,21 +129,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,107,0,0.12);
+  background: var(--orange-subtle);
 }
 
 .tutor-avatar-icon {
-  font-size: 26px;
+  font-size: 27px;
   color: var(--orange);
 }
 
 // ── Card hijo destacada ───────────────────────
 .hijo-highlight-card {
-  margin: 0 18px 14px;
-  padding: 16px;
-  background: linear-gradient(135deg, rgba(255,107,0,0.15), rgba(255,107,0,0.05));
-  border: 1px solid rgba(255,107,0,0.3);
-  border-radius: 18px;
+  margin: 0 20px 16px;
+  padding: 18px;
+  background: var(--card-bg);
+  border: 1px solid rgba(245, 124, 0, 0.22);
+  border-radius: 20px;
+  box-shadow: 0 8px 26px rgba(15, 23, 42, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -111,6 +152,11 @@
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:active {
+    transform: scale(0.99);
+  }
 
   &::before {
     content: '';
@@ -131,10 +177,10 @@
 }
 
 .hijo-avatar-circle {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
-  background: rgba(255,107,0,0.2);
+  background: var(--orange-subtle);
   border: 2px solid var(--orange);
   display: flex;
   align-items: center;
@@ -151,18 +197,18 @@
 
 .hijo-label {
   margin: 0 0 2px;
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
-  color: rgba(255,107,0,0.7);
+  color: rgba(245, 124, 0, 0.85);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
 }
 
 .hijo-nombre {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 800;
+  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+  font-size: 16px;
+  font-weight: 700;
   color: var(--white);
   white-space: nowrap;
   overflow: hidden;
@@ -179,32 +225,35 @@
 }
 
 .ver-detalle-btn {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--orange);
 }
 
-// ── Stats ─────────────────────────────────────
+// ── Stats (detalle Neumorphism sutil, permitido por spec en widgets/dashboard) ──
 .stats-row {
   display: flex;
-  gap: 8px;
-  padding: 0 18px;
-  margin-bottom: 20px;
+  gap: 12px;
+  padding: 0 20px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
   flex: 1;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 14px;
-  padding: 12px 10px;
+  border-radius: 18px;
+  padding: 16px 12px;
   text-align: center;
-  backdrop-filter: blur(10px);
+  box-shadow:
+    0 6px 18px rgba(15, 23, 42, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transition: transform 0.2s ease;
 
   .stat-num {
-    font-family: var(--font-display);
-    font-size: 20px;
-    font-weight: 800;
+    font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+    font-size: 22px;
+    font-weight: 700;
     color: var(--white);
     display: block;
   }
@@ -213,40 +262,46 @@
 }
 
 .stat-lbl {
-  font-size: 9px;
+  font-size: 10px;
   color: var(--white-35);
   display: block;
-  margin-top: 2px;
-  letter-spacing: 0.5px;
+  margin-top: 3px;
+  letter-spacing: 0.4px;
   text-transform: uppercase;
 }
 
 // ── Section label ─────────────────────────────
 .section-label {
-  font-family: var(--font-display);
-  font-size: 10px;
+  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 1.6px;
   text-transform: uppercase;
   color: var(--white-35);
-  padding: 0 18px;
-  margin: 0 0 10px;
+  padding: 0 20px;
+  margin: 0 0 12px;
 }
 
-// ── Quick cards ───────────────────────────────
+// ── Quick cards (Soft UI: tarjetas flotantes, mucho aire) ───
 .quick-card {
-  margin: 0 18px 10px;
+  margin: 0 20px 12px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 18px;
+  padding: 18px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  backdrop-filter: blur(10px);
+  gap: 14px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+
+  &:active {
+    transform: scale(0.99);
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
+  }
 
   &::before {
     content: '';
@@ -259,14 +314,14 @@
 }
 
 .quick-card-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 19px;
+  font-size: 20px;
 
   &.orange-icon {
     background: var(--orange-subtle);
@@ -275,9 +330,9 @@
   }
 
   &.blue-icon {
-    background: rgba(59, 91, 219, 0.12);
-    border: 1px solid rgba(59, 91, 219, 0.3);
-    color: #60a5fa;
+    background: rgba(13, 71, 161, 0.08);
+    border: 1px solid rgba(13, 71, 161, 0.22);
+    color: #0D47A1;
   }
 }
 
@@ -285,15 +340,15 @@
 
 .quick-card-title {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 13px;
+  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+  font-size: 14px;
   font-weight: 700;
   color: var(--white);
 }
 
 .quick-card-sub {
-  margin: 2px 0 0;
-  font-size: 11px;
+  margin: 3px 0 0;
+  font-size: 12px;
   color: var(--white-35);
 }
 
@@ -305,12 +360,51 @@
 
 // ── Botón explorar ────────────────────────────
 .btn-explore {
-  margin: 14px 18px 24px;
-  --border-color: rgba(255, 107, 0, 0.3);
+  margin: 18px 20px 28px;
+  --border-color: rgba(245, 124, 0, 0.3);
   --color: var(--orange);
-  --border-radius: 14px;
-  font-family: var(--font-display);
-  font-size: 12px;
+  --border-radius: 16px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.6px;
+}
+
+// ─────────────────────────────────────────────────────────
+// RESPONSIVE — iPad: contenido centrado, más aire, no estirar
+// tarjetas edge-to-edge en pantallas grandes
+// ─────────────────────────────────────────────────────────
+@media (min-width: 768px) {
+  .hero-section,
+  .stats-row,
+  .section-label,
+  .quick-card,
+  .hijo-highlight-card,
+  .btn-explore,
+  .error-banner {
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-section { padding-left: 0; padding-right: 0; }
+  .stats-row    { padding-left: 0; padding-right: 0; }
+  .section-label { padding-left: 0; padding-right: 0; }
+
+  .hero-title { font-size: 28px; }
+  .quick-card { padding: 20px; }
+}
+
+@media (min-width: 1024px) {
+  .hero-section,
+  .stats-row,
+  .section-label,
+  .quick-card,
+  .hijo-highlight-card,
+  .btn-explore,
+  .error-banner {
+    max-width: 800px;
+  }
 }

@@ -1,23 +1,49 @@
 // ============================================
 // APP.COMPONENT.SCSS — Menú lateral
+// Rediseño: Soft UI + Cupertino + Neumorphism ligero (tema claro, iPad)
 // ============================================
+
+// ── Override de paleta SOLO dentro del menú ──
+// No se toca variables.scss global: estas custom properties se
+// redefinen aquí y solo cascadean a los elementos dentro de <ion-menu>.
+ion-menu {
+  --navy:     #F8F9FB;  // fondo principal del menú
+  --navy-2:   #FFFFFF;  // fondo toolbar / tarjetas
+  --navy-3:   #EEF2F7;  // fondo secundario (avatares placeholder, chips)
+  --navy-4:   #E5E7EB;  // fondo terciario / bordes fuertes
+  --white:    #1F2937;  // texto principal (antes "blanco sobre oscuro")
+  --white-60: #4B5563;  // texto secundario
+  --white-35: #6B7280;  // texto terciario / labels
+  --white-08: #E5E7EB;  // bordes sutiles
+  --orange:   #F57C00;  // primario (coincide con el doc)
+  --green:    #22C55E;  // estado activo/online
+
+  // Ancho más generoso en iPad — detalle de layout, sin afectar lógica
+  --width: 300px;
+
+  @media (min-width: 1024px) {
+    --width: 320px;
+  }
+}
 
 // --- Header del menú ---
 
 ion-toolbar {
   --background: var(--navy-2);
   --border-style: none;
-  --min-height: 56px;
+  --min-height: 60px;
+  border-bottom: 1px solid var(--white-08);
 }
 
 ion-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--font-display);
-  font-weight: 800;
+  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+  font-weight: 700;
   font-size: 16px;
   color: var(--white);
+  letter-spacing: -0.2px;
 }
 
 .menu-logo-icon {
@@ -31,16 +57,20 @@ ion-content {
 
 ion-list {
   background: transparent;
-  padding: 8px 0;
+  padding: 12px 0;
 }
 
 // ============================================
-// TARJETA DE USUARIO
+// TARJETA DE USUARIO (Soft UI card flotante)
 // ============================================
 
 .user-card-container {
-  padding: 16px 18px;
-  border-bottom: 1px solid var(--white-08);
+  margin: 4px 14px 12px;
+  padding: 16px;
+  background: var(--navy-2);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.04);
 }
 
 .user-card {
@@ -56,24 +86,25 @@ ion-list {
 }
 
 .user-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 13px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   object-fit: cover;
   border: 2px solid var(--orange);
   background: linear-gradient(135deg, var(--navy-3), var(--navy-4));
   display: block;
+  box-shadow: 0 3px 10px rgba(245, 124, 0, 0.18);
 }
 
 .online-badge {
   position: absolute;
   bottom: -1px;
   right: -1px;
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
   background: var(--green);
   border-radius: 50%;
-  border: 2px solid var(--navy);
+  border: 2px solid var(--navy-2);
 }
 
 .info-section {
@@ -83,8 +114,8 @@ ion-list {
 
 .user-name {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 13px;
+  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--white);
   white-space: nowrap;
@@ -94,7 +125,7 @@ ion-list {
 
 .user-email {
   margin: 2px 0 0;
-  font-size: 10px;
+  font-size: 10.5px;
   color: var(--white-35);
   white-space: nowrap;
   overflow: hidden;
@@ -119,24 +150,27 @@ ion-list {
 .btn-profile {
   width: 100%;
   margin-top: 4px;
-  --border-color: rgba(255, 255, 255, 0.08);
-  --background: rgba(255, 255, 255, 0.04);
+  --border-color: var(--white-08);
+  --background: var(--navy-3);
   --color: var(--white-60);
-  --border-radius: 10px;
+  --border-radius: 12px;
   --box-shadow: none;
-  --padding-top: 8px;
-  --padding-bottom: 8px;
-  font-size: 11px;
+  --padding-top: 9px;
+  --padding-bottom: 9px;
+  font-size: 11.5px;
   font-weight: 600;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   text-transform: none;
 }
 
 .user-card-skeleton {
   display: flex;
   align-items: center;
-  padding: 16px 18px;
-  border-bottom: 1px solid var(--white-08);
+  margin: 4px 14px 12px;
+  padding: 16px;
+  background: var(--navy-2);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
 }
 
 // ============================================
@@ -144,40 +178,43 @@ ion-list {
 // ============================================
 
 .nav-section-label {
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.2);
-  letter-spacing: 2px;
+  color: var(--white-35);
+  opacity: 0.7;
+  letter-spacing: 1.4px;
   text-transform: uppercase;
-  padding: 14px 18px 4px;
+  padding: 16px 22px 6px;
   margin: 0;
 }
 
 ion-item {
   --background: transparent;
-  --padding-start: 10px;
-  --inner-padding-end: 10px;
-  --min-height: 44px;
+  --background-hover: var(--navy-3);
+  --padding-start: 12px;
+  --inner-padding-end: 12px;
+  --min-height: 46px;
   --border-style: none;
-  margin: 1px 8px;
-  border-radius: 11px;
+  margin: 2px 10px;
+  border-radius: 13px;
   overflow: hidden;
   position: relative;
   --color: var(--white-60);
+  transition: background 0.18s ease;
 }
 
 ion-item ion-label {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--white-60);
   margin: 0;
 }
 
 .nav-icon-wrap {
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  background: rgba(10, 24, 48, 0.9);
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--navy-3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,8 +229,8 @@ ion-item ion-label {
 // --- Estado activo ---
 
 ion-item.active-item {
-  --background: rgba(15, 34, 72, 0.9);
-  border: 1px solid rgba(26, 58, 112, 0.8);
+  --background: rgba(245, 124, 0, 0.06);
+  border: 1px solid rgba(245, 124, 0, 0.16);
 
   &::before {
     content: '';
@@ -207,7 +244,7 @@ ion-item.active-item {
   }
 
   .nav-icon-wrap {
-    background: rgba(22, 47, 96, 0.9);
+    background: rgba(245, 124, 0, 0.12);
     ion-icon { color: var(--orange); }
   }
 
@@ -220,17 +257,17 @@ ion-item.active-item {
 // --- Cerrar sesión ---
 
 ion-item.logout-item {
-  --background: rgba(239, 68, 68, 0.06);
-  border: 1px solid rgba(239, 68, 68, 0.12);
+  --background: rgba(211, 47, 47, 0.05);
+  border: 1px solid rgba(211, 47, 47, 0.14);
 }
 
 .logout-icon-wrap {
-  background: rgba(239, 68, 68, 0.1) !important;
-  ion-icon { color: rgba(239, 68, 68, 0.9) !important; }
+  background: rgba(211, 47, 47, 0.1) !important;
+  ion-icon { color: #D32F2F !important; }
 }
 
 .logout-label {
-  color: rgba(239, 68, 68, 0.75) !important;
+  color: rgba(211, 47, 47, 0.85) !important;
 }
 
 // ============================================
@@ -240,27 +277,27 @@ ion-item.logout-item {
 // --- Tomar Lista (docente) ---
 
 ion-item.asistencia-item {
-  --background: rgba(255, 107, 0, 0.08);
-  --min-height: 50px;
-  border: 1px solid rgba(255, 107, 0, 0.18);
+  --background: rgba(245, 124, 0, 0.06);
+  --min-height: 52px;
+  border: 1px solid rgba(245, 124, 0, 0.16);
 }
 
 .asistencia-icon-wrap {
-  background: rgba(255, 107, 0, 0.16) !important;
-  ion-icon { color: var(--orange) !important; }
+  background: rgba(245, 124, 0, 0.14) !important;
+  ion-icon { color: #F57C00 !important; }
 }
 
 // --- Clase en Vivo (alumno + docente) ---
 
 ion-item.clase-item {
-  --background: rgba(139, 92, 246, 0.08);
-  --min-height: 50px;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  --background: rgba(139, 92, 246, 0.06);
+  --min-height: 52px;
+  border: 1px solid rgba(139, 92, 246, 0.16);
 }
 
 .clase-icon-wrap {
-  background: rgba(139, 92, 246, 0.15) !important;
-  ion-icon { color: #a78bfa !important; }
+  background: rgba(139, 92, 246, 0.12) !important;
+  ion-icon { color: #8b5cf6 !important; }
 }
 
 // --- Sublabel ---
@@ -276,7 +313,7 @@ ion-item.clase-item {
 
 .nav-badge-hoy {
   background: var(--orange);
-  color: var(--white);
+  color: #FFFFFF;
   font-size: 8.5px;
   font-weight: 800;
   letter-spacing: 0.5px;
@@ -287,7 +324,7 @@ ion-item.clase-item {
 
 .nav-badge-live {
   background: #8b5cf6;
-  color: var(--white);
+  color: #FFFFFF;
   font-size: 8.5px;
   font-weight: 800;
   letter-spacing: 1px;
@@ -307,7 +344,7 @@ ion-item.clase-item {
 // ============================================
 
 .menu-footer {
-  padding: 14px 18px;
+  padding: 16px 22px;
   border-top: 1px solid var(--white-08);
   display: flex;
   align-items: center;
@@ -319,14 +356,16 @@ ion-item.clase-item {
     height: 22px;
     object-fit: contain;
     flex-shrink: 0;
+    opacity: 0.6;
   }
 }
 
 .menu-footer-text {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.18);
+  color: var(--white-35);
+  opacity: 0.6;
   letter-spacing: 1px;
   text-transform: uppercase;
-  font-family: var(--font-display);
+  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
   font-weight: 700;
 }

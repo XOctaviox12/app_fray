@@ -3,6 +3,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
 import { SesionService } from '../../services/sesion.service';
 import { CloudinaryService } from '../../services/cloudinary.service';
+import { VisorArchivosService } from '../../services/visor-archivos.service';
+import { environment } from 'src/environments/environment';
 
 interface ArchivoSubido { name: string; url: string; }
 
@@ -92,6 +94,7 @@ export class DetalleTareaPage implements OnInit {
     private cloudinary: CloudinaryService,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
+    private visorArchivos: VisorArchivosService,
   ) {}
 
   get esDocente(): boolean { return this.sesion.esDocente(); }
@@ -403,7 +406,7 @@ export class DetalleTareaPage implements OnInit {
       const uid = this.sesion.usuario!.id;
       const { error } = await this.sesion.supabase
         .from('academic_comentariotarea')
-        .insert({ tarea_id: this.tareaId, autor_id: uid, texto });
+        .insert({ tarea_id: this.tareaId, autor_id: uid, texto,creado_en: new Date().toISOString() });
       if (error) throw error;
       this.nuevoComentario = '';
       await this.cargarComentarios();
@@ -479,19 +482,38 @@ export class DetalleTareaPage implements OnInit {
     return m[ext || ''] || 'document-outline';
   }
 
- volver() {
-  this.router.navigate(['/tareas']);
-}
+  volver() {
+    this.router.navigate(['/tareas']);
+  }
 
   private async toast(msg: string, color: string) {
     const t = await this.toastCtrl.create({ message: msg, duration: 2500, color, position: 'bottom' });
     await t.present();
   }
-  // Corrige URLs de Cloudinary que quedaron mal formadas (ej. "raw/upload/https://...")
-// tomando solo la parte que arranca en "http". Si no encuentra "http", regresa tal cual.
-urlArchivo(raw: string | null | undefined): string {
-  if (!raw) return '';
-  const idx = raw.indexOf('http');
-  return idx > 0 ? raw.slice(idx) : raw;
-}
+
+  // Abre un archivo normalizando su URL primero, igual que herramientas.page.ts.
+  abrirArchivo(url: string) {
+    const normalizada = this.urlArchivo(url);
+    if (normalizada) this.visorArchivos.abrir(normalizada);
+  }
+
+  // Normaliza el valor guardado en "archivo" para poder abrirlo/mostrarlo.
+  // 1) Si ya trae "http" en algún punto, corta todo lo anterior (limpia prefijos corruptos,
+  //    ej. "raw/upload/https://...").
+  // 2) Si no trae "http" para nada (ruta relativa "pura" de Cloudinary, ej.
+  //    "image/upload/v.../archivo.pdf"), reconstruye la URL completa usando el
+  //    cloud_name de environment.
+  urlArchivo(raw: string | null | undefined): string {
+    if (!raw) return '';
+    const idx = raw.indexOf('http');
+    if (idx > 0) return raw.slice(idx);
+    if (idx === 0) return raw;
+
+    const cloudName = (environment as any).cloudinaryCloudName;
+    if (cloudName) {
+      const rutaLimpia = raw.replace(/^\/+/, '');
+      return `https://res.cloudinary.com/${cloudName}/${rutaLimpia}`;
+    }
+    return raw;
+  }
 }

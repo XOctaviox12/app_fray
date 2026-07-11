@@ -1,24 +1,42 @@
 // ============================================
 // APOYO.PAGE.SCSS — alineado con apoyo.page.html
+// Rediseño: Soft UI + Cupertino + Neumorphism ligero (tema claro, iPad)
 // ============================================
+
+// ── Override de paleta SOLO dentro de esta página ──
+// No se toca variables.scss / el theme global: se redefine en :host,
+// que Angular aplica tanto al header (fuera de ion-content) como al contenido.
+:host {
+  --navy:          #F8F9FB;
+  --navy-2:        #FFFFFF;
+  --white:         #1F2937;
+  --white-60:      #4B5563;
+  --white-35:      #6B7280;
+  --white-08:      #E5E7EB;
+  --orange:        #F57C00;
+  --orange-glow:   rgba(245, 124, 0, 0.22);
+  --card-bg:       #FFFFFF;
+  --card-border:   #E5E7EB;
+}
 
 .header-toolbar {
   --background: var(--navy-2);
   --color: var(--white);
   --border-style: none;
-  --min-height: 56px;
+  --min-height: 60px;
+  border-bottom: 1px solid var(--card-border);
 }
 
 .header-title {
   color: var(--white);
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.05rem;
-  letter-spacing: -0.3px;
+  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.2px;
 }
 
 .header-action-btn {
-  --color: rgba(255, 255, 255, 0.85);
+  --color: #{rgba(31, 41, 55, 0.55)};
 }
 
 .back-btn {
@@ -36,37 +54,188 @@
 
 // ── Hero ──────────────────────────────────
 .section-hero {
-  background: var(--navy-2);
-  padding: 18px 18px 22px;
+  background: transparent;
+  padding: 24px 20px 20px;
 }
 
 .section-title {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 800;
+  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+  font-size: 22px;
+  font-weight: 700;
   color: var(--white);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.4px;
 }
 
 .section-sub {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--white-35);
-  margin-top: 4px;
+  margin-top: 5px;
+}
+
+// ── Buscador ──────────────────────────────
+.search-bar-wrap {
+  padding: 0 20px 12px;
+  animation: fade-in-up 0.2s ease both;
+}
+
+.apoyo-searchbar {
+  --background: var(--card-bg);
+  --border-radius: 16px;
+  --box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+  --color: var(--white);
+  --placeholder-color: #9CA3AF;
+  --icon-color: var(--white-35);
+  padding: 0;
+}
+
+// ── Formulario docente: publicar material ─
+.upload-form-card {
+  margin: 0 20px 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-top: 3px solid var(--orange);
+  border-radius: 22px;
+  padding: 20px;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+  animation: fade-in-up 0.25s ease both;
+}
+
+.upload-form-title {
+  margin: 0 0 14px;
+  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.form-item {
+  --background: #EEF2F7;
+  --border-radius: 16px;
+  --padding-start: 14px;
+  --inner-padding-end: 14px;
+  --highlight-color-focused: var(--orange);
+  --color: var(--white);
+  border-radius: 16px;
+  margin-bottom: 12px;
+
+  ion-label { color: var(--white-35) !important; }
+  ion-input, ion-textarea, ion-select {
+    --color: var(--white);
+    font-size: 14px;
+  }
+}
+
+.file-upload-row {
+  margin-bottom: 12px;
+}
+
+.file-upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px;
+  border: 1.5px dashed var(--card-border);
+  border-radius: 16px;
+  background: #EEF2F7;
+  color: var(--white-60);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+
+  ion-icon { font-size: 18px; color: var(--orange); flex-shrink: 0; }
+  span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  &:hover {
+    border-color: var(--orange);
+    background: rgba(245, 124, 0, 0.04);
+  }
+}
+
+.upload-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+
+  ion-progress-bar {
+    flex: 1;
+    --background: var(--card-border);
+    --progress-background: var(--orange);
+    border-radius: 6px;
+    height: 6px;
+  }
+
+  span {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--orange);
+    flex-shrink: 0;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+
+  ion-button {
+    --border-radius: 14px;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0;
+
+    &[fill="clear"] { --color: var(--white-60); }
+    &:not([fill="clear"]) {
+      --background: var(--orange);
+      --color: #FFFFFF;
+      --box-shadow: 0 6px 18px var(--orange-glow);
+    }
+  }
+
+  ion-spinner { width: 16px; height: 16px; }
+}
+
+// ── Estados (cargando / error / vacío) ────
+.state-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 56px 24px;
+  color: var(--white-35);
+
+  ion-icon { font-size: 32px; color: var(--orange); }
+  ion-spinner { width: 26px; height: 26px; --color: var(--orange); }
+  p { margin: 0; font-size: 13px; }
+}
+
+.error-block {
+  ion-icon { color: #D32F2F; }
+  p { color: #D32F2F; }
 }
 
 // ── Cards container ───────────────────────
 .apoyo-cards-container {
-  padding: 14px 18px 100px;
+  padding: 12px 20px 100px;
 }
 
 .apoyo-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 16px;
+  border-radius: 20px;
   margin-bottom: 14px;
   overflow: hidden;
-  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+  animation: fade-in-up 0.3s ease both;
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 // ── Barra de color superior ───────────────
@@ -75,20 +244,20 @@
 }
 
 .orange-bar {
-  background: linear-gradient(90deg, var(--orange), #ff9240);
+  background: linear-gradient(90deg, var(--orange), #ffab5c);
 }
 
 .blue-bar {
-  background: linear-gradient(90deg, #3b5bdb, #60a5fa);
+  background: linear-gradient(90deg, #0D47A1, #5b8ad1);
 }
 
 .red-bar {
-  background: linear-gradient(90deg, #ef4444, #d90429);
+  background: linear-gradient(90deg, #D32F2F, #e6605c);
 }
 
 // ── Card body ─────────────────────────────
 .apoyo-card-body {
-  padding: 14px 16px;
+  padding: 16px 18px;
 }
 
 .apoyo-card-header {
@@ -99,10 +268,10 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.3px;
 
   ion-icon {
     font-size: 12px;
@@ -114,23 +283,23 @@
 }
 
 .blue-cat {
-  color: #60a5fa;
+  color: #0D47A1;
 }
 
 .red-cat {
-  color: #ef4444;
+  color: #D32F2F;
 }
 
 .apoyo-card-title {
   margin: 4px 0 0;
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 800;
+  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+  font-size: 14.5px;
+  font-weight: 700;
   color: var(--white);
 }
 
 .apoyo-card-desc {
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--white-35);
   margin-top: 6px;
   line-height: 1.5;
@@ -138,32 +307,35 @@
 
 // ── Resources list ────────────────────────
 .resources-list {
-  margin-top: 12px;
+  margin-top: 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .resource-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 10px;
-  padding: 9px 12px;
+  gap: 11px;
+  background: #EEF2F7;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 11px 14px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.18s ease, border-color 0.18s ease;
 
+  &:hover {
+    border-color: rgba(245, 124, 0, 0.25);
+  }
   &:active {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(245, 124, 0, 0.05);
   }
 }
 
 .resource-icon-wrap {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -173,19 +345,33 @@
     font-size: 16px;
   }
 
+  // Clases por tipo de archivo (usadas si el mapeo es por tipo)
   &.video-icon {
-    background: rgba(255, 107, 0, 0.12);
+    background: rgba(245, 124, 0, 0.1);
     ion-icon { color: var(--orange); }
   }
-
   &.pdf-icon {
-    background: rgba(239, 68, 68, 0.1);
-    ion-icon { color: #ef4444; }
+    background: rgba(211, 47, 47, 0.08);
+    ion-icon { color: #D32F2F; }
+  }
+  &.doc-icon {
+    background: rgba(13, 71, 161, 0.08);
+    ion-icon { color: #0D47A1; }
   }
 
-  &.doc-icon {
-    background: rgba(59, 91, 219, 0.12);
-    ion-icon { color: #60a5fa; }
+  // Clases por color de grupo (grupo.color + '-icon' en el HTML),
+  // siguiendo el mismo patrón que orange-bar/blue-bar/red-bar arriba.
+  &.orange-icon {
+    background: rgba(245, 124, 0, 0.1);
+    ion-icon { color: var(--orange); }
+  }
+  &.blue-icon {
+    background: rgba(13, 71, 161, 0.08);
+    ion-icon { color: #0D47A1; }
+  }
+  &.red-icon {
+    background: rgba(211, 47, 47, 0.08);
+    ion-icon { color: #D32F2F; }
   }
 }
 
@@ -197,13 +383,13 @@
 }
 
 .resource-name {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--white);
 }
 
 .resource-meta {
-  font-size: 9px;
+  font-size: 9.5px;
   color: var(--white-35);
   margin-top: 2px;
 }
@@ -213,11 +399,60 @@
   --padding-start: 4px;
   --padding-end: 4px;
 
+  &.orange-action {
+    --color: var(--orange);
+  }
   &.blue-action {
-    --color: #60a5fa;
+    --color: #0D47A1;
+  }
+  &.red-action {
+    --color: #D32F2F;
+  }
+}
+
+.resource-delete-btn {
+  --color: #D32F2F;
+  --padding-start: 4px;
+  --padding-end: 4px;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+
+  &:hover { opacity: 1; }
+}
+
+// ─────────────────────────────────────────────────────────
+// RESPONSIVE — iPad: contenido centrado, más aire
+// ─────────────────────────────────────────────────────────
+@media (min-width: 768px) {
+  .section-hero,
+  .search-bar-wrap,
+  .upload-form-card,
+  .apoyo-cards-container {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
-  &.red-action {
-    --color: #ef4444;
+  .section-title { font-size: 24px; }
+}
+
+@media (min-width: 1024px) {
+  .section-hero,
+  .search-bar-wrap,
+  .upload-form-card,
+  .apoyo-cards-container {
+    max-width: 860px;
+  }
+
+  // Grid de 2 columnas para las tarjetas de materia en pantallas grandes
+  .apoyo-cards-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .apoyo-card {
+    margin-bottom: 0;
   }
 }
