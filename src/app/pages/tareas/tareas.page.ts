@@ -480,11 +480,13 @@ export class TareasPage implements OnInit {
 
   private async crear(archivos: ArchivoSubido[], mat?: Materia, grp?: Grupo) {
     const t = this.newTask;
-    const { data, error } = await this.sesion.supabase.from('academic_tarea').insert({
-      titulo: t.titulo.trim(), descripcion: t.descripcion.trim(),
-      fecha_entrega: t.fecha, asignatura_id: t.materiaId, grupo_id: t.grupoId,
-      docente_id: this.sesion.usuario?.id, archivo: JSON.stringify(archivos), publicada: t.publicada,
-    }).select().single();
+  const { data, error } = await this.sesion.supabase.from('academic_tarea').insert({
+    titulo: t.titulo.trim(), descripcion: t.descripcion.trim(),
+    fecha_entrega: t.fecha, asignatura_id: t.materiaId, grupo_id: t.grupoId,
+    docente_id: this.sesion.usuario?.id, archivo: JSON.stringify(archivos), publicada: t.publicada,
+    creada_en: new Date().toISOString(),
+    activa: true,
+  }).select().single()
     if (error) throw error;
     this.tareas.unshift({
       id: data.id, titulo: data.titulo, descripcion: data.descripcion || '', fecha_entrega: data.fecha_entrega,

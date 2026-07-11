@@ -158,6 +158,32 @@
         </button>
       </div>
     </div>
+<!-- Preguntas de opción múltiple -->
+<div class="input-group" *ngIf="newAct.tipo === 'MULTIPLE'">
+  <label class="input-label">Preguntas</label>
+
+  <div class="pregunta-card" *ngFor="let p of preguntasForm; let pi = index">
+    <div class="pregunta-header">
+      <input type="text" [(ngModel)]="p.texto" placeholder="Escribe la pregunta..." class="pregunta-texto-input" />
+      <input type="number" [(ngModel)]="p.puntos" min="0" step="0.5" class="pregunta-puntos-input" title="Puntos" />
+      <ion-icon name="trash-outline" class="pregunta-quitar" (click)="quitarPregunta(pi)"></ion-icon>
+    </div>
+
+    <div class="opcion-row" *ngFor="let o of p.opciones; let oi = index">
+      <input type="radio" [checked]="o.es_correcta" (change)="marcarCorrecta(pi, oi)" [name]="'correcta-' + pi" />
+      <input type="text" [(ngModel)]="o.texto" placeholder="Opción {{ oi + 1 }}" class="opcion-texto-input" />
+      <ion-icon name="close-outline" class="opcion-quitar" (click)="quitarOpcion(pi, oi)"></ion-icon>
+    </div>
+
+    <button class="btn-agregar-opcion" (click)="agregarOpcion(pi)">
+      <ion-icon name="add-outline"></ion-icon> Agregar opción
+    </button>
+  </div>
+
+  <button class="btn-agregar-pregunta" (click)="agregarPregunta()">
+    <ion-icon name="add-circle-outline"></ion-icon> Agregar pregunta
+  </button>
+</div>
 
     <!-- URL interactiva -->
     <div class="input-group" *ngIf="newAct.tipo === 'INTERACTIVA'">
@@ -600,24 +626,23 @@
         </div>
       </div>
 
-      <!-- Tipos no entregables via app -->
-      <div class="no-entregable" *ngIf="actividadEntregando.tipo === 'MULTIPLE' || actividadEntregando.tipo === 'INTERACTIVA'">
-        <ion-icon name="information-circle-outline"></ion-icon>
-        <div>
-          <strong>{{ actividadEntregando.tipo === 'INTERACTIVA' ? 'Actividad interactiva' : 'Opción múltiple' }}</strong>
-          <p *ngIf="actividadEntregando.url_interactiva">
-            Completa la actividad en el enlace externo.
-          </p>
-          <a *ngIf="actividadEntregando.url_interactiva"
-            [href]="actividadEntregando.url_interactiva" target="_blank" class="link-chip">
-            <ion-icon name="open-outline"></ion-icon>
-            Abrir actividad
-          </a>
-        </div>
-      </div>
-    </div>
+<!-- Opción múltiple -->
+<div class="input-group" *ngIf="actividadEntregando.tipo === 'MULTIPLE'">
+  <div *ngIf="cargandoPreguntas" class="entregas-loading">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+  <div class="pregunta-alumno-card" *ngFor="let p of preguntasAlumno">
+    <p class="pregunta-alumno-texto">{{ p.texto }}</p>
+    <label class="opcion-alumno-row" *ngFor="let o of p.opciones">
+      <input type="radio" [name]="'preg-' + p.id" [value]="o.id"
+        [checked]="respuestasSeleccionadas[p.id] === o.id"
+        (change)="respuestasSeleccionadas[p.id] = o.id" />
+      <span>{{ o.texto }}</span>
+    </label>
+  </div>
+</div>
 
-    <div class="modal-footer" *ngIf="actividadEntregando.tipo === 'ABIERTA' || actividadEntregando.tipo === 'ARCHIVO'">
+    <div class="modal-footer" *ngIf="actividadEntregando?.tipo === 'ABIERTA' || actividadEntregando?.tipo === 'ARCHIVO' || actividadEntregando?.tipo === 'MULTIPLE'">
       <button class="btn-cancel" (click)="cerrarEntrega()">
         <ion-icon name="close-outline"></ion-icon>
         Cancelar

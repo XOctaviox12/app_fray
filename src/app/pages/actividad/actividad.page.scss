@@ -530,3 +530,217 @@
   color: #60a5fa; font-size: 11.5px; font-weight: 700; text-decoration: none;
   ion-icon { font-size: 15px; }
 }
+// ══════════════════════════════════════════════════════════
+//  OPCIÓN MÚLTIPLE — Editor de preguntas (docente)
+// ══════════════════════════════════════════════════════════
+
+.pregunta-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+
+  &:hover {
+    border-color: rgba(255, 107, 0, 0.25);
+  }
+}
+
+.pregunta-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.pregunta-texto-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+
+  &::placeholder { color: rgba(255, 255, 255, 0.4); }
+  &:focus {
+    outline: none;
+    border-color: #ff6b00;
+    background: rgba(255, 255, 255, 0.07);
+  }
+}
+
+.pregunta-puntos-input {
+  width: 56px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px 8px;
+  color: #ff9a44;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+
+  &:focus { outline: none; border-color: #ff6b00; }
+}
+
+.pregunta-quitar {
+  font-size: 20px;
+  color: rgba(239, 68, 68, 0.7);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    color: #ef4444;
+    transform: scale(1.1);
+  }
+}
+
+.opcion-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+
+  input[type="radio"] {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    accent-color: #ff6b00;
+    cursor: pointer;
+  }
+}
+
+.opcion-texto-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #fff;
+  font-size: 13px;
+
+  &::placeholder { color: rgba(255, 255, 255, 0.35); }
+  &:focus {
+    outline: none;
+    border-color: rgba(255, 107, 0, 0.5);
+  }
+}
+
+.opcion-quitar {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+
+  &:hover { color: #ef4444; }
+}
+
+.btn-agregar-opcion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px dashed rgba(255, 107, 0, 0.35);
+  border-radius: 8px;
+  color: #ff9a44;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 7px 12px;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  ion-icon { font-size: 15px; }
+
+  &:hover {
+    background: rgba(255, 107, 0, 0.08);
+    border-color: #ff6b00;
+  }
+}
+
+.btn-agregar-pregunta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  background: linear-gradient(135deg, rgba(10, 31, 68, 0.6), rgba(26, 58, 110, 0.6));
+  border: 1px solid rgba(255, 107, 0, 0.3);
+  border-radius: 12px;
+  color: #ff9a44;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  ion-icon { font-size: 18px; }
+
+  &:hover {
+    background: linear-gradient(135deg, #0a1f44, #1a3a6e);
+    border-color: #ff6b00;
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  OPCIÓN MÚLTIPLE — Vista de respuesta (alumno)
+// ══════════════════════════════════════════════════════════
+
+.pregunta-alumno-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.pregunta-alumno-texto {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 10px;
+}
+
+.opcion-alumno-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:last-child { margin-bottom: 0; }
+
+  &:hover {
+    background: rgba(255, 107, 0, 0.06);
+    border-color: rgba(255, 107, 0, 0.3);
+  }
+
+  input[type="radio"] {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    accent-color: #ff6b00;
+    cursor: pointer;
+  }
+
+  span {
+    font-size: 13.5px;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  &:has(input:checked) {
+    background: rgba(255, 107, 0, 0.1);
+    border-color: #ff6b00;
+
+    span { color: #fff; font-weight: 600; }
+  }
+}

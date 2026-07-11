@@ -49,6 +49,22 @@ export interface ActividadItem {
   } | null;
 }
 
+interface OpcionForm {
+  id?: number;
+  texto: string;
+  es_correcta: boolean;
+}
+interface PreguntaForm {
+  id?: number;
+  texto: string;
+  puntos: number;
+  opciones: OpcionForm[];
+}
+interface PreguntaAlumno {
+  id: number;
+  texto: string;
+  opciones: { id: number; texto: string }[];
+}
 interface Materia { id: number; nombre: string; }
 interface Grupo   { id: number; nombre: string; grado: number; aula: string; }
 interface ArchivoEnProgreso {
@@ -85,7 +101,13 @@ export class ActividadPage implements OnInit {
 
   cargando = true;
   error    = '';
+    // ── Opción múltiple — editor docente ──────────────────────
+  preguntasForm: PreguntaForm[] = [];
 
+  // ── Opción múltiple — responder alumno ────────────────────
+  preguntasAlumno: PreguntaAlumno[] = [];
+  respuestasSeleccionadas: Record<number, number> = {}; // pregunta_id -> opcion_id
+  cargandoPreguntas = false;
   actividades: ActividadItem[] = [];
 
   // ── Filtros separados por rol ─────────────────────────────
@@ -156,7 +178,75 @@ export class ActividadPage implements OnInit {
     if (this.esDocente) this.cargarMaterias();
     this.cargarActividades();
   }
+  agregarPregunta() {
+      this.preguntasForm.push({ texto: '', puntos: 1, opciones: [
+        { texto: '', es_correcta: true },
+        { texto: '', es_correcta: false },
+      ]});
+    }
+    quitarPregunta(i: number) { this.preguntasForm.splice(i, 1); }
 
+    agregarOpcion(pi: number) { this.preguntasForm[pi].opciones.push({ texto: '', es_correcta: false }); }
+    quitarOpcion(pi: number, oi: number) { this.preguntasForm[pi].opciones.splice(oi, 1); }
+
+    marcarCorrecta(pi: number, oi: number) {
+      this.preguntasForm[pi].opciones.forEach((o, idx) => o.es_correcta = idx === oi);
+    }
+
+// Carga preguntas/opciones existentes al editar una actividad MULTIPLE
+private async cargarPreguntasParaEditar(actividadId: number) {
+  const { data: pregs } = await this.supabase
+    .from('academic_preguntaactividad')
+    .select('id, texto, puntos, orden')
+    .eq('actividad_id', actividadId)
+    .order('orden');
+
+  this.preguntasForm = [];
+  for (const p of pregs || []) {
+    const { data: ops } = await this.supabase
+      .from('academic_opcionrespuesta')
+      .select('id, texto, es_correcta')
+      .eq('pregunta_id', p.id);
+    this.preguntasForm.push({
+      id: p.id, texto: p.texto, puntos: parseFloat(p.puntos),
+      opciones: (ops || []).map((o: any) => ({ id: o.id, texto: o.texto, es_correcta: o.es_correcta })),
+    });
+  }
+}
+
+// Guarda preguntas y opciones: borra las viejas y recrea (más simple y confiable que un upsert parcial)
+private async guardarPreguntasOpciones(actividadId: number) {
+  const { data: viejas } = await this.supabase
+    .from('academic_preguntaactividad').select('id').eq('actividad_id', actividadId);
+  const idsViejas = (viejas || []).map((p: any) => p.id);
+
+  if (idsViejas.length) {
+    await this.supabase.from('academic_respuestaalumno').delete().in('pregunta_id', idsViejas);
+    await this.supabase.from('academic_opcionrespuesta').delete().in('pregunta_id', idsViejas);
+    await this.supabase.from('academic_preguntaactividad').delete().eq('actividad_id', actividadId);
+  }
+
+  for (let i = 0; i < this.preguntasForm.length; i++) {
+    const p = this.preguntasForm[i];
+    if (!p.texto.trim()) continue;
+
+    const { data: pregInsertada, error: errP } = await this.supabase
+      .from('academic_preguntaactividad')
+      .insert({ texto: p.texto.trim(), orden: i, puntos: p.puntos, actividad_id: actividadId })
+      .select('id').single();
+    if (errP) throw errP;
+
+    const opcionesValidas = p.opciones.filter(o => o.texto.trim());
+    if (opcionesValidas.length) {
+      const { error: errO } = await this.supabase.from('academic_opcionrespuesta').insert(
+        opcionesValidas.map(o => ({
+          texto: o.texto.trim(), es_correcta: o.es_correcta, pregunta_id: (pregInsertada as any).id,
+        }))
+      );
+      if (errO) throw errO;
+    }
+  }
+}
   // ══════════════════════════════════════════════════════════
   //  CARGA PRINCIPAL
   // ══════════════════════════════════════════════════════════
@@ -363,12 +453,35 @@ export class ActividadPage implements OnInit {
   //  ENTREGAR ACTIVIDAD (alumno)
   // ══════════════════════════════════════════════════════════
 
-  abrirEntrega(act: ActividadItem) {
-    this.actividadEntregando = act;
-    this.respuestaTexto  = act.entrega?.respuesta_texto || '';
-    this.archivoEntrega  = null;
-    this.progresoEntrega = 0;
+async abrirEntrega(act: ActividadItem) {
+  this.actividadEntregando = act;
+  this.respuestaTexto  = act.entrega?.respuesta_texto || '';
+  this.archivoEntrega  = null;
+  this.progresoEntrega = 0;
+  this.preguntasAlumno = [];
+  this.respuestasSeleccionadas = {};
+
+  if (act.tipo === 'MULTIPLE') {
+    this.cargandoPreguntas = true;
+    try {
+      const { data: pregs } = await this.supabase
+        .from('academic_preguntaactividad').select('id, texto, orden').eq('actividad_id', act.id).order('orden');
+
+      for (const p of pregs || []) {
+        const { data: ops } = await this.supabase
+          .from('academic_opcionrespuesta').select('id, texto').eq('pregunta_id', p.id);
+        this.preguntasAlumno.push({ id: p.id, texto: p.texto, opciones: ops || [] });
+      }
+
+      // Cargar selección previa si ya había entregado
+      if (act.entrega?.id) {
+        const { data: resp } = await this.supabase
+          .from('academic_respuestaalumno').select('pregunta_id, opcion_id').eq('entrega_id', act.entrega.id);
+        (resp || []).forEach((r: any) => { if (r.opcion_id) this.respuestasSeleccionadas[r.pregunta_id] = r.opcion_id; });
+      }
+    } finally { this.cargandoPreguntas = false; }
   }
+}
 
   cerrarEntrega() {
     this.actividadEntregando = null;
@@ -384,96 +497,98 @@ export class ActividadPage implements OnInit {
     e.target.value = '';
   }
 
-  async guardarEntrega() {
-    const act = this.actividadEntregando;
-    if (!act) return;
-    const alumnoId = this.sesion.usuario?.id;
+async guardarEntrega() {
+  const act = this.actividadEntregando;
+  if (!act) return;
+  const alumnoId = this.sesion.usuario?.id;
 
-    if (act.tipo === 'ABIERTA' && !this.respuestaTexto.trim())
-      { this.toast('Escribe tu respuesta.', 'warning'); return; }
-    if (act.tipo === 'ARCHIVO' && !this.archivoEntrega && !act.entrega?.archivo_url)
-      { this.toast('Selecciona un archivo para entregar.', 'warning'); return; }
+  if (act.tipo === 'ABIERTA' && !this.respuestaTexto.trim())
+    { this.toast('Escribe tu respuesta.', 'warning'); return; }
+  if (act.tipo === 'ARCHIVO' && !this.archivoEntrega && !act.entrega?.archivo_url)
+    { this.toast('Selecciona un archivo para entregar.', 'warning'); return; }
+  if (act.tipo === 'MULTIPLE' && this.preguntasAlumno.some(p => !this.respuestasSeleccionadas[p.id]))
+    { this.toast('Responde todas las preguntas.', 'warning'); return; }
 
-    this.guardandoEntrega = true;
-    try {
-      let archivoUrl = act.entrega?.archivo_url || null;
+  this.guardandoEntrega = true;
+  try {
+    let archivoUrl = act.entrega?.archivo_url || null;
 
-      if (this.archivoEntrega) {
-        this.subiendoEntrega = true;
-        const r = await this.cloudinary.subirArchivo(
-          this.archivoEntrega,
-          pct => { this.progresoEntrega = pct; }
-        );
-        archivoUrl = r.url;
-        this.subiendoEntrega = false;
-      }
+    if (this.archivoEntrega) {
+      this.subiendoEntrega = true;
+      const r = await this.cloudinary.subirArchivo(this.archivoEntrega, pct => { this.progresoEntrega = pct; });
+      archivoUrl = r.url;
+      this.subiendoEntrega = false;
+    }
 
-      // Upsert de la entrega
-      const ahoraIso = new Date().toISOString();
-      const payload: any = {
-        actividad_id: act.id, alumno_id: alumnoId,
-        archivo:      archivoUrl,
-        feedback:     act.entrega?.feedback || '',
-        entregada_en: ahoraIso,
-      };
+    const ahoraIso = new Date().toISOString();
+    const payload: any = {
+      actividad_id: act.id, alumno_id: alumnoId,
+      archivo: archivoUrl,
+      feedback: act.entrega?.feedback || '',
+      entregada_en: ahoraIso,
+    };
 
-      let entregaId = act.entrega?.id;
+    let entregaId = act.entrega?.id;
 
-      if (entregaId) {
-        const { error: errUpd } = await this.supabase
-          .from('academic_entregaactividad').update(payload).eq('id', entregaId);
-        if (errUpd) throw errUpd;
+    if (entregaId) {
+      const { error: errUpd } = await this.supabase.from('academic_entregaactividad').update(payload).eq('id', entregaId);
+      if (errUpd) throw errUpd;
+    } else {
+      const { data, error: errIns } = await this.supabase.from('academic_entregaactividad').insert(payload).select('id').single();
+      if (errIns) throw errIns;
+      entregaId = (data as any)?.id;
+    }
+
+    // ── Opción múltiple: guardar la opción elegida por pregunta ──
+    if (act.tipo === 'MULTIPLE' && entregaId) {
+      await this.supabase.from('academic_respuestaalumno').delete().eq('entrega_id', entregaId);
+      const filas = this.preguntasAlumno.map(p => {
+        const opcionId = this.respuestasSeleccionadas[p.id];
+        const opcionTexto = p.opciones.find(o => o.id === opcionId)?.texto || '';
+        return { entrega_id: entregaId, pregunta_id: p.id, opcion_id: opcionId, texto: opcionTexto };
+      });
+      const { error: errResp } = await this.supabase.from('academic_respuestaalumno').insert(filas);
+      if (errResp) throw errResp;
+    }
+
+    // Guardar respuesta de texto si es ABIERTA
+    if (act.tipo === 'ABIERTA' && this.respuestaTexto.trim() && entregaId) {
+      const { data: existResp } = await this.supabase
+        .from('academic_respuestaalumno').select('id').eq('entrega_id', entregaId).maybeSingle();
+
+      if (existResp) {
+        const { error: errRespUpd } = await this.supabase.from('academic_respuestaalumno')
+          .update({ texto: this.respuestaTexto.trim() }).eq('id', (existResp as any).id);
+        if (errRespUpd) throw errRespUpd;
       } else {
-        const { data, error: errIns } = await this.supabase
-          .from('academic_entregaactividad').insert(payload).select('id').single();
-        if (errIns) throw errIns;
-        entregaId = (data as any)?.id;
-      }
-
-      // Guardar respuesta de texto si es ABIERTA
-      if (act.tipo === 'ABIERTA' && this.respuestaTexto.trim() && entregaId) {
-        const { data: existResp } = await this.supabase
-          .from('academic_respuestaalumno').select('id')
-          .eq('entrega_id', entregaId).maybeSingle();
-
-        if (existResp) {
-          const { error: errRespUpd } = await this.supabase.from('academic_respuestaalumno')
-            .update({ texto: this.respuestaTexto.trim() }).eq('id', (existResp as any).id);
-          if (errRespUpd) throw errRespUpd;
-        } else {
-          // Necesitamos la primera pregunta de la actividad
-          const { data: preg } = await this.supabase
-            .from('academic_preguntaactividad').select('id').eq('actividad_id', act.id).limit(1).single();
-          if (preg) {
-            const { error: errRespIns } = await this.supabase.from('academic_respuestaalumno').insert({
-              entrega_id:  entregaId,
-              pregunta_id: (preg as any).id,
-              texto:       this.respuestaTexto.trim(),
-            });
-            if (errRespIns) throw errRespIns;
-          }
+        const { data: preg } = await this.supabase
+          .from('academic_preguntaactividad').select('id').eq('actividad_id', act.id).limit(1).single();
+        if (preg) {
+          const { error: errRespIns } = await this.supabase.from('academic_respuestaalumno').insert({
+            entrega_id: entregaId, pregunta_id: (preg as any).id, texto: this.respuestaTexto.trim(),
+          });
+          if (errRespIns) throw errRespIns;
         }
       }
-
-      // Actualizar estado local
-      const idx = this.actividades.findIndex(a => a.id === act.id);
-      if (idx !== -1) {
-        this.actividades[idx].entrega = {
-          id: entregaId!, calificacion: null, feedback: act.entrega?.feedback || '',
-          entregada_en: ahoraIso,
-          archivo_url: archivoUrl, respuesta_texto: this.respuestaTexto.trim(),
-        };
-      }
-
-      this.toast('Actividad entregada con éxito.', 'success');
-      this.cerrarEntrega();
-    } catch (e: any) {
-      this.toast('Error al entregar: ' + e.message, 'danger');
-    } finally {
-      this.guardandoEntrega = false;
-      this.subiendoEntrega  = false;
     }
+
+    const idx = this.actividades.findIndex(a => a.id === act.id);
+    if (idx !== -1) {
+      this.actividades[idx].entrega = {
+        id: entregaId!, calificacion: null, feedback: act.entrega?.feedback || '',
+        entregada_en: ahoraIso, archivo_url: archivoUrl, respuesta_texto: this.respuestaTexto.trim(),
+      };
+    }
+
+    this.toast('Actividad entregada con éxito.', 'success');
+    this.cerrarEntrega();
+  } catch (e: any) {
+    this.toast('Error al entregar: ' + e.message, 'danger');
+  } finally {
+    this.guardandoEntrega = false;
+    this.subiendoEntrega  = false;
   }
+}
 
   // ══════════════════════════════════════════════════════════
   //  VER ENTREGAS (docente)
@@ -662,21 +777,23 @@ export class ActividadPage implements OnInit {
     finally { this.cargandoOpts = false; }
   }
 
-  abrirFormularioNuevo() { this.editingId = null; this.resetForm(); this.showForm = true; }
+ abrirFormularioNuevo() { this.editingId = null; this.resetForm(); this.preguntasForm = []; this.showForm = true; }
 
-  async abrirFormularioEditar(a: ActividadItem) {
-    this.editingId = a.id;
-    this.archivosEnProgreso = []; this.archivosExistentes = [];
-    const fh = a.fecha_entrega?.slice(0, 16) || '';
-    this.newAct = {
-      titulo: a.titulo, instrucciones: a.instrucciones, tipo: a.tipo,
-      fecha: fh.slice(0, 10), hora: fh.slice(11, 16) || '23:59',
-      valor_total: a.valor_total, url_interactiva: a.url_interactiva || '',
-      publicada: a.publicada, materiaId: a.asignatura_id, grupoId: null,
-    };
-    this.showForm = true;
-    await this.onMateriaChange(a.grupo_id);
-  }
+async abrirFormularioEditar(a: ActividadItem) {
+  this.editingId = a.id;
+  this.archivosEnProgreso = []; this.archivosExistentes = [];
+  const fh = a.fecha_entrega?.slice(0, 16) || '';
+  this.newAct = {
+    titulo: a.titulo, instrucciones: a.instrucciones, tipo: a.tipo,
+    fecha: fh.slice(0, 10), hora: fh.slice(11, 16) || '23:59',
+    valor_total: a.valor_total, url_interactiva: a.url_interactiva || '',
+    publicada: a.publicada, materiaId: a.asignatura_id, grupoId: null,
+  };
+  this.preguntasForm = [];
+  if (a.tipo === 'MULTIPLE') await this.cargarPreguntasParaEditar(a.id);
+  this.showForm = true;
+  await this.onMateriaChange(a.grupo_id);
+}
 
   async solicitarCierre() {
     const al = await this.alertCtrl.create({
@@ -693,49 +810,64 @@ export class ActividadPage implements OnInit {
     this.archivosEnProgreso = []; this.archivosExistentes = []; this.gruposDeMateria = []; this.errorOpts = null;
   }
 
-  async guardarActividad() {
-    const f = this.newAct;
-    if (!f.titulo.trim())  { this.toast('Ponle un título.', 'warning'); return; }
-    if (!f.materiaId)      { this.toast('Elige la materia.', 'warning'); return; }
-    if (!f.grupoId)        { this.toast('Elige el grupo.', 'warning'); return; }
-    if (!f.fecha)          { this.toast('Elige la fecha.', 'warning'); return; }
-    if (f.tipo === 'INTERACTIVA' && !f.url_interactiva?.trim()) { this.toast('Agrega el enlace.', 'warning'); return; }
+async guardarActividad() {
+  const f = this.newAct;
+  if (!f.titulo.trim())  { this.toast('Ponle un título.', 'warning'); return; }
+  if (!f.materiaId)      { this.toast('Elige la materia.', 'warning'); return; }
+  if (!f.grupoId)        { this.toast('Elige el grupo.', 'warning'); return; }
+  if (!f.fecha)          { this.toast('Elige la fecha.', 'warning'); return; }
+  if (f.tipo === 'INTERACTIVA' && !f.url_interactiva?.trim()) { this.toast('Agrega el enlace.', 'warning'); return; }
+  if (f.tipo === 'MULTIPLE' && (!this.preguntasForm.length || this.preguntasForm.some(p => !p.texto.trim() || p.opciones.filter(o=>o.texto.trim()).length < 2)))
+    { this.toast('Cada pregunta necesita texto y al menos 2 opciones.', 'warning'); return; }
 
-    this.guardando = true;
-    try {
-      const arch = this.archivosEnProgreso.filter(a => a.resultado).map(a => a.resultado!);
-      const archivoFinal = arch.length ? arch[0] : this.archivosExistentes[0] || null;
-      const payload: any = {
+  this.guardando = true;
+  try {
+    const arch = this.archivosEnProgreso.filter(a => a.resultado).map(a => a.resultado!);
+    const archivoFinal = arch.length ? arch[0] : this.archivosExistentes[0] || null;
+    const payload: any = {
         titulo: f.titulo.trim(), instrucciones: f.instrucciones.trim(), tipo: f.tipo,
         fecha_entrega: `${f.fecha}T${f.hora}:00`, valor_total: f.valor_total,
         url_interactiva: f.url_interactiva?.trim() || null, publicada: f.publicada,
         asignatura_id: f.materiaId, grupo_id: f.grupoId, docente_id: this.sesion.usuario?.id,
         archivo: archivoFinal ? archivoFinal.url : null,
+        calificacion_automatica: false,
       };
 
-      if (this.editingId) {
-        const { data, error } = await this.supabase.from('academic_actividad').update(payload).eq('id', this.editingId).select().single();
-        if (error) throw error;
-        const idx = this.actividades.findIndex(a => a.id === this.editingId);
-        if (idx !== -1) {
-          const g = this.gruposDeMateria.find(g => g.id === f.grupoId);
-          const m = this.materias.find(m => m.id === f.materiaId);
-          this.actividades[idx] = { ...this.actividades[idx], titulo: data.titulo, instrucciones: data.instrucciones, tipo: data.tipo, fecha_entrega: data.fecha_entrega, valor_total: parseFloat(data.valor_total), url_interactiva: data.url_interactiva, publicada: data.publicada, asignatura: m?.nombre || this.actividades[idx].asignatura, grupo: g ? `${g.grado}° ${g.nombre}` : this.actividades[idx].grupo };
-        }
-        this.toast('Actividad actualizada.', 'success');
-      } else {
-        const { data, error } = await this.supabase.from('academic_actividad').insert(payload).select().single();
-        if (error) throw error;
+      if (!this.editingId) {
+        payload.creada_en = new Date().toISOString();
+      }
+
+    let actividadIdFinal: number;
+
+    if (this.editingId) {
+      const { data, error } = await this.supabase.from('academic_actividad').update(payload).eq('id', this.editingId).select().single();
+      if (error) throw error;
+      actividadIdFinal = this.editingId;
+      const idx = this.actividades.findIndex(a => a.id === this.editingId);
+      if (idx !== -1) {
         const g = this.gruposDeMateria.find(g => g.id === f.grupoId);
         const m = this.materias.find(m => m.id === f.materiaId);
-        this.actividades.unshift({ id:data.id, titulo:data.titulo, instrucciones:data.instrucciones, tipo:data.tipo, fecha_entrega:data.fecha_entrega, valor_total:parseFloat(data.valor_total), url_interactiva:data.url_interactiva, asignatura:m?.nombre||'—', asignatura_id:f.materiaId!, grupo:g?`${g.grado}° ${g.nombre}`:'—', grupo_id:f.grupoId!, docente:'', publicada:data.publicada, vencida:false, totalEntregas:0, totalAlumnos:0, entregas:undefined, entrega:null });
-        this.toast('Actividad creada.', 'success');
+        this.actividades[idx] = { ...this.actividades[idx], titulo: data.titulo, instrucciones: data.instrucciones, tipo: data.tipo, fecha_entrega: data.fecha_entrega, valor_total: parseFloat(data.valor_total), url_interactiva: data.url_interactiva, publicada: data.publicada, asignatura: m?.nombre || this.actividades[idx].asignatura, grupo: g ? `${g.grado}° ${g.nombre}` : this.actividades[idx].grupo };
       }
-      this.forzarCierre();
-    } catch (e: any) { this.toast('Error: ' + e.message, 'danger'); }
-    finally { this.guardando = false; }
-  }
+      this.toast('Actividad actualizada.', 'success');
+    } else {
+      const { data, error } = await this.supabase.from('academic_actividad').insert(payload).select().single();
+      if (error) throw error;
+      actividadIdFinal = data.id;
+      const g = this.gruposDeMateria.find(g => g.id === f.grupoId);
+      const m = this.materias.find(m => m.id === f.materiaId);
+      this.actividades.unshift({ id:data.id, titulo:data.titulo, instrucciones:data.instrucciones, tipo:data.tipo, fecha_entrega:data.fecha_entrega, valor_total:parseFloat(data.valor_total), url_interactiva:data.url_interactiva, asignatura:m?.nombre||'—', asignatura_id:f.materiaId!, grupo:g?`${g.grado}° ${g.nombre}`:'—', grupo_id:f.grupoId!, docente:'', publicada:data.publicada, vencida:false, totalEntregas:0, totalAlumnos:0, entregas:undefined, entrega:null });
+      this.toast('Actividad creada.', 'success');
+    }
 
+    if (f.tipo === 'MULTIPLE') {
+      await this.guardarPreguntasOpciones(actividadIdFinal);
+    }
+
+    this.forzarCierre();
+  } catch (e: any) { this.toast('Error: ' + e.message, 'danger'); }
+  finally { this.guardando = false; }
+}
 async eliminarActividad(act: ActividadItem) {
   const al = await this.alertCtrl.create({
     header: 'Eliminar actividad',
