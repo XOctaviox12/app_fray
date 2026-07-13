@@ -23,7 +23,9 @@
 </ion-header>
 
 <ion-content class="clase-content">
-
+<ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
   <div class="loading-overlay" *ngIf="cargando">
     <ion-spinner name="crescent"></ion-spinner>
     <p>Conectando...</p>
