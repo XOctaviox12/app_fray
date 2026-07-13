@@ -17,7 +17,7 @@ export class AppComponent implements OnInit {
   // Fallback real de avatar: antes el handler (error) estaba vacío y no
   // hacía nada si la imagen fallaba en tiempo real (URL rota, Cloudinary
   // caído, etc.). Ahora sí conmuta a un avatar local por defecto.
-  private avatarFallback = 'assets/img/default-avatar.png';
+  private avatarFallback = 'assets/img/usuario.png';
   private avatarErrorOcurrido = false;
 
   // Badge "HOY" real: se calcula revisando si falta tomar asistencia hoy

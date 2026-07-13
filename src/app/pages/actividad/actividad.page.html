@@ -5,7 +5,7 @@
         <ion-icon name="menu-outline"></ion-icon>
       </ion-menu-button>
     </ion-buttons>
-    <ion-title class="header-title">
+    <ion-title class="header-title text-truncate">
       {{ esDocente ? 'Actividades del Grupo' : esTutor ? 'Actividades del Alumno' : 'Mis Actividades' }}
     </ion-title>
 
@@ -22,7 +22,7 @@
   <!-- ── Error ── -->
   <div *ngIf="error" class="global-error">
     <ion-icon name="alert-circle-outline"></ion-icon>
-    {{ error }}
+    <span class="text-clamp-2">{{ error }}</span>
   </div>
 
   <!-- ════════════════════════════════════════════════════ -->
@@ -30,12 +30,12 @@
   <!-- ════════════════════════════════════════════════════ -->
   <div class="hero-section">
     <div class="hero-info">
-      <h1 class="hero-title">
+      <h1 class="hero-title text-truncate">
         {{ esDocente ? 'Seguimiento de actividades'
          : esTutor  ? 'Seguimiento del alumno'
          : 'Tus Actividades' }}
       </h1>
-      <p class="hero-sub">
+      <p class="hero-sub text-clamp-2">
         {{ esDocente ? 'Crea y gestiona actividades para tus grupos'
          : esTutor  ? 'Revisa las actividades y entregas'
          : 'Organiza tus entregas y no dejes nada pendiente' }}
@@ -49,7 +49,7 @@
           [style.strokeDashoffset]="progressOffset" />
       </svg>
       <div class="ring-label">
-        <span class="ring-percent">{{ completionPercent }}%</span>
+        <span class="ring-percent text-nowrap-number">{{ completionPercent }}%</span>
         <span class="ring-text">listo</span>
       </div>
     </div>
@@ -58,60 +58,60 @@
   <!-- ── Stats / filtros ALUMNO ── -->
   <div class="quick-stats" *ngIf="esAlumno">
     <div class="stat-bubble total"      [class.active]="filtroAlumno === 'TODAS'"      (click)="filtroAlumno = 'TODAS'">
-      <span class="stat-num">{{ actividades.length }}</span>
-      <span class="stat-label">Total</span>
+      <span class="stat-num text-nowrap-number">{{ actividades.length }}</span>
+      <span class="stat-label text-truncate">Total</span>
     </div>
     <div class="stat-bubble pending"    [class.active]="filtroAlumno === 'PENDIENTE'"  (click)="filtroAlumno = 'PENDIENTE'">
-      <span class="stat-num">{{ totalPendientes }}</span>
-      <span class="stat-label">Pendiente</span>
+      <span class="stat-num text-nowrap-number">{{ totalPendientes }}</span>
+      <span class="stat-label text-truncate">Pendiente</span>
     </div>
     <div class="stat-bubble done"       [class.active]="filtroAlumno === 'ENTREGADA'"  (click)="filtroAlumno = 'ENTREGADA'">
-      <span class="stat-num">{{ totalEntregadas }}</span>
-      <span class="stat-label">Entregada</span>
+      <span class="stat-num text-nowrap-number">{{ totalEntregadas }}</span>
+      <span class="stat-label text-truncate">Entregada</span>
     </div>
     <div class="stat-bubble calificada" [class.active]="filtroAlumno === 'CALIFICADA'" (click)="filtroAlumno = 'CALIFICADA'">
-      <span class="stat-num">{{ totalCalificadas }}</span>
-      <span class="stat-label">Calificada</span>
+      <span class="stat-num text-nowrap-number">{{ totalCalificadas }}</span>
+      <span class="stat-label text-truncate">Calificada</span>
     </div>
   </div>
 
   <!-- ── Stats / filtros DOCENTE ── -->
   <div class="quick-stats" *ngIf="esDocente">
     <div class="stat-bubble total"      [class.active]="filtroDocente === 'TODAS'"      (click)="filtroDocente = 'TODAS'">
-      <span class="stat-num">{{ actividades.length }}</span>
-      <span class="stat-label">Total</span>
+      <span class="stat-num text-nowrap-number">{{ actividades.length }}</span>
+      <span class="stat-label text-truncate">Total</span>
     </div>
     <div class="stat-bubble done"       [class.active]="filtroDocente === 'ACTIVAS'"    (click)="filtroDocente = 'ACTIVAS'">
-      <span class="stat-num">{{ totalActivas }}</span>
-      <span class="stat-label">Activas</span>
+      <span class="stat-num text-nowrap-number">{{ totalActivas }}</span>
+      <span class="stat-label text-truncate">Activas</span>
     </div>
     <div class="stat-bubble pending"    [class.active]="filtroDocente === 'VENCIDAS'"   (click)="filtroDocente = 'VENCIDAS'">
-      <span class="stat-num">{{ totalVencidas }}</span>
-      <span class="stat-label">Vencidas</span>
+      <span class="stat-num text-nowrap-number">{{ totalVencidas }}</span>
+      <span class="stat-label text-truncate">Vencidas</span>
     </div>
     <div class="stat-bubble calificada" [class.active]="filtroDocente === 'BORRADORES'" (click)="filtroDocente = 'BORRADORES'">
-      <span class="stat-num">{{ totalBorradores }}</span>
-      <span class="stat-label">Borrador</span>
+      <span class="stat-num text-nowrap-number">{{ totalBorradores }}</span>
+      <span class="stat-label text-truncate">Borrador</span>
     </div>
   </div>
 
   <!-- ── Stats / filtros TUTOR ── -->
   <div class="quick-stats" *ngIf="esTutor">
     <div class="stat-bubble total"      [class.active]="filtroTutor === 'TODAS'"      (click)="filtroTutor = 'TODAS'">
-      <span class="stat-num">{{ actividades.length }}</span>
-      <span class="stat-label">Total</span>
+      <span class="stat-num text-nowrap-number">{{ actividades.length }}</span>
+      <span class="stat-label text-truncate">Total</span>
     </div>
     <div class="stat-bubble pending"    [class.active]="filtroTutor === 'PENDIENTE'"  (click)="filtroTutor = 'PENDIENTE'">
-      <span class="stat-num">{{ totalPendientes }}</span>
-      <span class="stat-label">Pendiente</span>
+      <span class="stat-num text-nowrap-number">{{ totalPendientes }}</span>
+      <span class="stat-label text-truncate">Pendiente</span>
     </div>
     <div class="stat-bubble done"       [class.active]="filtroTutor === 'ENTREGADA'"  (click)="filtroTutor = 'ENTREGADA'">
-      <span class="stat-num">{{ totalEntregadas }}</span>
-      <span class="stat-label">Entregada</span>
+      <span class="stat-num text-nowrap-number">{{ totalEntregadas }}</span>
+      <span class="stat-label text-truncate">Entregada</span>
     </div>
     <div class="stat-bubble calificada" [class.active]="filtroTutor === 'CALIFICADA'" (click)="filtroTutor = 'CALIFICADA'">
-      <span class="stat-num">{{ totalCalificadas }}</span>
-      <span class="stat-label">Calificada</span>
+      <span class="stat-num text-nowrap-number">{{ totalCalificadas }}</span>
+      <span class="stat-label text-truncate">Calificada</span>
     </div>
   </div>
 
@@ -121,7 +121,7 @@
   <div class="act-form" *ngIf="esDocente && showForm">
 
     <div class="form-header">
-      <h3 class="form-title">{{ editingId ? 'Editar Actividad' : 'Nueva Actividad' }}</h3>
+      <h3 class="form-title text-truncate">{{ editingId ? 'Editar Actividad' : 'Nueva Actividad' }}</h3>
       <button class="form-close-btn" (click)="solicitarCierre()">
         <ion-icon name="close-outline"></ion-icon>
       </button>
@@ -154,7 +154,7 @@
           [class.selected]="newAct.tipo === t.value"
           (click)="newAct.tipo = t.value">
           <ion-icon [name]="t.icon"></ion-icon>
-          <span>{{ t.label }}</span>
+          <span class="text-truncate">{{ t.label }}</span>
         </button>
       </div>
     </div>
@@ -225,7 +225,7 @@
           </option>
         </select>
       </div>
-      <p class="input-hint" *ngIf="errorOpts">{{ errorOpts }}</p>
+      <p class="input-hint text-clamp-2" *ngIf="errorOpts">{{ errorOpts }}</p>
     </div>
 
     <!-- Fecha y hora -->
@@ -262,8 +262,8 @@
       <div class="files-list" *ngIf="archivosExistentes.length > 0">
         <div class="file-chip" *ngFor="let f of archivosExistentes; let i = index">
           <ion-icon [name]="getFileIcon(f.name)" class="file-type-icon"></ion-icon>
-          <span class="file-name">{{ f.name }}</span>
-          <span class="file-size">Guardado</span>
+          <span class="file-name text-wrap-anywhere" [title]="f.name">{{ f.name }}</span>
+          <span class="file-size text-nowrap-number">Guardado</span>
           <ion-icon name="close-circle-outline" class="remove-file"
             (click)="removeArchivoExistente(i, $event)"></ion-icon>
         </div>
@@ -285,8 +285,8 @@
           [class.error]="item.error">
           <ion-icon [name]="getFileIcon(item.file.name)" class="file-type-icon"></ion-icon>
           <div class="file-chip-info">
-            <span class="file-name">{{ item.file.name }}</span>
-            <span class="file-size"         *ngIf="!item.subiendo && !item.error">{{ formatSize(item.file.size) }}</span>
+            <span class="file-name text-wrap-anywhere" [title]="item.file.name">{{ item.file.name }}</span>
+            <span class="file-size text-nowrap-number"         *ngIf="!item.subiendo && !item.error">{{ formatSize(item.file.size) }}</span>
             <span class="file-progress-text" *ngIf="item.subiendo">Subiendo... {{ item.progreso }}%</span>
             <span class="file-error-text"    *ngIf="item.error">Error al subir</span>
             <div class="file-progress-bar" *ngIf="item.subiendo">
@@ -304,10 +304,10 @@
     <!-- Toggle publicar -->
     <div class="publish-toggle-row">
       <div class="publish-toggle-text">
-        <span class="publish-toggle-title">
+        <span class="publish-toggle-title text-truncate">
           {{ newAct.publicada ? 'Se publicará de inmediato' : 'Se guardará como borrador' }}
         </span>
-        <span class="publish-toggle-sub">
+        <span class="publish-toggle-sub text-clamp-2">
           {{ newAct.publicada
             ? 'Los alumnos la verán apenas la guardes.'
             : 'Los alumnos no la verán hasta que la publiques.' }}
@@ -348,19 +348,19 @@
   <!-- ════════════════════════════════════════════════════ -->
   <!--  LISTA DE ACTIVIDADES                               -->
   <!-- ════════════════════════════════════════════════════ -->
-  <div class="activities-container" *ngIf="!cargando">
+  <div class="activities-container app-container" *ngIf="!cargando">
 
     <!-- Empty state -->
     <div class="empty-state" *ngIf="actividadesFiltradas.length === 0">
       <div class="empty-icon-wrap">
         <ion-icon name="clipboard-outline"></ion-icon>
       </div>
-      <h3 class="empty-title">
+      <h3 class="empty-title text-truncate">
         {{ (filtroAlumno === 'TODAS' || filtroDocente === 'TODAS' || filtroTutor === 'TODAS')
           ? 'Sin actividades'
           : 'Sin actividades en este filtro' }}
       </h3>
-      <p class="empty-sub">
+      <p class="empty-sub text-clamp-2">
         {{ esDocente ? 'Toca el + para crear una actividad' : 'Los maestros aún no han publicado actividades' }}
       </p>
       <button class="btn-nueva-act" *ngIf="esDocente" (click)="abrirFormularioNuevo()">
@@ -385,24 +385,24 @@
         </div>
         <div class="card-info">
           <div class="card-title-row">
-            <h3 class="activity-title">{{ a.titulo }}</h3>
+            <h3 class="activity-title text-clamp-2" [title]="a.titulo">{{ a.titulo }}</h3>
             <span class="draft-badge" *ngIf="!a.publicada">Borrador</span>
           </div>
           <div class="card-meta-row">
             <ion-icon name="book-outline" class="meta-icon"></ion-icon>
-            <span class="meta-txt">{{ a.asignatura }}</span>
+            <span class="meta-txt text-truncate" [title]="a.asignatura">{{ a.asignatura }}</span>
             <span class="meta-sep">·</span>
             <ion-icon name="people-outline" class="meta-icon"></ion-icon>
-            <span class="meta-txt">{{ a.grupo || a.docente }}</span>
+            <span class="meta-txt text-truncate" [title]="a.grupo || a.docente">{{ a.grupo || a.docente }}</span>
           </div>
           <!-- Conteo entregas (docente) -->
           <div class="card-meta-row" *ngIf="esDocente && a.totalAlumnos !== undefined">
             <ion-icon name="checkmark-done-outline" class="meta-icon"></ion-icon>
-            <span class="meta-txt">{{ a.totalEntregas }}/{{ a.totalAlumnos }} entregaron</span>
+            <span class="meta-txt text-nowrap-number">{{ a.totalEntregas }}/{{ a.totalAlumnos }} entregaron</span>
           </div>
         </div>
         <!-- Nota (alumno/tutor) -->
-        <div class="nota-badge" *ngIf="a.entrega?.calificacion != null"
+        <div class="nota-badge text-nowrap-number" *ngIf="a.entrega?.calificacion != null"
           [class]="'nota-' + colorNota(a.entrega!.calificacion!)">
           {{ a.entrega!.calificacion | number:'1.1-1' }}
         </div>
@@ -418,15 +418,15 @@
       </div>
 
       <!-- Instrucciones -->
-      <p class="activity-desc" *ngIf="a.instrucciones">{{ a.instrucciones }}</p>
+      <p class="activity-desc text-clamp-3" *ngIf="a.instrucciones" [title]="a.instrucciones">{{ a.instrucciones }}</p>
 
       <!-- Chips -->
       <div class="chips-row">
         <span class="tipo-chip">
           <ion-icon [name]="getTipoIcon(a.tipo)"></ion-icon>
-          {{ getTipoLabel(a.tipo) }}
+          <span class="text-truncate">{{ getTipoLabel(a.tipo) }}</span>
         </span>
-        <span class="valor-chip">
+        <span class="valor-chip text-nowrap-number">
           <ion-icon name="star-outline"></ion-icon>
           {{ a.valor_total | number:'1.0-1' }} pts
         </span>
@@ -446,7 +446,7 @@
       <!-- Feedback del docente (alumno/tutor) -->
       <div class="feedback-box" *ngIf="a.entrega?.feedback">
         <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-        <p>{{ a.entrega!.feedback }}</p>
+        <p class="text-clamp-3" [title]="a.entrega!.feedback">{{ a.entrega!.feedback }}</p>
       </div>
 
       <!-- ── PANEL ENTREGAS (docente) ── -->
@@ -469,20 +469,20 @@
                 {{ ent.alumno_nombre.charAt(0) }}
               </div>
               <div class="entrega-info">
-                <span class="entrega-nombre">{{ ent.alumno_nombre }}</span>
-                <span class="entrega-fecha">{{ formatFecha(ent.entregada_en) }}</span>
-                <span class="entrega-respuesta" *ngIf="ent.respuesta_texto">
+                <span class="entrega-nombre text-truncate" [title]="ent.alumno_nombre">{{ ent.alumno_nombre }}</span>
+                <span class="entrega-fecha text-nowrap-number">{{ formatFecha(ent.entregada_en) }}</span>
+                <span class="entrega-respuesta text-truncate" *ngIf="ent.respuesta_texto" [title]="ent.respuesta_texto">
                   "{{ ent.respuesta_texto | slice:0:80 }}{{ ent.respuesta_texto.length > 80 ? '...' : '' }}"
                 </span>
                 <a *ngIf="ent.archivo_url" [href]="ent.archivo_url" target="_blank"
-                  class="entrega-archivo-link">
+                  class="entrega-archivo-link text-wrap-anywhere">
                   <ion-icon name="document-attach-outline"></ion-icon>
                   Ver archivo
                 </a>
               </div>
             </div>
             <div class="entrega-calificacion">
-              <span class="nota-badge-sm" *ngIf="ent.calificacion != null"
+              <span class="nota-badge-sm text-nowrap-number" *ngIf="ent.calificacion != null"
                 [class]="'nota-' + colorNota(ent.calificacion)">
                 {{ ent.calificacion | number:'1.1-1' }}
               </span>
@@ -499,11 +499,11 @@
       <!-- Footer -->
       <div class="card-footer">
         <div class="footer-left">
-          <span class="fecha-txt">
+          <span class="fecha-txt text-nowrap-number">
             <ion-icon name="calendar-outline"></ion-icon>
             {{ formatFecha(a.fecha_entrega) }}
           </span>
-          <span class="dias-restantes"
+          <span class="dias-restantes text-nowrap-number"
             [class.vence-hoy]="diasRestantes(a.fecha_entrega).includes('hoy')"
             [class.vencido]="diasRestantes(a.fecha_entrega).includes('Venció')">
             {{ diasRestantes(a.fecha_entrega) }}
@@ -578,7 +578,7 @@
     <div class="modal-header">
       <div class="modal-header-left">
         <ion-icon name="cloud-upload-outline"></ion-icon>
-        <h3>{{ actividadEntregando.entrega ? 'Editar entrega' : 'Entregar actividad' }}</h3>
+        <h3 class="text-truncate">{{ actividadEntregando.entrega ? 'Editar entrega' : 'Entregar actividad' }}</h3>
       </div>
       <button class="modal-close" (click)="cerrarEntrega()">
         <ion-icon name="close-outline"></ion-icon>
@@ -586,8 +586,8 @@
     </div>
 
     <div class="modal-body">
-      <p class="modal-act-titulo">{{ actividadEntregando.titulo }}</p>
-      <p class="modal-act-asig">{{ actividadEntregando.asignatura }}</p>
+      <p class="modal-act-titulo text-truncate" [title]="actividadEntregando.titulo">{{ actividadEntregando.titulo }}</p>
+      <p class="modal-act-asig text-truncate" [title]="actividadEntregando.asignatura">{{ actividadEntregando.asignatura }}</p>
 
       <!-- Respuesta de texto (ABIERTA) -->
       <div class="input-group" *ngIf="actividadEntregando.tipo === 'ABIERTA'">
@@ -615,7 +615,7 @@
           <span *ngIf="!archivoEntrega">
             {{ actividadEntregando.entrega?.archivo_url ? 'Reemplazar archivo' : 'Seleccionar archivo' }}
           </span>
-          <span *ngIf="archivoEntrega">{{ archivoEntrega.name }}</span>
+          <span *ngIf="archivoEntrega" class="text-wrap-anywhere">{{ archivoEntrega.name }}</span>
           <input id="archivoEntregaInput" type="file" hidden (change)="onArchivoEntregaChange($event)" />
         </label>
 
@@ -632,12 +632,12 @@
     <ion-spinner name="crescent"></ion-spinner>
   </div>
   <div class="pregunta-alumno-card" *ngFor="let p of preguntasAlumno">
-    <p class="pregunta-alumno-texto">{{ p.texto }}</p>
+    <p class="pregunta-alumno-texto text-clamp-3" [title]="p.texto">{{ p.texto }}</p>
     <label class="opcion-alumno-row" *ngFor="let o of p.opciones">
       <input type="radio" [name]="'preg-' + p.id" [value]="o.id"
         [checked]="respuestasSeleccionadas[p.id] === o.id"
         (change)="respuestasSeleccionadas[p.id] = o.id" />
-      <span>{{ o.texto }}</span>
+      <span class="text-truncate" [title]="o.texto">{{ o.texto }}</span>
     </label>
   </div>
 </div>
@@ -666,7 +666,7 @@
     <div class="modal-header">
       <div class="modal-header-left">
         <ion-icon name="ribbon-outline"></ion-icon>
-        <h3>Calificar entrega</h3>
+        <h3 class="text-truncate">Calificar entrega</h3>
       </div>
       <button class="modal-close" (click)="cerrarCalificacion()">
         <ion-icon name="close-outline"></ion-icon>
@@ -674,17 +674,17 @@
     </div>
 
     <div class="modal-body">
-      <p class="modal-act-titulo">{{ entregaCalificando.alumno_nombre }}</p>
+      <p class="modal-act-titulo text-truncate" [title]="entregaCalificando.alumno_nombre">{{ entregaCalificando.alumno_nombre }}</p>
 
       <!-- Respuesta del alumno -->
       <div class="respuesta-alumno" *ngIf="entregaCalificando.respuesta_texto">
         <p class="resp-label">Respuesta del alumno:</p>
-        <p class="resp-texto">{{ entregaCalificando.respuesta_texto }}</p>
+        <p class="resp-texto text-clamp-3" [title]="entregaCalificando.respuesta_texto">{{ entregaCalificando.respuesta_texto }}</p>
       </div>
 
       <!-- Archivo entregado -->
       <div class="archivo-entregado" *ngIf="entregaCalificando.archivo_url">
-        <a [href]="entregaCalificando.archivo_url" target="_blank" class="adjunto-link">
+        <a [href]="entregaCalificando.archivo_url" target="_blank" class="adjunto-link text-wrap-anywhere">
           <ion-icon name="document-attach-outline"></ion-icon>
           Ver archivo entregado
         </a>

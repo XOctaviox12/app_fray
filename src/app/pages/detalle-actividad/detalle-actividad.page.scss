@@ -2,6 +2,10 @@
 // DETALLE-ACTIVIDAD.PAGE.SCSS
 // Rediseño visual iPad · Soft UI + Cupertino + Neumorphism ligero
 // (Solo estilos. Ninguna clase, evento o binding del HTML fue modificado)
+//
+// Se agregó: utilidades de truncado/wrap (por si aún no existen en
+// theme/_layout.scss global) + min-width:0 en contenedores flex con
+// texto dinámico, para que nada se salga de las tarjetas.
 // ============================================
 
 :host {
@@ -33,6 +37,48 @@
   font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+// ════════════════════════════════════════════════════════════
+// UTILIDADES DE TRUNCADO / WRAP
+// Definidas aquí (scoped a esta página) por si theme/_layout.scss
+// todavía no las trae globalmente. Si ya existen ahí, estas reglas
+// locales no rompen nada, solo refuerzan el mismo comportamiento.
+// ════════════════════════════════════════════════════════════
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  display: block;
+}
+.text-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.text-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.text-wrap-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.text-nowrap-number {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.app-container {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 // ── HEADER ────────────────────────────────────────────────────
 .header-toolbar    { --background: var(--fh-white); --color: var(--fh-text); --border-style: none; --min-height: 64px; }
 .header-title      { color: var(--fh-text); font-size: 17px; font-weight: 700; letter-spacing: -0.2px; }
@@ -47,7 +93,7 @@
   padding: 80px 24px; text-align: center;
   ion-spinner { width: 28px; height: 28px; color: var(--fh-primary); }
   ion-icon    { font-size: 30px; color: var(--fh-border); }
-  p { margin: 0; font-size: 13px; color: var(--fh-text-2); }
+  p { margin: 0; font-size: 13px; color: var(--fh-text-2); max-width: 100%; }
 }
 .retry-btn {
   display: flex; align-items: center; gap: 7px; margin-top: 6px;
@@ -67,12 +113,17 @@
   background: var(--fh-white);
   border-radius: var(--fh-radius-card);
   box-shadow: var(--fh-shadow-soft);
+  box-sizing: border-box;
+  overflow: hidden; // evita que cualquier hijo empuje el ancho de la tarjeta
 }
 
 .actividad-header-top {
   display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px;
 }
-.actividad-titulo { margin: 0; font-size: 19px; font-weight: 800; color: var(--fh-text); line-height: 1.35; }
+.actividad-titulo {
+  margin: 0; font-size: 19px; font-weight: 800; color: var(--fh-text); line-height: 1.35;
+  flex: 1; min-width: 0; // necesario para que text-clamp-2 funcione dentro del flex
+}
 
 .badge {
   flex-shrink: 0; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;
@@ -87,11 +138,16 @@
   display: inline-flex; align-items: center; gap: 5px;
   padding: 5px 11px; border-radius: 10px; font-size: 11.5px; font-weight: 700;
   background: rgba(245, 124, 0, 0.08); color: var(--fh-primary);
-  ion-icon { font-size: 12px; }
+  max-width: 100%; // se ajusta al ancho disponible antes de truncar
+  ion-icon { font-size: 12px; flex-shrink: 0; }
   &.chip-muted { background: var(--fh-bg-2); color: var(--fh-text-2); }
   &.chip-tipo  { background: var(--fh-bg-2); color: var(--fh-text-2); }
   &.chip-valor { background: var(--fh-info-soft); color: var(--fh-info); }
 }
+// Los <span> con text-truncate dentro de un chip inline-flex también
+// necesitan min-width:0 para poder encogerse y truncar en vez de
+// empujar el chip fuera del contenedor.
+.chip .text-truncate { min-width: 0; max-width: 160px; }
 
 .actividad-descripcion { margin: 0 0 12px; font-size: 13.5px; color: var(--fh-text-2); line-height: 1.55; }
 
@@ -100,19 +156,22 @@
   padding: 9px 14px; border-radius: 12px; font-size: 12.5px; font-weight: 700; text-decoration: none;
   background: var(--fh-info-soft); color: var(--fh-info);
   transition: background 0.2s ease;
-  ion-icon { font-size: 15px; }
+  max-width: 100%;
+  box-sizing: border-box;
+  ion-icon { font-size: 15px; flex-shrink: 0; }
+  span { min-width: 0; }
   &:active { background: rgba(13, 71, 161, 0.16); }
 }
 
 // ── KPI ROW ───────────────────────────────────────────────────
 .kpi-row { display: flex; gap: 10px; margin: 20px 18px 8px; }
 .kpi-chip {
-  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 3px;
   padding: 16px 8px; border-radius: 16px;
   background: var(--fh-white);
   box-shadow: var(--fh-shadow-soft);
   .kpi-num { font-size: 21px; font-weight: 800; color: var(--fh-text); }
-  .kpi-lbl { font-size: 9.5px; color: var(--fh-text-2); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+  .kpi-lbl { font-size: 9.5px; color: var(--fh-text-2); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; max-width: 100%; }
   &.kpi-green  .kpi-num { color: var(--fh-success); }
   &.kpi-orange .kpi-num { color: var(--fh-primary); }
 }
@@ -127,6 +186,7 @@
   margin: 0 18px; padding: 36px 18px; text-align: center;
   background: var(--fh-white); border-radius: var(--fh-radius-card);
   box-shadow: var(--fh-shadow-soft);
+  box-sizing: border-box;
   ion-icon { font-size: 26px; color: var(--fh-border); }
   p { margin: 0; font-size: 13px; color: var(--fh-text-2); }
 }
@@ -138,10 +198,15 @@
   margin: 0 18px 12px; padding: 17px;
   background: var(--fh-white); border-radius: 18px;
   box-shadow: var(--fh-shadow-soft);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .entrega-row-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-.entrega-alumno-nombre { font-size: 14px; font-weight: 700; color: var(--fh-text); }
+.entrega-alumno-nombre {
+  font-size: 14px; font-weight: 700; color: var(--fh-text);
+  flex: 1; min-width: 0; // deja que el nombre trunque en vez de empujar el badge de estado
+}
 
 .entrega-estado-badge {
   flex-shrink: 0; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px;
@@ -155,18 +220,22 @@
   font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px;
   padding: 4px 10px; border-radius: 8px; margin-left: 8px;
   background: var(--fh-warn-soft); color: var(--fh-warn);
+  flex-shrink: 0;
 }
 
 .entrega-comentario {
   margin: 0 0 8px; padding: 11px 13px; border-radius: 12px;
   background: var(--fh-bg-2);
   font-size: 12.5px; color: var(--fh-text-2); font-style: italic; line-height: 1.5;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .entrega-archivo-link {
   display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px;
   font-size: 12px; font-weight: 700; color: var(--fh-info); text-decoration: none;
-  ion-icon { font-size: 14px; }
+  max-width: 100%;
+  ion-icon { font-size: 14px; flex-shrink: 0; }
 }
 
 .entrega-fecha { margin: 0 0 10px; font-size: 11px; color: var(--fh-text-2); }
@@ -177,9 +246,10 @@
   border-top: 1px dashed var(--fh-border);
 }
 .calificar-input-wrap, .calificar-feedback-wrap {
-  display: flex; flex-direction: column; gap: 5px;
+  display: flex; flex-direction: column; gap: 5px; min-width: 0;
   label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--fh-text-2); }
   input, textarea {
+    width: 100%; box-sizing: border-box;
     background: var(--fh-bg-2); border: 1.5px solid transparent; border-radius: var(--fh-radius-input);
     padding: 11px 13px; font-size: 13.5px; color: var(--fh-text); outline: none;
     font-family: inherit;
@@ -209,8 +279,10 @@
   margin: 20px 18px 12px; padding: 19px;
   background: var(--fh-white); border-radius: var(--fh-radius-card);
   box-shadow: var(--fh-shadow-soft);
+  box-sizing: border-box;
+  overflow: hidden;
 }
-.mi-entrega-header { display: flex; align-items: center; margin-bottom: 10px; }
+.mi-entrega-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 
 .mi-calificacion {
   display: flex; align-items: center; gap: 12px; margin: 12px 0 4px;
@@ -218,13 +290,16 @@
 }
 .mi-calificacion-num {
   min-width: 50px; padding: 8px 12px; border-radius: 12px; text-align: center;
-  font-size: 18px; font-weight: 800;
+  font-size: 18px; font-weight: 800; flex-shrink: 0;
   &.nota-excelente { background: rgba(22, 163, 74, 0.14);  color: var(--fh-success); }
   &.nota-bien      { background: var(--fh-info-soft); color: var(--fh-info); }
   &.nota-regular   { background: rgba(249, 115, 22, 0.14); color: var(--fh-warn); }
   &.nota-reprobado { background: rgba(211, 47, 47, 0.14);  color: var(--fh-error); }
 }
-.mi-calificacion-feedback { margin: 0; font-size: 12.5px; color: var(--fh-text-2); font-style: italic; line-height: 1.5; }
+.mi-calificacion-feedback {
+  margin: 0; font-size: 12.5px; color: var(--fh-text-2); font-style: italic; line-height: 1.5;
+  min-width: 0; word-break: break-word; overflow-wrap: anywhere;
+}
 
 .btn-editar-entrega {
   display: flex; align-items: center; gap: 7px; margin-top: 12px;
@@ -251,7 +326,9 @@
 .no-entregable {
   display: flex; align-items: flex-start; gap: 11px; margin: 20px 18px 12px; padding: 17px;
   border-radius: var(--fh-radius-card); background: var(--fh-info-soft);
+  box-sizing: border-box;
   ion-icon { font-size: 20px; color: var(--fh-info); flex-shrink: 0; margin-top: 1px; }
+  > div { min-width: 0; } // el wrapper de texto debe poder encogerse junto al ícono
   strong { display: block; font-size: 13.5px; color: var(--fh-text); margin-bottom: 4px; }
   p { margin: 0 0 10px; font-size: 12.5px; color: var(--fh-text-2); line-height: 1.5; }
 }
@@ -260,7 +337,8 @@
   padding: 7px 12px; border-radius: 10px; font-size: 11.5px; font-weight: 700;
   background: rgba(13, 71, 161, 0.12);
   color: var(--fh-info); text-decoration: none;
-  ion-icon { font-size: 13px; }
+  max-width: 100%;
+  ion-icon { font-size: 13px; flex-shrink: 0; }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -271,6 +349,7 @@
   background: var(--fh-white);
   border-radius: var(--fh-radius-card);
   box-shadow: var(--fh-shadow-soft);
+  box-sizing: border-box;
 }
 
 .input-group  { margin-bottom: 16px; }
@@ -292,7 +371,7 @@
   background: var(--fh-success-soft);
   font-size: 12.5px; color: var(--fh-text-2);
   ion-icon { font-size: 16px; color: var(--fh-success); flex-shrink: 0; }
-  span { flex: 1; }
+  span { flex: 1; min-width: 0; }
   .ver-link { color: var(--fh-success); font-weight: 700; text-decoration: none; flex-shrink: 0; }
 }
 
@@ -300,25 +379,27 @@
   border: 1.5px dashed var(--fh-border); border-radius: var(--fh-radius-input);
   background: var(--fh-bg-2);
   padding: 26px 14px; text-align: center; cursor: pointer;
+  box-sizing: border-box;
   transition: border-color 0.2s ease, background 0.2s ease;
   &:active { border-color: var(--fh-primary); background: rgba(245, 124, 0, 0.06); }
 }
 .upload-icon { font-size: 26px; color: var(--fh-primary); margin-bottom: 8px; }
-.upload-text { margin: 0; font-size: 13px; color: var(--fh-text); font-weight: 600; }
+.upload-text { margin: 0; font-size: 13px; color: var(--fh-text); font-weight: 600; word-break: break-word; overflow-wrap: anywhere; }
 .upload-hint { margin: 5px 0 0; font-size: 11px; color: var(--fh-text-2); }
 
-.file-progress-bar { width: 100%; height: 6px; border-radius: 4px; background: var(--fh-bg-2); overflow: hidden; margin: 12px 0; }
+.file-progress-bar { width: 100%; height: 6px; border-radius: 4px; background: var(--fh-bg-2); overflow: hidden; margin: 12px 0; box-sizing: border-box; }
 .file-progress-fill { height: 100%; background: linear-gradient(90deg, var(--fh-primary), var(--fh-primary-dark)); transition: width 0.2s ease; }
 
 .opciones-error {
   display: flex; align-items: center; gap: 7px; margin-bottom: 12px;
   font-size: 12px; color: var(--fh-error);
   ion-icon { font-size: 15px; flex-shrink: 0; }
+  span { min-width: 0; }
 }
 
 .form-actions { display: flex; gap: 12px; }
 .btn-cancel, .btn-save {
-  flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+  flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 7px;
   padding: 14px; border-radius: var(--fh-radius-btn); border: none; font-size: 13.5px; font-weight: 700; cursor: pointer;
   transition: transform 0.15s ease, opacity 0.15s ease;
   ion-spinner { width: 15px; height: 15px; }

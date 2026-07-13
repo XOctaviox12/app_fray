@@ -2,6 +2,13 @@
 // DETALLE-TAREA.PAGE.SCSS
 // Rediseño visual iPad · Soft UI + Cupertino + Neumorphism ligero
 // (Solo estilos. Ninguna clase, evento o binding del HTML fue modificado)
+//
+// Cambios agregados en esta versión:
+// - box-sizing: border-box en todas las tarjetas con padding
+// - min-width:0 + word-break/overflow-wrap en textos largos dentro de
+//   filas flex (título, nombre de alumno, autor de comentario, feedback,
+//   nombre de archivo, comentario de entrega)
+// - flex-shrink:0 en insignias/íconos para que no se compriman
 // ============================================
 
 :host {
@@ -78,6 +85,7 @@
   gap: 12px;
   padding: 4.5rem 1.5rem;
   text-align: center;
+  box-sizing: border-box;
 
   ion-spinner {
     width: 30px;
@@ -111,6 +119,7 @@
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(245, 124, 0, 0.28);
+  box-sizing: border-box;
 
   &:active { transform: scale(0.97); }
 }
@@ -124,6 +133,7 @@
   padding: 1.4rem;
   margin: 1.1rem;
   box-shadow: var(--fh-shadow-soft);
+  box-sizing: border-box;
 }
 
 .tarea-header-top {
@@ -141,6 +151,9 @@
   letter-spacing: -0.3px;
   margin: 0;
   line-height: 1.35;
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .badge {
@@ -181,6 +194,10 @@
   border-radius: 10px;
   background: rgba(245, 124, 0, 0.08);
   color: var(--fh-primary);
+  max-width: 100%;
+  box-sizing: border-box;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 
   &.chip-muted {
     background: var(--fh-bg-2);
@@ -194,6 +211,8 @@
   color: var(--fh-text-2);
   line-height: 1.6;
   margin: 8px 0 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .tarea-archivos {
@@ -215,10 +234,19 @@
   color: var(--fh-info);
   text-decoration: none;
   transition: background 0.2s ease;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  span {
+    min-width: 0;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
 
   ion-icon {
     font-size: 15px;
     color: var(--fh-info);
+    flex-shrink: 0;
   }
 
   &:active { background: rgba(13, 71, 161, 0.16); }
@@ -240,6 +268,8 @@
   padding: 1.1rem 0.5rem;
   text-align: center;
   box-shadow: var(--fh-shadow-soft);
+  box-sizing: border-box;
+  min-width: 0;
 
   &.kpi-green .kpi-num { color: var(--fh-success); }
   &.kpi-orange .kpi-num { color: var(--fh-primary); }
@@ -286,6 +316,7 @@
   border-radius: var(--fh-radius-card);
   text-align: center;
   box-shadow: var(--fh-shadow-soft);
+  box-sizing: border-box;
 
   ion-icon {
     font-size: 28px;
@@ -306,6 +337,7 @@
   padding: 1.1rem 1.2rem;
   margin: 0 1.1rem 12px;
   box-shadow: var(--fh-shadow-soft);
+  box-sizing: border-box;
 }
 
 .entrega-row-header {
@@ -320,6 +352,11 @@
   font-size: 14px;
   font-weight: 700;
   color: var(--fh-text);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .entrega-estado-badge {
@@ -330,6 +367,7 @@
   padding: 4px 10px;
   border-radius: 8px;
   white-space: nowrap;
+  flex-shrink: 0;
 
   &.sin-entregar {
     background: var(--fh-bg-2);
@@ -354,6 +392,8 @@
   border-radius: 8px;
   background: var(--fh-warn-soft);
   color: var(--fh-warn);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .entrega-archivo-link {
@@ -365,6 +405,11 @@
   color: var(--fh-primary);
   text-decoration: none;
   margin-bottom: 6px;
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+
+  ion-icon { flex-shrink: 0; }
 }
 
 .entrega-comentario {
@@ -372,6 +417,8 @@
   color: var(--fh-text-2);
   font-style: italic;
   margin: 6px 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .entrega-fecha {
@@ -393,6 +440,7 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+  min-width: 0;
 
   label {
     font-size: 10.5px;
@@ -414,6 +462,8 @@
     outline: none;
     resize: none;
     transition: border-color 0.2s ease, background 0.2s ease;
+    box-sizing: border-box;
+    width: 100%;
 
     &::placeholder { color: #9CA3AF; }
 
@@ -444,6 +494,7 @@
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(245, 124, 0, 0.28);
   transition: transform 0.15s ease;
+  box-sizing: border-box;
 
   &:active { transform: scale(0.97); }
 
@@ -469,6 +520,7 @@
   padding: 1.1rem 1.2rem;
   margin: 0 1.1rem 1.1rem;
   box-shadow: var(--fh-shadow-soft);
+  box-sizing: border-box;
 }
 
 .mi-entrega-header {
@@ -477,6 +529,7 @@
   gap: 8px;
   margin-bottom: 10px;
   color: var(--fh-text);
+  flex-wrap: wrap;
 }
 
 .mi-calificacion {
@@ -504,6 +557,10 @@
   color: var(--fh-text-2);
   line-height: 1.55;
   margin: 0;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .btn-editar-entrega,
@@ -521,6 +578,7 @@
   cursor: pointer;
   transition: transform 0.15s ease;
   border: none;
+  box-sizing: border-box;
 
   &:active { transform: scale(0.97); }
 }
@@ -547,6 +605,7 @@
   flex-direction: column;
   gap: 14px;
   box-shadow: var(--fh-shadow-soft);
+  box-sizing: border-box;
 
   textarea {
     width: 100%;
@@ -571,6 +630,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .input-label {
@@ -593,6 +653,7 @@
   cursor: pointer;
   text-align: center;
   transition: border-color 0.2s ease, background 0.2s ease;
+  box-sizing: border-box;
 
   &:active { border-color: var(--fh-primary); background: rgba(245, 124, 0, 0.06); }
 
@@ -607,6 +668,9 @@
     font-weight: 600;
     color: var(--fh-text);
     margin: 0;
+    max-width: 100%;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .upload-hint {
@@ -640,6 +704,12 @@
     font-size: 16px;
     flex-shrink: 0;
   }
+
+  span {
+    min-width: 0;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
 }
 
 .form-actions {
@@ -662,6 +732,7 @@
   cursor: pointer;
   border: none;
   transition: transform 0.15s ease, opacity 0.15s ease;
+  box-sizing: border-box;
 
   &:active { transform: scale(0.97); }
 
@@ -700,11 +771,13 @@
   flex-direction: column;
   gap: 14px;
   box-shadow: var(--fh-shadow-soft);
+  box-sizing: border-box;
 }
 
 .comentario-row {
   display: flex;
   gap: 11px;
+  min-width: 0;
 }
 
 .comentario-avatar {
@@ -733,6 +806,7 @@
   border-radius: 14px;
   padding: 10px 14px;
   min-width: 0;
+  box-sizing: border-box;
 }
 
 .comentario-top {
@@ -746,6 +820,11 @@
   font-size: 12px;
   font-weight: 700;
   color: var(--fh-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
 }
 
 .comentario-rol {
@@ -777,6 +856,7 @@
   line-height: 1.55;
   margin: 4px 0 0;
   word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .comentario-edit-form {
@@ -815,6 +895,7 @@
     font-weight: 700;
     cursor: pointer;
     border: none;
+    box-sizing: border-box;
   }
 
   .btn-cancel {
@@ -851,6 +932,7 @@
 
   input {
     flex: 1;
+    min-width: 0;
     height: 44px;
     border: 1.5px solid transparent;
     border-radius: 14px;
@@ -860,6 +942,7 @@
     color: var(--fh-text);
     outline: none;
     transition: border-color 0.2s ease, background 0.2s ease;
+    box-sizing: border-box;
 
     &::placeholder { color: #9CA3AF; }
     &:focus { border-color: var(--fh-primary); background: var(--fh-white); }

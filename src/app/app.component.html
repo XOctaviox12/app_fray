@@ -16,9 +16,9 @@
       <div *ngIf="loggedIn" class="user-card-container">
         <div class="user-card">
           <div class="avatar-section">
-            <img [src]="avatarUrl" (error)="onErrorImagen()" class="user-avatar" />
-            <div class="online-badge"></div>
-          </div>
+  <img [src]="avatarUrl" (error)="onErrorImagen()" class="user-avatar" />
+  <div class="online-badge"></div>
+</div>
           <div class="info-section">
             <h3 class="user-name">{{ getNombreDisplay() }}</h3>
             <p class="user-email">{{ getEmailDisplay() }}</p>

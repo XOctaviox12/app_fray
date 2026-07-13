@@ -5,7 +5,7 @@
         <ion-icon name="menu-outline"></ion-icon>
       </ion-menu-button>
     </ion-buttons>
-    <ion-title class="header-title">{{ esDocente ? 'Mis Tareas' : 'Tareas' }}</ion-title>
+    <ion-title class="header-title text-truncate">{{ esDocente ? 'Mis Tareas' : 'Tareas' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -15,7 +15,7 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <div class="page-shell">
+  <div class="page-shell app-container">
 
   <!-- ═══════════════════════════════════════════ -->
   <!-- VISTA DOCENTE                               -->
@@ -23,20 +23,20 @@
   <ng-container *ngIf="esDocente">
 
     <div class="tareas-hero">
-      <h2 class="hero-title">Organiza tus tareas</h2>
-      <p class="hero-sub">Asigna trabajo a tus grupos</p>
+      <h2 class="hero-title text-truncate">Organiza tus tareas</h2>
+      <p class="hero-sub text-clamp-2">Asigna trabajo a tus grupos</p>
       <div class="stats-row">
         <div class="stat-chip">
-          <span class="stat-num">{{ tareas.length }}</span>
-          <span class="stat-lbl">Total</span>
+          <span class="stat-num text-nowrap-number">{{ tareas.length }}</span>
+          <span class="stat-lbl text-truncate">Total</span>
         </div>
         <div class="stat-chip orange">
-          <span class="stat-num">{{ getPendientes() }}</span>
-          <span class="stat-lbl">Activas</span>
+          <span class="stat-num text-nowrap-number">{{ getPendientes() }}</span>
+          <span class="stat-lbl text-truncate">Activas</span>
         </div>
         <div class="stat-chip red">
-          <span class="stat-num">{{ getVencidas() }}</span>
-          <span class="stat-lbl">Vencidas</span>
+          <span class="stat-num text-nowrap-number">{{ getVencidas() }}</span>
+          <span class="stat-lbl text-truncate">Vencidas</span>
         </div>
       </div>
     </div>
@@ -82,7 +82,7 @@
     <!-- Formulario nueva tarea / editar tarea -->
     <div class="new-task-form" *ngIf="showForm">
       <div class="form-header">
-        <h3 class="form-title">{{ editingTarea ? 'Editar Tarea' : 'Nueva Tarea' }}</h3>
+        <h3 class="form-title text-truncate">{{ editingTarea ? 'Editar Tarea' : 'Nueva Tarea' }}</h3>
         <button class="form-close-btn" (click)="solicitarCierreFormulario()">
           <ion-icon name="close-outline"></ion-icon>
         </button>
@@ -123,14 +123,14 @@
               <option *ngFor="let g of gruposDeMateria" [ngValue]="g.id">{{ formatGrupo(g) }}</option>
             </select>
           </div>
-          <p class="input-hint" *ngIf="newTask.materiaId && gruposDeMateria.length > 0">
+          <p class="input-hint text-clamp-2" *ngIf="newTask.materiaId && gruposDeMateria.length > 0">
             Verifica bien el grado y el aula antes de asignar la tarea.
           </p>
         </div>
 
         <div class="opciones-error" *ngIf="errorOpciones">
           <ion-icon name="alert-circle-outline"></ion-icon>
-          <span>{{ errorOpciones }}</span>
+          <span class="text-clamp-2">{{ errorOpciones }}</span>
         </div>
 
         <div class="input-group">
@@ -153,10 +153,10 @@
 
       <div class="publish-toggle-row">
         <div class="publish-toggle-text">
-          <span class="publish-toggle-title">
+          <span class="publish-toggle-title text-truncate">
             {{ newTask.publicada ? 'Se publicará de inmediato' : 'Se guardará como borrador' }}
           </span>
-          <span class="publish-toggle-sub">
+          <span class="publish-toggle-sub text-clamp-2">
             {{ newTask.publicada ? 'Los alumnos la verán apenas la guardes.' : 'Los alumnos no la verán hasta que la publiques.' }}
           </span>
         </div>
@@ -167,8 +167,8 @@
         <div class="file-chip" *ngFor="let file of archivosExistentes; let i = index">
           <ion-icon [name]="getFileIcon(file.name)" class="file-type-icon"></ion-icon>
           <div class="file-chip-info">
-            <span class="file-name">{{ file.name }}</span>
-            <span class="file-size">Ya guardado</span>
+            <span class="file-name text-wrap-anywhere" [title]="file.name">{{ file.name }}</span>
+            <span class="file-size text-nowrap-number">Ya guardado</span>
           </div>
           <ion-icon name="close-circle-outline" class="remove-file" (click)="removeArchivoExistente(i, $event)"></ion-icon>
         </div>
@@ -185,8 +185,8 @@
         <div class="file-chip" *ngFor="let item of archivosEnProgreso; let i = index" [class.error]="item.error">
           <ion-icon [name]="getFileIcon(item.file.name)" class="file-type-icon"></ion-icon>
           <div class="file-chip-info">
-            <span class="file-name">{{ item.file.name }}</span>
-            <span class="file-size" *ngIf="!item.subiendo">{{ formatSize(item.file.size) }}</span>
+            <span class="file-name text-wrap-anywhere" [title]="item.file.name">{{ item.file.name }}</span>
+            <span class="file-size text-nowrap-number" *ngIf="!item.subiendo">{{ formatSize(item.file.size) }}</span>
             <span class="file-progress-text" *ngIf="item.subiendo">Subiendo... {{ item.progreso }}%</span>
             <span class="file-error-text" *ngIf="item.error">Error al subir</span>
             <div class="file-progress-bar" *ngIf="item.subiendo">
@@ -218,7 +218,7 @@
 
     <div class="error-tareas" *ngIf="errorTareas && !cargandoTareas">
       <ion-icon name="cloud-offline-outline"></ion-icon>
-      <p>{{ errorTareas }}</p>
+      <p class="text-clamp-2">{{ errorTareas }}</p>
       <button class="retry-btn" (click)="cargarTareas()">
         <ion-icon name="refresh-outline"></ion-icon> Reintentar
       </button>
@@ -234,18 +234,18 @@
 
           <div class="task-info">
             <div class="task-title-row">
-              <h4 class="task-title">{{ tarea.titulo }}</h4>
+              <h4 class="task-title text-clamp-2" [title]="tarea.titulo">{{ tarea.titulo }}</h4>
               <span class="draft-badge" *ngIf="!tarea.publicada">Borrador</span>
             </div>
             <div class="task-meta-row">
-              <span class="task-materia">{{ tarea.materia_nombre }}</span>
+              <span class="task-materia text-truncate" [title]="tarea.materia_nombre">{{ tarea.materia_nombre }}</span>
               <span class="task-meta-dot">·</span>
               <ion-icon name="people-outline" class="meta-icon"></ion-icon>
-              <span class="task-materia">{{ tarea.grupo_nombre }}</span>
+              <span class="task-materia text-truncate" [title]="tarea.grupo_nombre">{{ tarea.grupo_nombre }}</span>
             </div>
             <div class="task-meta-row" *ngIf="tarea.totalAlumnos !== undefined">
               <ion-icon name="checkmark-done-outline" class="meta-icon"></ion-icon>
-              <span class="task-materia">{{ tarea.totalEntregas }}/{{ tarea.totalAlumnos }} entregaron</span>
+              <span class="task-materia text-nowrap-number">{{ tarea.totalEntregas }}/{{ tarea.totalAlumnos }} entregaron</span>
             </div>
           </div>
 
@@ -262,19 +262,19 @@
           </div>
         </div>
 
-        <p class="task-desc" *ngIf="tarea.descripcion">{{ tarea.descripcion }}</p>
+        <p class="task-desc text-clamp-3" *ngIf="tarea.descripcion" [title]="tarea.descripcion">{{ tarea.descripcion }}</p>
 
         <div class="task-files" *ngIf="tarea.archivos && tarea.archivos.length > 0" (click)="$event.stopPropagation()">
-          <a class="attached-file" *ngFor="let file of tarea.archivos" [href]="file.url" target="_blank">
+          <a class="attached-file text-wrap-anywhere" *ngFor="let file of tarea.archivos" [href]="file.url" target="_blank">
             <ion-icon [name]="getFileIcon(file.name)" class="file-attach-icon"></ion-icon>
             <span>{{ file.name }}</span>
           </a>
         </div>
 
         <div class="task-footer">
-          <span class="task-date">
+          <span class="task-date text-nowrap-number">
             <ion-icon name="calendar-outline"></ion-icon>
-            {{ tarea.fecha_entrega }}
+            {{ tarea.fecha_entrega | date:'d MMM yyyy' }}
           </span>
 
           <div class="task-footer-right" (click)="$event.stopPropagation()">
@@ -312,21 +312,21 @@
 
             <div class="entrega-row" *ngFor="let row of tarea.entregasAlumnos">
               <div class="entrega-row-header">
-                <span class="entrega-alumno-nombre">{{ row.alumno_nombre }}</span>
+                <span class="entrega-alumno-nombre text-truncate" [title]="row.alumno_nombre">{{ row.alumno_nombre }}</span>
                 <span class="entrega-estado-badge" [class.sin-entregar]="!row.entrega" [class.entregada]="row.entrega && !esCalificada(row.entrega)" [class.calificada]="esCalificada(row.entrega)">
                   {{ !row.entrega ? 'Sin entregar' : (esCalificada(row.entrega) ? 'Calificada' : 'Entregada') }}
                 </span>
               </div>
 
               <ng-container *ngIf="row.entrega">
-                <a class="entrega-archivo-link" [href]="urlArchivo(row.entrega.archivo)" target="_blank" rel="noopener">
+                <a class="entrega-archivo-link text-wrap-anywhere" [href]="urlArchivo(row.entrega.archivo)" target="_blank" rel="noopener">
                   <ion-icon [name]="getFileIcon(urlArchivo(row.entrega.archivo))"></ion-icon>
                   Ver archivo entregado
                 </a>
-                <p class="entrega-comentario" *ngIf="row.entrega.comentario">
+                <p class="entrega-comentario text-clamp-3" *ngIf="row.entrega.comentario" [title]="row.entrega.comentario">
                   "{{ row.entrega.comentario }}"
                 </p>
-                <p class="entrega-fecha">
+                <p class="entrega-fecha text-nowrap-number">
                   Entregado el {{ row.entrega.entregada_en | date:'d MMM yyyy, HH:mm' }}
                 </p>
 
@@ -355,16 +355,16 @@
         <div class="empty-icon-wrap">
           <ion-icon name="document-text-outline"></ion-icon>
         </div>
-        <h3 class="empty-title">Sin tareas aún</h3>
-        <p class="empty-sub">Toca el botón <strong>+</strong> para agregar tu primera tarea</p>
+        <h3 class="empty-title text-truncate">Sin tareas aún</h3>
+        <p class="empty-sub text-clamp-2">Toca el botón <strong>+</strong> para agregar tu primera tarea</p>
       </div>
 
       <div class="empty-state" *ngIf="tareas.length > 0 && tareasFiltradas.length === 0">
         <div class="empty-icon-wrap">
           <ion-icon name="search-outline"></ion-icon>
         </div>
-        <h3 class="empty-title">Sin resultados</h3>
-        <p class="empty-sub">Ninguna tarea coincide con estos filtros.</p>
+        <h3 class="empty-title text-truncate">Sin resultados</h3>
+        <p class="empty-sub text-clamp-2">Ninguna tarea coincide con estos filtros.</p>
         <button class="retry-btn" (click)="limpiarFiltros()">
           <ion-icon name="refresh-outline"></ion-icon> Limpiar filtros
         </button>
@@ -386,16 +386,16 @@
   <ng-container *ngIf="esAlumno">
 
     <div class="tareas-hero">
-      <h2 class="hero-title">Tus tareas</h2>
-      <p class="hero-sub">Revisa y entrega a tiempo</p>
+      <h2 class="hero-title text-truncate">Tus tareas</h2>
+      <p class="hero-sub text-clamp-2">Revisa y entrega a tiempo</p>
       <div class="stats-row">
         <div class="stat-chip">
-          <span class="stat-num">{{ tareasAlumno.length }}</span>
-          <span class="stat-lbl">Total</span>
+          <span class="stat-num text-nowrap-number">{{ tareasAlumno.length }}</span>
+          <span class="stat-lbl text-truncate">Total</span>
         </div>
         <div class="stat-chip orange">
-          <span class="stat-num">{{ getPendientesAlumno() }}</span>
-          <span class="stat-lbl">Pendientes</span>
+          <span class="stat-num text-nowrap-number">{{ getPendientesAlumno() }}</span>
+          <span class="stat-lbl text-truncate">Pendientes</span>
         </div>
       </div>
     </div>
@@ -407,7 +407,7 @@
 
     <div class="error-tareas" *ngIf="errorTareasAlumno && !cargandoTareasAlumno">
       <ion-icon name="cloud-offline-outline"></ion-icon>
-      <p>{{ errorTareasAlumno }}</p>
+      <p class="text-clamp-2">{{ errorTareasAlumno }}</p>
       <button class="retry-btn" (click)="cargarTareasAlumno()">
         <ion-icon name="refresh-outline"></ion-icon> Reintentar
       </button>
@@ -422,27 +422,27 @@
           </div>
           <div class="task-info">
             <div class="task-title-row">
-              <h4 class="task-title">{{ tarea.titulo }}</h4>
+              <h4 class="task-title text-clamp-2" [title]="tarea.titulo">{{ tarea.titulo }}</h4>
             </div>
             <div class="task-meta-row">
-              <span class="task-materia">{{ tarea.materia_nombre }}</span>
+              <span class="task-materia text-truncate" [title]="tarea.materia_nombre">{{ tarea.materia_nombre }}</span>
             </div>
           </div>
         </div>
 
-        <p class="task-desc" *ngIf="tarea.descripcion">{{ tarea.descripcion }}</p>
+        <p class="task-desc text-clamp-3" *ngIf="tarea.descripcion" [title]="tarea.descripcion">{{ tarea.descripcion }}</p>
 
         <div class="task-files" *ngIf="tarea.archivos && tarea.archivos.length > 0" (click)="$event.stopPropagation()">
-          <a class="attached-file" *ngFor="let file of tarea.archivos" [href]="file.url" target="_blank">
+          <a class="attached-file text-wrap-anywhere" *ngFor="let file of tarea.archivos" [href]="file.url" target="_blank">
             <ion-icon [name]="getFileIcon(file.name)" class="file-attach-icon"></ion-icon>
             <span>{{ file.name }}</span>
           </a>
         </div>
 
         <div class="task-footer">
-          <span class="task-date">
+          <span class="task-date text-nowrap-number">
             <ion-icon name="calendar-outline"></ion-icon>
-            {{ tarea.fecha_entrega }}
+            {{ tarea.fecha_entrega | date:'d MMM yyyy' }}
           </span>
           <span class="task-status" [class.done]="!esVencida(tarea)" [class.vencida]="esVencida(tarea)">
             <ion-icon [name]="esVencida(tarea) ? 'time-outline' : 'checkmark-circle'"></ion-icon>
@@ -459,18 +459,18 @@
             <span class="entrega-tardia-badge" *ngIf="esTardia(tarea)">Entrega tardía</span>
           </div>
 
-          <a class="entrega-archivo-link" [href]="tarea.entregaPropia.archivo" target="_blank" rel="noopener">
+          <a class="entrega-archivo-link text-wrap-anywhere" [href]="tarea.entregaPropia.archivo" target="_blank" rel="noopener">
             <ion-icon [name]="getFileIcon(tarea.entregaPropia.archivo)"></ion-icon>
             Ver mi archivo entregado
           </a>
 
-          <p class="entrega-fecha">Entregado el {{ tarea.entregaPropia.entregada_en | date:'d MMM yyyy, HH:mm' }}</p>
+          <p class="entrega-fecha text-nowrap-number">Entregado el {{ tarea.entregaPropia.entregada_en | date:'d MMM yyyy, HH:mm' }}</p>
 
           <div class="mi-calificacion" *ngIf="esCalificada(tarea.entregaPropia)">
-            <div class="mi-calificacion-num" [class]="'nota-' + (tarea.entregaPropia.calificacion! >= 6 ? 'bien' : 'reprobado')">
+            <div class="mi-calificacion-num text-nowrap-number" [class]="'nota-' + (tarea.entregaPropia.calificacion! >= 6 ? 'bien' : 'reprobado')">
               {{ tarea.entregaPropia.calificacion | number:'1.1-1' }}
             </div>
-            <p class="mi-calificacion-feedback" *ngIf="tarea.entregaPropia.feedback">
+            <p class="mi-calificacion-feedback text-clamp-3" *ngIf="tarea.entregaPropia.feedback" [title]="tarea.entregaPropia.feedback">
               {{ tarea.entregaPropia.feedback }}
             </p>
           </div>
@@ -503,7 +503,7 @@
             <p class="upload-text" *ngIf="!tarea.archivoEntregaSeleccionado">
               Toca para elegir tu archivo
             </p>
-            <p class="upload-text" *ngIf="tarea.archivoEntregaSeleccionado">
+            <p class="upload-text text-wrap-anywhere" *ngIf="tarea.archivoEntregaSeleccionado">
               {{ tarea.archivoEntregaSeleccionado.name }}
             </p>
             <p class="upload-hint">Máximo 20MB</p>
@@ -515,7 +515,7 @@
 
           <div class="opciones-error" *ngIf="tarea.errorEntrega">
             <ion-icon name="alert-circle-outline"></ion-icon>
-            <span>{{ tarea.errorEntrega }}</span>
+            <span class="text-clamp-2">{{ tarea.errorEntrega }}</span>
           </div>
 
           <div class="form-actions">
@@ -537,8 +537,8 @@
         <div class="empty-icon-wrap">
           <ion-icon name="document-text-outline"></ion-icon>
         </div>
-        <h3 class="empty-title">Sin tareas por ahora</h3>
-        <p class="empty-sub">Cuando tu docente publique una tarea, aparecerá aquí</p>
+        <h3 class="empty-title text-truncate">Sin tareas por ahora</h3>
+        <p class="empty-sub text-clamp-2">Cuando tu docente publique una tarea, aparecerá aquí</p>
       </div>
 
     </div>
