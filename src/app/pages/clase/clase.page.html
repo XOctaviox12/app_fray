@@ -23,9 +23,11 @@
 </ion-header>
 
 <ion-content class="clase-content">
-<ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
+
   <div class="loading-overlay" *ngIf="cargando">
     <ion-spinner name="crescent"></ion-spinner>
     <p>Conectando...</p>
@@ -291,9 +293,6 @@
 
     <!-- ALUMNO sin sesión -->
     <ng-container *ngIf="esAlumno && !sesionActiva">
-      <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
       <div class="section-hero">
         <div class="hero-icon-wrap waiting-icon">
           <ion-icon name="time-outline"></ion-icon>
