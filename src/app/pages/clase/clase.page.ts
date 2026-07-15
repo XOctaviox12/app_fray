@@ -1,8 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { DomSanitizer, SafeHtml,SafeResourceUrl  } from '@angular/platform-browser';
 import { SesionService } from '../../services/sesion.service';
 import { CloudinaryService } from '../../services/cloudinary.service';
 import { createClient, SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
 import { environment } from 'src/environments/environment';
+
 
 export type BloqueType = 'texto' | 'pdf' | 'video' | 'actividad' | 'imagen' | 'link';
 
@@ -92,6 +94,25 @@ export interface ActividadContenido {
   preguntas: PreguntaActividad[];
 }
 
+// ── Respuesta de un alumno a una pregunta de actividad ──
+// Se guarda una fila por (bloque, pregunta, alumno) en Supabase.
+export interface RespuestaActividad {
+  id?: number;
+  bloque_id: number;
+  pregunta_id: string;
+  alumno_id: number;
+  respuesta: string;             // índice como texto (opcion_multiple), 'true'/'false' (vf), o texto libre
+  es_correcta: boolean | null;   // null cuando no es autocalificable (respuesta_corta)
+  respondido_en?: string;
+}
+
+// Resumen de aciertos de una actividad ya enviada, para mostrarle al alumno
+// cuántas preguntas autocalificables acertó (respuesta_corta no cuenta aquí).
+export interface ResultadoActividad {
+  correctas: number;
+  calificables: number;
+}
+
 @Component({
   standalone: false,
   selector: 'app-clase',
@@ -140,6 +161,20 @@ export class ClasePage implements OnInit, OnDestroy {
   actividadInstrucciones = '';
   preguntasActividad: PreguntaActividad[] = [];
 
+
+  // ── Actividades — respuestas del alumno ──
+  // Todo se guarda en memoria como string para simplificar el enlace con los
+  // inputs; se serializa/deserializa según el tipo de pregunta al leer/escribir.
+  respuestasAlumno: Record<string, string> = {};              // key: `${bloqueId}_${preguntaId}`
+  actividadesEnviadas: Record<number, boolean> = {};          // key: bloqueId
+  resultadosActividad: Record<number, ResultadoActividad> = {}; // key: bloqueId
+  enviandoActividad: Record<number, boolean> = {};             // key: bloqueId
+
+  // ── Visor de media (imagen / video a pantalla completa) ──
+  mediaVisorAbierto = false;
+  mediaVisorUrl = '';
+  mediaVisorTipo: 'imagen' | 'video' = 'imagen';
+
   private canal: RealtimeChannel | null = null;
   private supabase: SupabaseClient;
   private asignaturasDocente: number[] = [];
@@ -170,6 +205,7 @@ export class ClasePage implements OnInit, OnDestroy {
   constructor(
     public sesion: SesionService,
     private cloudinary: CloudinaryService,
+    private sanitizer: DomSanitizer,
   ) {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
@@ -193,17 +229,24 @@ export class ClasePage implements OnInit, OnDestroy {
     return this.sesionActiva?.estado === ESTADO_SESION_BORRADOR;
   }
 
-  async inicializar() {
-    this.cargando = true;
-    if (this.esDocente) {
-      await this.cargarGruposDocente();
-      await this.buscarSesionActivaDocente();
-      await this.cargarBorradores();
-      await this.cargarPlanes();
-    } else {
-      await this.buscarSesionActivaAlumno();
+  // `esRefresh = true` (pull-to-refresh) evita el flash de pantalla completa:
+  // el ion-refresher ya muestra su propio spinner, así que aquí no volvemos
+  // a tapar todo el contenido con el overlay de "Conectando...".
+  async inicializar(esRefresh = false) {
+    if (!esRefresh) this.cargando = true;
+    this.error = null;
+    try {
+      if (this.esDocente) {
+        await this.cargarGruposDocente();
+        await this.buscarSesionActivaDocente();
+        await this.cargarBorradores();
+        await this.cargarPlanes();
+      } else {
+        await this.buscarSesionActivaAlumno();
+      }
+    } finally {
+      this.cargando = false;
     }
-    this.cargando = false;
   }
 
   cambiarSegmento(event: any) {
@@ -301,6 +344,13 @@ export class ClasePage implements OnInit, OnDestroy {
       this.sesionActiva = data;
       await this.cargarBloques();
       this.suscribirRealtime();
+    } else {
+      // Importante: si ya no hay sesión activa (se cerró desde otro lado,
+      // o simplemente terminó), hay que limpiar el estado local en vez de
+      // dejar la vista mostrando una sesión "fantasma" tras un refresh.
+      this.desuscribir();
+      this.sesionActiva = null;
+      this.bloques = [];
     }
   }
 
@@ -314,7 +364,13 @@ export class ClasePage implements OnInit, OnDestroy {
       .single();
 
     const grupoId = (usu as any)?.alumno_grupo_id;
-    if (!grupoId) { this.error = 'No tienes grupo asignado.'; return; }
+    if (!grupoId) {
+      this.error = 'No tienes grupo asignado.';
+      this.desuscribir();
+      this.sesionActiva = null;
+      this.bloques = [];
+      return;
+    }
 
     const { data } = await this.supabase
       .from('academic_sesionclase')
@@ -329,6 +385,10 @@ export class ClasePage implements OnInit, OnDestroy {
       this.sesionActiva = data;
       await this.cargarBloques();
       this.suscribirRealtime();
+    } else {
+      this.desuscribir();
+      this.sesionActiva = null;
+      this.bloques = [];
     }
   }
 
@@ -604,6 +664,156 @@ export class ClasePage implements OnInit, OnDestroy {
       .order('orden');
 
     this.bloques = data || [];
+
+    // El alumno puede volver a entrar a una sesión ya iniciada, o refrescar
+    // la página, así que hay que traer sus respuestas previas para no dejar
+    // las actividades "en blanco" ni permitir reenviar una ya contestada.
+    if (this.esAlumno) {
+      await this.cargarRespuestasActividades();
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  //  ACTIVIDADES — respuestas del alumno
+  // ═══════════════════════════════════════════════════
+
+  private async cargarRespuestasActividades() {
+    const alumnoId = this.sesion.usuario?.id;
+    const bloqueIds = this.bloques
+      .filter(b => b.tipo === 'actividad' && b.id)
+      .map(b => b.id!);
+
+    if (!alumnoId || !bloqueIds.length) return;
+
+    const { data, error } = await this.supabase
+      .from('academic_respuestaactividad')
+      .select('*')
+      .eq('alumno_id', alumnoId)
+      .in('bloque_id', bloqueIds);
+
+    if (error) {
+      console.error('Error cargando respuestas de actividad:', error.message);
+      return;
+    }
+
+    const respuestas = data || [];
+
+    respuestas.forEach((r: any) => {
+      this.respuestasAlumno[this.respuestaKey(r.bloque_id, r.pregunta_id)] = r.respuesta;
+    });
+
+    // Si ya existe al menos una respuesta guardada para un bloque, lo damos
+    // por enviado (no se puede volver a contestar) y recalculamos el
+    // resumen de aciertos para mostrarlo de inmediato.
+    bloqueIds.forEach(bid => {
+      const respuestasBloque = respuestas.filter((r: any) => r.bloque_id === bid);
+      if (!respuestasBloque.length) return;
+
+      this.actividadesEnviadas[bid] = true;
+      const calificables = respuestasBloque.filter((r: any) => r.es_correcta !== null);
+      const correctas = calificables.filter((r: any) => r.es_correcta === true);
+      this.resultadosActividad[bid] = {
+        correctas: correctas.length,
+        calificables: calificables.length,
+      };
+    });
+  }
+
+  respuestaKey(bloqueId: number, preguntaId: string): string {
+    return `${bloqueId}_${preguntaId}`;
+  }
+
+  getRespuestaOpcion(bloqueId: number, preguntaId: string): number | null {
+    const v = this.respuestasAlumno[this.respuestaKey(bloqueId, preguntaId)];
+    return (v === undefined || v === '') ? null : Number(v);
+  }
+
+  getRespuestaVF(bloqueId: number, preguntaId: string): boolean | null {
+    const v = this.respuestasAlumno[this.respuestaKey(bloqueId, preguntaId)];
+    if (v === undefined || v === '') return null;
+    return v === 'true';
+  }
+
+  getRespuestaTexto(bloqueId: number, preguntaId: string): string {
+    return this.respuestasAlumno[this.respuestaKey(bloqueId, preguntaId)] || '';
+  }
+
+  setRespuestaOpcion(bloqueId: number, preguntaId: string, index: number) {
+    if (this.actividadesEnviadas[bloqueId]) return;
+    this.respuestasAlumno[this.respuestaKey(bloqueId, preguntaId)] = String(index);
+  }
+
+  setRespuestaVF(bloqueId: number, preguntaId: string, valor: boolean) {
+    if (this.actividadesEnviadas[bloqueId]) return;
+    this.respuestasAlumno[this.respuestaKey(bloqueId, preguntaId)] = String(valor);
+  }
+
+  setRespuestaTexto(bloqueId: number, preguntaId: string, valor: string) {
+    if (this.actividadesEnviadas[bloqueId]) return;
+    this.respuestasAlumno[this.respuestaKey(bloqueId, preguntaId)] = valor;
+  }
+
+  // Exige que todas las preguntas tengan respuesta antes de habilitar "Enviar".
+  actividadListaParaEnviar(bloque: BloqueClase): boolean {
+    if (!bloque.id || this.actividadesEnviadas[bloque.id]) return false;
+    const act = this.parsearActividad(bloque.contenido);
+    if (!act.preguntas.length) return false;
+
+    return act.preguntas.every(p => {
+      const v = this.respuestasAlumno[this.respuestaKey(bloque.id!, p.id)];
+      return v !== undefined && v !== '';
+    });
+  }
+
+  async enviarActividad(bloque: BloqueClase) {
+    const alumnoId = this.sesion.usuario?.id;
+    if (!alumnoId || !bloque.id) return;
+    if (this.actividadesEnviadas[bloque.id]) return;
+    if (!this.actividadListaParaEnviar(bloque)) return;
+
+    this.enviandoActividad[bloque.id] = true;
+    const act = this.parsearActividad(bloque.contenido);
+
+    const filas: RespuestaActividad[] = act.preguntas.map(p => {
+      const valor = this.respuestasAlumno[this.respuestaKey(bloque.id!, p.id)];
+      let esCorrecta: boolean | null = null;
+
+      if (p.tipo === 'opcion_multiple' && typeof p.respuestaCorrecta === 'number') {
+        esCorrecta = Number(valor) === p.respuestaCorrecta;
+      } else if (p.tipo === 'verdadero_falso' && typeof p.respuestaCorrecta === 'boolean') {
+        esCorrecta = (valor === 'true') === p.respuestaCorrecta;
+      }
+      // respuesta_corta no se autocalifica: es_correcta queda en null.
+
+      return {
+        bloque_id: bloque.id!,
+        pregunta_id: p.id,
+        alumno_id: alumnoId,
+        respuesta: valor,
+        es_correcta: esCorrecta,
+        respondido_en: new Date().toISOString(),
+      };
+    });
+
+    const { error } = await this.supabase
+      .from('academic_respuestaactividad')
+      .upsert(filas, { onConflict: 'bloque_id,pregunta_id,alumno_id' });
+
+    this.enviandoActividad[bloque.id] = false;
+
+    if (error) {
+      console.error('Error enviando actividad:', error.message);
+      alert('No se pudo enviar tu actividad: ' + error.message);
+      return;
+    }
+
+    this.actividadesEnviadas[bloque.id] = true;
+    const calificables = filas.filter(f => f.es_correcta !== null);
+    const correctas = calificables.filter(f => f.es_correcta === true);
+    this.resultadosActividad[bloque.id] = {
+      correctas: correctas.length,
+      calificables: calificables.length,
+    };
   }
 
   // ── Abrir modal para CREAR ──
@@ -782,7 +992,7 @@ export class ClasePage implements OnInit, OnDestroy {
           this.archivoSeleccionado,
           pct => this.progresoArchivo = pct
         );
-        contenidoFinal = subido.url;
+        contenidoFinal = tipo === 'video' ? this.transformarVideoUrl(subido.url) : subido.url;
         this.subiendoArchivo = false;
       }
 
@@ -846,6 +1056,52 @@ export class ClasePage implements OnInit, OnDestroy {
       respuesta_corta: 'Respuesta corta',
     };
     return map[tipo];
+  }
+
+  // ═══════════════════════════════════════════════════
+  //  TEXTO CON ENLACES AUTOMÁTICOS + VISOR DE MEDIA
+  // ═══════════════════════════════════════════════════
+
+  // Convierte URLs sueltas dentro de un bloque de texto en enlaces
+  // clickeables. Se escapa el texto primero para no introducir HTML
+  // arbitrario, y el resultado se marca como seguro solo después de
+  // haber sido construido por nosotros mismos.
+  linkify(texto: string): SafeHtml {
+    if (!texto) return this.sanitizer.bypassSecurityTrustHtml('');
+
+    const escapado = texto
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    const urlRegex = /((https?:\/\/|www\.)[^\s<]+)/gi;
+    const conLinks = escapado.replace(urlRegex, (match) => {
+      const href = match.startsWith('http') ? match : `https://${match}`;
+      return `<a href="${href}" target="_blank" rel="noopener" class="texto-link-inline">${match}</a>`;
+    });
+
+    return this.sanitizer.bypassSecurityTrustHtml(conLinks);
+  }
+
+  // Nombre de dominio amigable para mostrar en los bloques tipo "link"
+  // (ej. "docs.google.com" en vez de la URL completa).
+  hostnameDe(url: string): string {
+    try {
+      return new URL(url).hostname.replace(/^www\./, '');
+    } catch {
+      return url;
+    }
+  }
+
+  abrirMedia(url: string, tipo: 'imagen' | 'video') {
+    this.mediaVisorUrl = url;
+    this.mediaVisorTipo = tipo;
+    this.mediaVisorAbierto = true;
+  }
+
+  cerrarMedia() {
+    this.mediaVisorAbierto = false;
+    this.mediaVisorUrl = '';
   }
 
   // ═══════════════════════════════════════════════════
@@ -1135,22 +1391,40 @@ export class ClasePage implements OnInit, OnDestroy {
     return url?.includes('youtube.com') || url?.includes('youtu.be');
   }
 
-  youtubeEmbed(url: string): string {
-    if (url.includes('youtu.be/')) {
-      return `https://www.youtube.com/embed/${url.split('youtu.be/')[1].split('?')[0]}`;
-    }
-    if (url.includes('v=')) {
-      return `https://www.youtube.com/embed/${url.split('v=')[1].split('&')[0]}`;
-    }
-    return url;
+youtubeEmbed(url: string): SafeResourceUrl {
+  let embedUrl = url;
+  if (url.includes('youtu.be/')) {
+    embedUrl = `https://www.youtube.com/embed/${url.split('youtu.be/')[1].split('?')[0]}`;
+  } else if (url.includes('v=')) {
+    embedUrl = `https://www.youtube.com/embed/${url.split('v=')[1].split('&')[0]}`;
   }
+  return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+}
+// Devuelve la URL "watch" normal (no embed) para abrir en la app nativa de YouTube.
+// iOS la intercepta como Universal Link si la app está instalada.
+youtubeWatchUrl(url: string): string {
+  if (url.includes('youtu.be/')) {
+    const id = url.split('youtu.be/')[1].split('?')[0];
+    return `https://www.youtube.com/watch?v=${id}`;
+  }
+  if (url.includes('v=')) {
+    const id = url.split('v=')[1].split('&')[0];
+    return `https://www.youtube.com/watch?v=${id}`;
+  }
+  return url;
+}
+// Fuerza a Cloudinary a servir siempre el video como MP4/H.264/AAC.
+private transformarVideoUrl(url: string): string {
+  return url.replace('/video/upload/', '/video/upload/f_mp4,vc_h264,ac_aac/');
+}
 
   trackBloque(_: number, b: BloqueClase) { return b.id; }
   trackPlan(_: number, p: PlanClase)     { return p.id; }
   trackTema(_: number, t: TemaClase)     { return t.id; }
   trackBorrador(_: number, b: SesionBorrador) { return b.id; }
+  trackPregunta(_: number, p: PreguntaActividad) { return p.id; }
 
   doRefresh(event: any) {
-    this.inicializar().then(() => event.target.complete());
+    this.inicializar(true).then(() => event.target.complete());
   }
 }
