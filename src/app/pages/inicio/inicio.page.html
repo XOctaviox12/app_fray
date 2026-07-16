@@ -46,7 +46,7 @@
         <p class="hero-sub">Semestre Primavera 2025</p>
       </div>
       <div class="hero-avatar">
-        <img [src]="avatarUrl" (error)="onErrorImagen()" class="hero-avatar-img" />
+       <img [src]="avatarUrl" (error)="onErrorImagen()" class="hero-avatar-img" alt="Foto de perfil" />
       </div>
     </div>
 
@@ -67,16 +67,16 @@
 
     <p class="section-label">Acceso rápido</p>
 
-    <div class="quick-card" routerLink="/tareas">
-      <div class="quick-card-icon orange-icon">
-        <ion-icon name="document-text-outline"></ion-icon>
-      </div>
-      <div class="quick-card-text">
-        <h3 class="quick-card-title">Tareas Pendientes</h3>
-        <p class="quick-card-sub">{{ tareasPendientes }} tareas sin completar</p>
-      </div>
-      <ion-icon name="chevron-forward-outline" class="quick-card-arrow"></ion-icon>
-    </div>
+<a class="quick-card" routerLink="/tareas">
+  <div class="quick-card-icon orange-icon">
+    <ion-icon name="document-text-outline"></ion-icon>
+  </div>
+  <div class="quick-card-text">
+    <h3 class="quick-card-title">Tareas Pendientes</h3>
+    <p class="quick-card-sub">{{ tareasPendientes }} tareas sin completar</p>
+  </div>
+  <ion-icon name="chevron-forward-outline" class="quick-card-arrow"></ion-icon>
+</a>
 
     <div class="quick-card" routerLink="/actividad">
       <div class="quick-card-icon blue-icon">
@@ -132,7 +132,7 @@
         <p class="hero-sub">Panel Docente</p>
       </div>
       <div class="hero-avatar">
-        <img [src]="avatarUrl" (error)="onErrorImagen()" class="hero-avatar-img" />
+        <img [src]="avatarUrl" (error)="onErrorImagen()" class="hero-avatar-img" alt="Foto de perfil" />
       </div>
     </div>
 
@@ -175,16 +175,16 @@
       <ion-icon name="chevron-forward-outline" class="quick-card-arrow"></ion-icon>
     </div>
 
-    <div class="quick-card" routerLink="/tareas">
-      <div class="quick-card-icon orange-icon">
-        <ion-icon name="document-text-outline"></ion-icon>
-      </div>
-      <div class="quick-card-text">
-        <h3 class="quick-card-title">Tareas Creadas</h3>
-        <p class="quick-card-sub">{{ tareasPendientes }} tarea{{ tareasPendientes !== 1 ? 's' : '' }} publicada{{ tareasPendientes !== 1 ? 's' : '' }}</p>
-      </div>
-      <ion-icon name="chevron-forward-outline" class="quick-card-arrow"></ion-icon>
-    </div>
+<a class="quick-card" routerLink="/tareas">
+  <div class="quick-card-icon orange-icon">
+    <ion-icon name="document-text-outline"></ion-icon>
+  </div>
+  <div class="quick-card-text">
+    <h3 class="quick-card-title">Tareas Pendientes</h3>
+    <p class="quick-card-sub">{{ tareasPendientes }} tareas sin completar</p>
+  </div>
+  <ion-icon name="chevron-forward-outline" class="quick-card-arrow"></ion-icon>
+</a>
 
     <div class="quick-card" routerLink="/actividad">
       <div class="quick-card-icon blue-icon">

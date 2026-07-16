@@ -95,8 +95,8 @@
 </div>
 
         <div class="bloque-imagen-wrap" *ngIf="b.tipo === 'imagen'">
-          <img [src]="b.contenido" [alt]="b.titulo || 'Imagen de la clase'" class="bloque-imagen"
-            (click)="abrirMedia(b.contenido, 'imagen')" />
+          <img [src]="imagenOptimizada(b.contenido, 700)" [alt]="b.titulo || 'Imagen de la clase'" class="bloque-imagen"
+  (click)="abrirMedia(b.contenido, 'imagen')" />
           <button type="button" class="btn-expandir-media" (click)="abrirMedia(b.contenido, 'imagen')"
             aria-label="Ver imagen en pantalla completa" title="Ver en pantalla completa">
             <ion-icon name="expand-outline"></ion-icon>
@@ -689,7 +689,7 @@
       <ion-icon name="close-outline"></ion-icon>
     </button>
     <div class="media-visor-content" (click)="$event.stopPropagation()">
-      <img *ngIf="mediaVisorTipo === 'imagen'" [src]="mediaVisorUrl" alt="Contenido de la clase a pantalla completa" class="media-visor-imagen" />
+     <img *ngIf="mediaVisorTipo === 'imagen'" [src]="imagenOptimizada(mediaVisorUrl, 1600)" alt="Contenido de la clase a pantalla completa" class="media-visor-imagen" />
       <div class="media-visor-video-wrap" *ngIf="mediaVisorTipo === 'video'">
         <div class="video-wrap" *ngIf="esYoutube(mediaVisorUrl)">
           <iframe [src]="youtubeEmbed(mediaVisorUrl)" frameborder="0" allowfullscreen class="video-iframe" title="Video a pantalla completa"></iframe>

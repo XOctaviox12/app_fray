@@ -62,18 +62,18 @@
 
       <div class="filter-selects-row">
         <div class="filter-select-wrap">
-          <select [(ngModel)]="filtroMateriaId">
+          <select [(ngModel)]="filtroGrupoId" aria-label="Filtrar por grupo">
             <option [ngValue]="null">Todas las materias</option>
             <option *ngFor="let m of materiasFiltro" [ngValue]="m.id">{{ m.nombre }}</option>
           </select>
         </div>
         <div class="filter-select-wrap">
-          <select [(ngModel)]="filtroGrupoId">
+          <select [(ngModel)]="filtroGrupoId" aria-label="Filtrar por grupo">
             <option [ngValue]="null">Todos los grupos</option>
             <option *ngFor="let g of gruposFiltro" [ngValue]="g.id">{{ g.nombre }}</option>
           </select>
         </div>
-        <button class="clear-filters-btn" *ngIf="hayFiltrosActivos" (click)="limpiarFiltros()">
+        <button class="clear-filters-btn" *ngIf="hayFiltrosActivos" (click)="limpiarFiltros()" aria-label="Limpiar filtros">
           <ion-icon name="refresh-outline"></ion-icon>
         </button>
       </div>
@@ -83,7 +83,7 @@
     <div class="new-task-form" *ngIf="showForm">
       <div class="form-header">
         <h3 class="form-title text-truncate">{{ editingTarea ? 'Editar Tarea' : 'Nueva Tarea' }}</h3>
-        <button class="form-close-btn" (click)="solicitarCierreFormulario()">
+        <button class="form-close-btn" (click)="solicitarCierreFormulario()" aria-label="Cerrar formulario">
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
@@ -234,7 +234,7 @@
 
           <div class="task-info">
             <div class="task-title-row">
-              <h4 class="task-title text-clamp-2" [title]="tarea.titulo">{{ tarea.titulo }}</h4>
+              <h3 class="task-title text-clamp-2" [title]="tarea.titulo">{{ tarea.titulo }}</h3>
               <span class="draft-badge" *ngIf="!tarea.publicada">Borrador</span>
             </div>
             <div class="task-meta-row">
@@ -319,7 +319,7 @@
               </div>
 
               <ng-container *ngIf="row.entrega">
-                <a class="entrega-archivo-link text-wrap-anywhere" [href]="urlArchivo(row.entrega.archivo)" target="_blank" rel="noopener">
+                <a class="entrega-archivo-link text-wrap-anywhere" [href]="urlArchivo(row.entrega.archivo)" target="_blank" rel="noopener" [attr.aria-label]="'Ver archivo entregado de ' + row.alumno_nombre">
                   <ion-icon [name]="getFileIcon(urlArchivo(row.entrega.archivo))"></ion-icon>
                   Ver archivo entregado
                 </a>
@@ -373,7 +373,7 @@
     </div>
 
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-      <ion-fab-button class="fab-agregar" (click)="abrirFormularioNuevo()">
+     <ion-fab-button class="fab-agregar" (click)="abrirFormularioNuevo()" aria-label="Agregar nueva tarea">
         <ion-icon name="add-outline"></ion-icon>
       </ion-fab-button>
     </ion-fab>
@@ -422,7 +422,7 @@
           </div>
           <div class="task-info">
             <div class="task-title-row">
-              <h4 class="task-title text-clamp-2" [title]="tarea.titulo">{{ tarea.titulo }}</h4>
+              <h3 class="task-title text-clamp-2" [title]="tarea.titulo">{{ tarea.titulo }}</h3>
             </div>
             <div class="task-meta-row">
               <span class="task-materia text-truncate" [title]="tarea.materia_nombre">{{ tarea.materia_nombre }}</span>

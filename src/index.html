@@ -4,11 +4,16 @@
 <head>
   <meta charset="utf-8" />
   <title>Ionic App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Graduate&display=optional" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Graduate&display=optional"></noscript>
 
   <base href="/" />
+  <meta name="description" content="Fray Hub — Portal escolar de Universidad Lisboa para alumnos, docentes y tutores." />
 
   <meta name="color-scheme" content="light dark" />
-  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0" />
   <meta name="format-detection" content="telephone=no" />
   <meta name="msapplication-tap-highlight" content="no" />
 
@@ -20,7 +25,20 @@
 </head>
 
 <body>
-  <app-root></app-root>
+  <body>
+  <app-root>
+    <style>
+      .boot-loader {
+        display: flex; align-items: center; justify-content: center;
+        height: 100vh; background: #F8F9FB;
+      }
+      .boot-loader img { width: 46px; height: 46px; opacity: 0.6; }
+    </style>
+    <div class="boot-loader">
+      <img src="assets/img/logotipo_lisboa.webp" alt="" />
+    </div>
+  </app-root>
+</body>
 </body>
 
 </html>

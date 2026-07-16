@@ -798,10 +798,10 @@
     }
   }
 
-  &.completed {
-    opacity: 0.65;
-    .task-title { text-decoration: line-through; }
-  }
+&.completed {
+  .task-title { text-decoration: line-through; color: var(--p-text-2); }
+  .task-desc, .task-materia, .task-date { color: #9CA3AF; }
+}
 
   &.draft {
     border-style: dashed;

@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DomSanitizer, SafeHtml,SafeResourceUrl  } from '@angular/platform-browser';
 import { SesionService } from '../../services/sesion.service';
 import { CloudinaryService } from '../../services/cloudinary.service';
-import { createClient, SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { environment } from 'src/environments/environment';
 
 
@@ -175,9 +175,8 @@ export class ClasePage implements OnInit, OnDestroy {
   mediaVisorUrl = '';
   mediaVisorTipo: 'imagen' | 'video' = 'imagen';
 
-  private canal: RealtimeChannel | null = null;
-  private supabase: SupabaseClient;
-  private asignaturasDocente: number[] = [];
+private canal: RealtimeChannel | null = null;
+private asignaturasDocente: number[] = [];
 
   // ── PLANES DE CLASE ─────────────────────────────────
   vistaPlanes: 'lista' | 'form' | 'detalle' = 'lista';
@@ -202,15 +201,11 @@ export class ClasePage implements OnInit, OnDestroy {
     { value: 'ANUAL',    label: 'Anual' },
   ];
 
-  constructor(
-    public sesion: SesionService,
-    private cloudinary: CloudinaryService,
-    private sanitizer: DomSanitizer,
-  ) {
-    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
-      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
-    });
-  }
+constructor(
+  public sesion: SesionService,
+  private cloudinary: CloudinaryService,
+  private sanitizer: DomSanitizer,
+) {}
 
   ngOnInit()    { this.inicializar(); }
   ngOnDestroy() { this.desuscribir(); }
@@ -262,7 +257,7 @@ export class ClasePage implements OnInit, OnDestroy {
     const docenteId = this.sesion.usuario?.id;
     if (!docenteId) return;
 
-    const { data: relAsig } = await this.supabase
+    const { data: relAsig } = await this.sesion.supabase
       .from('academic_asignatura_docentes')
       .select('asignatura_id')
       .eq('user_id', docenteId);
@@ -270,7 +265,7 @@ export class ClasePage implements OnInit, OnDestroy {
     this.asignaturasDocente = (relAsig || []).map((r: any) => r.asignatura_id);
     if (!this.asignaturasDocente.length) { this.misGrupos = []; return; }
 
-    const { data: relGM } = await this.supabase
+    const { data: relGM } = await this.sesion.supabase
       .from('academic_asignatura_grupos')
       .select('grupo_id')
       .in('asignatura_id', this.asignaturasDocente);
@@ -278,7 +273,7 @@ export class ClasePage implements OnInit, OnDestroy {
     const grupoIdsPorMateria = [...new Set((relGM || []).map((r: any) => r.grupo_id))];
     if (!grupoIdsPorMateria.length) { this.misGrupos = []; return; }
 
-    const { data: relGrupos } = await this.supabase
+    const { data: relGrupos } = await this.sesion.supabase
       .from('academic_grupo_docentes')
       .select('grupo_id')
       .eq('user_id', docenteId)
@@ -287,7 +282,7 @@ export class ClasePage implements OnInit, OnDestroy {
     const grupoIdsFinal = [...new Set((relGrupos || []).map((r: any) => r.grupo_id))];
     if (!grupoIdsFinal.length) { this.misGrupos = []; return; }
 
-    const { data: grupos } = await this.supabase
+    const { data: grupos } = await this.sesion.supabase
       .from('academic_grupo')
       .select('id, nombre, grado')
       .in('id', grupoIdsFinal)
@@ -302,7 +297,7 @@ export class ClasePage implements OnInit, OnDestroy {
 
     if (!this.grupoSeleccionado || !this.asignaturasDocente.length) return;
 
-    const { data: relGrupo } = await this.supabase
+    const { data: relGrupo } = await this.sesion.supabase
       .from('academic_asignatura_grupos')
       .select('asignatura_id')
       .eq('grupo_id', this.grupoSeleccionado);
@@ -312,7 +307,7 @@ export class ClasePage implements OnInit, OnDestroy {
 
     if (!asigFiltradas.length) { this.misAsignaturas = []; return; }
 
-    const { data: asignaturas } = await this.supabase
+    const { data: asignaturas } = await this.sesion.supabase
       .from('academic_asignatura')
       .select('id, nombre, clave')
       .in('id', asigFiltradas)
@@ -331,7 +326,7 @@ export class ClasePage implements OnInit, OnDestroy {
 
   async buscarSesionActivaDocente() {
     const docenteId = this.sesion.usuario?.id;
-    const { data } = await this.supabase
+    const { data } = await this.sesion.supabase
       .from('academic_sesionclase')
       .select('*')
       .eq('docente_id', docenteId)
@@ -357,7 +352,7 @@ export class ClasePage implements OnInit, OnDestroy {
   async buscarSesionActivaAlumno() {
     const alumnoId = this.sesion.usuario?.id;
 
-    const { data: usu } = await this.supabase
+    const { data: usu } = await this.sesion.supabase
       .from('users_user')
       .select('alumno_grupo_id')
       .eq('id', alumnoId)
@@ -372,7 +367,7 @@ export class ClasePage implements OnInit, OnDestroy {
       return;
     }
 
-    const { data } = await this.supabase
+    const { data } = await this.sesion.supabase
       .from('academic_sesionclase')
       .select('*')
       .eq('grupo_id', grupoId)
@@ -404,7 +399,7 @@ export class ClasePage implements OnInit, OnDestroy {
       fecha:         new Date().toISOString().split('T')[0],
     };
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.sesion.supabase
       .from('academic_sesionclase')
       .insert(nueva)
       .select()
@@ -422,7 +417,7 @@ export class ClasePage implements OnInit, OnDestroy {
 
   async terminarSesion() {
     if (!this.sesionActiva?.id) return;
-    await this.supabase
+    await this.sesion.supabase
       .from('academic_sesionclase')
       .update({ estado: ESTADO_SESION_FINALIZADA })
       .eq('id', this.sesionActiva.id);
@@ -444,7 +439,7 @@ export class ClasePage implements OnInit, OnDestroy {
     const docenteId = this.sesion.usuario?.id;
     if (!docenteId) return;
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.sesion.supabase
       .from('academic_sesionclase')
       .select('*')
       .eq('docente_id', docenteId)
@@ -467,14 +462,14 @@ export class ClasePage implements OnInit, OnDestroy {
     let asigMap:  Record<number, string> = {};
 
     if (grupoIds.length) {
-      const { data: grupos } = await this.supabase
+      const { data: grupos } = await this.sesion.supabase
         .from('academic_grupo')
         .select('id, nombre, grado')
         .in('id', grupoIds);
       (grupos || []).forEach((g: any) => { grupoMap[g.id] = `${g.grado}° — Grupo ${g.nombre}`; });
     }
     if (asigIds.length) {
-      const { data: asigs } = await this.supabase
+      const { data: asigs } = await this.sesion.supabase
         .from('academic_asignatura')
         .select('id, nombre')
         .in('id', asigIds);
@@ -503,7 +498,7 @@ export class ClasePage implements OnInit, OnDestroy {
       fecha:         new Date().toISOString().split('T')[0],
     };
 
-    const { error } = await this.supabase
+    const { error } = await this.sesion.supabase
       .from('academic_sesionclase')
       .insert(nuevo);
 
@@ -543,7 +538,7 @@ export class ClasePage implements OnInit, OnDestroy {
     if (!this.sesionActiva?.id || this.sesionActiva.estado !== ESTADO_SESION_BORRADOR) return;
     this.publicandoBorrador = true;
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.sesion.supabase
       .from('academic_sesionclase')
       .update({
         estado: ESTADO_SESION_ACTIVA,
@@ -575,7 +570,7 @@ export class ClasePage implements OnInit, OnDestroy {
 
   async eliminarBorrador(b: SesionBorrador) {
     if (!b.id) return;
-    const { error } = await this.supabase
+    const { error } = await this.sesion.supabase
       .from('academic_sesionclase')
       .delete()
       .eq('id', b.id);
@@ -595,7 +590,7 @@ export class ClasePage implements OnInit, OnDestroy {
     this.cargandoReutilizar = true;
 
     try {
-      const { data: anterior, error: eAnt } = await this.supabase
+      const { data: anterior, error: eAnt } = await this.sesion.supabase
         .from('academic_sesionclase')
         .select('id')
         .eq('docente_id', this.sesion.usuario!.id)
@@ -613,7 +608,7 @@ export class ClasePage implements OnInit, OnDestroy {
         return;
       }
 
-      const { data: bloquesAnteriores, error: eBloq } = await this.supabase
+      const { data: bloquesAnteriores, error: eBloq } = await this.sesion.supabase
         .from('academic_bloqueclase')
         .select('*')
         .eq('sesion_id', anterior.id)
@@ -636,7 +631,7 @@ export class ClasePage implements OnInit, OnDestroy {
         creado_en: new Date().toISOString(),
       }));
 
-      const { error: eIns } = await this.supabase
+      const { error: eIns } = await this.sesion.supabase
         .from('academic_bloqueclase')
         .insert(copias);
 
@@ -656,7 +651,7 @@ export class ClasePage implements OnInit, OnDestroy {
 
   async cargarBloques() {
     if (!this.sesionActiva?.id) return;
-    const { data } = await this.supabase
+    const { data } = await this.sesion.supabase
       .from('academic_bloqueclase')
       .select('*')
       .eq('sesion_id', this.sesionActiva.id)
@@ -685,7 +680,7 @@ export class ClasePage implements OnInit, OnDestroy {
 
     if (!alumnoId || !bloqueIds.length) return;
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.sesion.supabase
       .from('academic_respuestaactividad')
       .select('*')
       .eq('alumno_id', alumnoId)
@@ -795,7 +790,7 @@ export class ClasePage implements OnInit, OnDestroy {
       };
     });
 
-    const { error } = await this.supabase
+    const { error } = await this.sesion.supabase
       .from('academic_respuestaactividad')
       .upsert(filas, { onConflict: 'bloque_id,pregunta_id,alumno_id' });
 
@@ -997,7 +992,7 @@ export class ClasePage implements OnInit, OnDestroy {
       }
 
       if (this.editandoBloque) {
-        const { error } = await this.supabase
+        const { error } = await this.sesion.supabase
           .from('academic_bloqueclase')
           .update({
             titulo: this.nuevoBloque.titulo || '',
@@ -1006,7 +1001,7 @@ export class ClasePage implements OnInit, OnDestroy {
           .eq('id', this.editandoBloque.id!);
         if (error) throw error;
       } else {
-        const { error } = await this.supabase
+        const { error } = await this.sesion.supabase
           .from('academic_bloqueclase')
           .insert({
             sesion_id: this.nuevoBloque.sesion_id,
@@ -1033,7 +1028,7 @@ export class ClasePage implements OnInit, OnDestroy {
   }
 
   async eliminarBloque(bloque: BloqueClase) {
-    await this.supabase
+    await this.sesion.supabase
       .from('academic_bloqueclase')
       .update({ activo: false })
       .eq('id', bloque.id!);
@@ -1112,7 +1107,7 @@ export class ClasePage implements OnInit, OnDestroy {
     if (!this.sesionActiva?.id) return;
     this.desuscribir();
 
-    this.canal = this.supabase
+    this.canal = this.sesion.supabase
       .channel(`clase-${this.sesionActiva.id}`)
       .on('postgres_changes', {
         event: '*', schema: 'public',
@@ -1135,7 +1130,7 @@ export class ClasePage implements OnInit, OnDestroy {
 
   desuscribir() {
     if (this.canal) {
-      this.supabase.removeChannel(this.canal);
+      this.sesion.supabase.removeChannel(this.canal);
       this.canal = null;
     }
   }
@@ -1148,7 +1143,7 @@ export class ClasePage implements OnInit, OnDestroy {
     const docenteId = this.sesion.usuario?.id;
     if (!docenteId) return;
 
-    const { data: planesRaw } = await this.supabase
+    const { data: planesRaw } = await this.sesion.supabase
       .from('academic_planclase')
       .select('*')
       .eq('docente_id', docenteId)
@@ -1165,18 +1160,18 @@ export class ClasePage implements OnInit, OnDestroy {
     let grupoMap: Record<number, string> = {};
 
     if (asigIds.length) {
-      const { data: asigs } = await this.supabase
+      const { data: asigs } = await this.sesion.supabase
         .from('academic_asignatura').select('id, nombre').in('id', asigIds);
       (asigs || []).forEach((a: any) => { asigMap[a.id] = a.nombre; });
     }
     if (grupoIds.length) {
-      const { data: grupos } = await this.supabase
+      const { data: grupos } = await this.sesion.supabase
         .from('academic_grupo').select('id, nombre, grado').in('id', grupoIds);
       (grupos || []).forEach((g: any) => { grupoMap[g.id] = `${g.grado}°${g.nombre}`; });
     }
 
     let temasPorPlan: Record<number, { total: number; completados: number }> = {};
-    const { data: temas } = await this.supabase
+    const { data: temas } = await this.sesion.supabase
       .from('academic_temaclase').select('plan_id, completado').in('plan_id', planIds);
     (temas || []).forEach((t: any) => {
       if (!temasPorPlan[t.plan_id]) temasPorPlan[t.plan_id] = { total: 0, completados: 0 };
@@ -1256,9 +1251,9 @@ export class ClasePage implements OnInit, OnDestroy {
     let planId = this.formPlan.id;
 
     if (this.modoEdicionPlan && planId) {
-      await this.supabase.from('academic_planclase').update(payload).eq('id', planId);
+      await this.sesion.supabase.from('academic_planclase').update(payload).eq('id', planId);
     } else {
-      const { data, error } = await this.supabase
+      const { data, error } = await this.sesion.supabase
         .from('academic_planclase').insert(payload).select().single();
       if (error) { console.error(error); this.guardandoPlan = false; return; }
       planId = (data as any)?.id;
@@ -1274,7 +1269,7 @@ export class ClasePage implements OnInit, OnDestroy {
 
   async togglePublicadoPlan(p: PlanClase) {
     const nuevo = !p.publicado;
-    await this.supabase.from('academic_planclase').update({ publicado: nuevo }).eq('id', p.id!);
+    await this.sesion.supabase.from('academic_planclase').update({ publicado: nuevo }).eq('id', p.id!);
     p.publicado = nuevo;
     const seleccionado = this.planSeleccionado;
     if (seleccionado && seleccionado.id === p.id) {
@@ -1283,7 +1278,7 @@ export class ClasePage implements OnInit, OnDestroy {
   }
 
   async eliminarPlan(p: PlanClase) {
-    await this.supabase.from('academic_planclase').delete().eq('id', p.id!);
+    await this.sesion.supabase.from('academic_planclase').delete().eq('id', p.id!);
     this.planes = this.planes.filter(x => x.id !== p.id);
     this.volverALista();
   }
@@ -1302,7 +1297,7 @@ export class ClasePage implements OnInit, OnDestroy {
 
   async cargarTemas() {
     if (!this.planSeleccionado?.id) return;
-    const { data } = await this.supabase
+    const { data } = await this.sesion.supabase
       .from('academic_temaclase')
       .select('*')
       .eq('plan_id', this.planSeleccionado.id)
@@ -1331,7 +1326,7 @@ export class ClasePage implements OnInit, OnDestroy {
     if (!this.nuevoTema.titulo?.trim() || !this.nuevoTema.numero || !this.planSeleccionado?.id) return;
     this.guardandoTema = true;
 
-    const { error } = await this.supabase.from('academic_temaclase').insert({
+    const { error } = await this.sesion.supabase.from('academic_temaclase').insert({
       plan_id:       this.planSeleccionado.id,
       numero:        this.nuevoTema.numero,
       titulo:        this.nuevoTema.titulo.trim(),
@@ -1356,12 +1351,12 @@ export class ClasePage implements OnInit, OnDestroy {
   async toggleTemaCompletado(t: TemaClase) {
     const nuevo = !t.completado;
     t.completado = nuevo;
-    await this.supabase.from('academic_temaclase').update({ completado: nuevo }).eq('id', t.id!);
+    await this.sesion.supabase.from('academic_temaclase').update({ completado: nuevo }).eq('id', t.id!);
     await this.cargarPlanes();
   }
 
   async eliminarTema(t: TemaClase) {
-    await this.supabase.from('academic_temaclase').delete().eq('id', t.id!);
+    await this.sesion.supabase.from('academic_temaclase').delete().eq('id', t.id!);
     this.temasPlan = this.temasPlan.filter(x => x.id !== t.id);
     await this.cargarPlanes();
   }
@@ -1390,7 +1385,12 @@ export class ClasePage implements OnInit, OnDestroy {
   esYoutube(url: string): boolean {
     return url?.includes('youtube.com') || url?.includes('youtu.be');
   }
-
+// Inserta transformación de Cloudinary (ancho máximo + calidad/formato automáticos)
+// sin modificar el archivo original guardado.
+imagenOptimizada(url: string, ancho = 800): string {
+  if (!url || !url.includes('/upload/')) return url;
+  return url.replace('/upload/', `/upload/w_${ancho},c_limit,q_auto,f_auto/`);
+}
 youtubeEmbed(url: string): SafeResourceUrl {
   let embedUrl = url;
   if (url.includes('youtu.be/')) {
