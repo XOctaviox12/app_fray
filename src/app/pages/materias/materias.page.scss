@@ -1,35 +1,39 @@
 // ============================================
 // MATERIAS.PAGE.SCSS
-// Rediseño visual iPad · Soft UI + Cupertino + Neumorphism ligero
-// (Solo estilos. Ninguna clase, evento o binding del HTML fue modificado)
+// Alineado a la paleta del mock (Universidad Lisboa)
+// Solo estilos — ninguna clase, evento o binding del HTML fue modificado.
 // ============================================
 
 :host {
-  --fh-primary: #F57C00;
-  --fh-primary-dark: #E06C00;
-  --fh-secondary: #0D47A1;
-  --fh-error: #D32F2F;
+  --fh-primary: #964900;
+  --fh-primary-container: #F57C00;
+  --fh-primary-container-end: #EF6C00;
+  --fh-secondary: #4A59A1;
+  --fh-on-secondary-container: #304086;
+  --fh-tertiary: #526069;
+  --fh-error: #BA1A1A;
   --fh-white: #FFFFFF;
-  --fh-bg: #F8F9FB;
-  --fh-bg-2: #EEF2F7;
-  --fh-text: #1F2937;
-  --fh-text-2: #6B7280;
-  --fh-border: #E5E7EB;
+  --fh-bg: #F8F9FA;
+  --fh-bg-2: #EDF0F5;
+  --fh-text: #1A1C1E;
+  --fh-text-2: #574235;
+  --fh-border: #E1E3E4;
+  --fh-outline-variant: #DEC1AF;
 
-  --fh-success: #16A34A;
-  --fh-success-soft: rgba(22, 163, 74, 0.1);
-  --fh-info: #0D47A1;
-  --fh-info-soft: rgba(13, 71, 161, 0.1);
+  --fh-success: #2E7D32;
+  --fh-success-soft: rgba(46, 125, 50, 0.1);
+  --fh-info: #4A59A1;
+  --fh-info-soft: rgba(74, 89, 161, 0.1);
   --fh-purple: #8B5CF6;
   --fh-purple-soft: rgba(139, 92, 246, 0.1);
 
   --fh-radius-card: 22px;
-  --fh-radius-btn: 18px;
+  --fh-radius-btn: 14px;
 
-  --fh-shadow-soft: 0 8px 30px rgba(15, 23, 42, 0.08);
-  --fh-shadow-lift: 0 14px 40px rgba(15, 23, 42, 0.12);
+  --fh-shadow-soft: 0 30px 60px -15px rgba(48, 64, 134, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  --fh-shadow-lift: 0 40px 80px -20px rgba(0, 0, 0, 0.12);
 
-  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .header-toolbar {
@@ -46,7 +50,7 @@
   letter-spacing: -0.2px;
 }
 
-.header-action-btn { --color: var(--fh-text-2); }
+.header-action-btn { --color: var(--fh-primary); }
 
 .header-accent-bar {
   height: 1px;
@@ -70,8 +74,8 @@ ion-segment {
 
 ion-segment-button {
   --color: var(--fh-text-2);
-  --color-checked: var(--fh-white);
-  --background-checked: var(--fh-primary);
+  --color-checked: var(--fh-text);
+  --background-checked: var(--fh-white);
   --border-radius: 11px;
   --indicator-height: 0;
   --padding-top: 8px;
@@ -88,6 +92,8 @@ ion-segment-button {
     gap: 5px;
     ion-icon { font-size: 13px; }
   }
+
+  &.segment-button-checked ion-label ion-icon { color: var(--fh-primary); }
 }
 
 // ── Loading ───────────────────────────────
@@ -105,14 +111,14 @@ ion-segment-button {
 // ── Hero ──────────────────────────────────
 .section-hero {
   background: var(--fh-white);
-  padding: 20px 18px 24px;
+  padding: 22px 18px 26px;
   border-bottom: 1px solid var(--fh-border);
 }
 
 .section-title {
   margin: 0;
-  font-size: 21px;
-  font-weight: 800;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--fh-text);
   letter-spacing: -0.4px;
 }
@@ -120,6 +126,7 @@ ion-segment-button {
 .section-sub {
   font-size: 12.5px;
   color: var(--fh-text-2);
+  opacity: 0.85;
   margin-top: 4px;
 }
 
@@ -131,6 +138,7 @@ ion-segment-button {
   text-transform: uppercase;
   padding: 20px 18px 8px;
   margin: 0;
+  opacity: 0.8;
 }
 
 // ── Empty state ───────────────────────────
@@ -147,41 +155,54 @@ ion-segment-button {
   border-radius: var(--fh-radius-card);
   box-shadow: var(--fh-shadow-soft);
 
-  ion-icon { font-size: 44px; color: var(--fh-border); }
-  h3 { margin: 0; font-size: 16px; font-weight: 800; color: var(--fh-text); }
+  ion-icon { font-size: 44px; color: var(--fh-outline-variant); }
+  h3 { margin: 0; font-size: 16px; font-weight: 700; color: var(--fh-text); }
   p  { margin: 0; font-size: 13px; line-height: 1.5; }
 }
 
 // ══════════════════════════════════════════
 //  ALUMNO — tarjetas de materia
+//  (degradado arriba + tarjeta blanca "flotando" encima,
+//   igual que el mock de dashboard)
 // ══════════════════════════════════════════
 
 .materia-card {
   background: var(--fh-white);
-  border-radius: 20px;
-  margin: 12px 18px 0;
+  border-radius: var(--fh-radius-card);
+  margin: 16px 18px 0;
   overflow: hidden;
   box-shadow: var(--fh-shadow-soft);
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.3s ease;
 
   &:hover { box-shadow: var(--fh-shadow-lift); }
 
-  &.orange-accent .materia-top-bar { background: linear-gradient(90deg, var(--fh-primary), var(--fh-primary-dark)); }
-  &.blue-accent   .materia-top-bar { background: linear-gradient(90deg, var(--fh-info), #1D5FCC); }
-  &.red-accent    .materia-top-bar { background: linear-gradient(90deg, var(--fh-error), #B71C1C); }
-  &.green-accent  .materia-top-bar { background: linear-gradient(90deg, var(--fh-success), #15803D); }
-  &.purple-accent .materia-top-bar { background: linear-gradient(90deg, var(--fh-purple), #6D28D9); }
+  &.orange-accent .materia-top-bar { background: linear-gradient(135deg, var(--fh-primary), var(--fh-primary-container)); }
+  &.blue-accent   .materia-top-bar { background: linear-gradient(135deg, var(--fh-secondary), var(--fh-on-secondary-container)); }
+  &.red-accent    .materia-top-bar { background: linear-gradient(135deg, var(--fh-error), #93000A); }
+  &.green-accent  .materia-top-bar { background: linear-gradient(135deg, var(--fh-success), #1B5E20); }
+  &.purple-accent .materia-top-bar { background: linear-gradient(135deg, var(--fh-purple), #6D28D9); }
 }
 
-.materia-top-bar { height: 4px; }
+.materia-top-bar {
+  height: 56px;
+}
 
-.materia-body { padding: 18px 20px; }
+.materia-body {
+  padding: 0 16px 18px;
+  margin-top: -30px;
+  position: relative;
+  z-index: 1;
+}
 
 .materia-header-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 10px;
+  background: var(--fh-white);
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  margin-bottom: 12px;
 }
 
 .materia-icon-wrap {
@@ -192,12 +213,12 @@ ion-segment-button {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  ion-icon { font-size: 21px; color: var(--fh-white); }
+  ion-icon { font-size: 20px; color: var(--fh-white); }
 
-  &.orange-bg { background: linear-gradient(135deg, var(--fh-primary), var(--fh-primary-dark)); }
-  &.blue-bg   { background: linear-gradient(135deg, var(--fh-info), #1D5FCC); }
-  &.red-bg    { background: linear-gradient(135deg, var(--fh-error), #B71C1C); }
-  &.green-bg  { background: linear-gradient(135deg, var(--fh-success), #15803D); }
+  &.orange-bg { background: linear-gradient(135deg, var(--fh-primary), var(--fh-primary-container)); }
+  &.blue-bg   { background: linear-gradient(135deg, var(--fh-secondary), var(--fh-on-secondary-container)); }
+  &.red-bg    { background: linear-gradient(135deg, var(--fh-error), #93000A); }
+  &.green-bg  { background: linear-gradient(135deg, var(--fh-success), #1B5E20); }
   &.purple-bg { background: linear-gradient(135deg, var(--fh-purple), #6D28D9); }
 }
 
@@ -205,25 +226,27 @@ ion-segment-button {
 
 .materia-name {
   margin: 0;
-  font-size: 15.5px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--fh-text);
 }
 
 .materia-teacher {
   font-size: 11.5px;
   color: var(--fh-text-2);
+  opacity: 0.85;
   margin-top: 3px;
 }
 
 .materia-clave {
   font-size: 10.5px;
   color: var(--fh-text-2);
-  margin: 0 0 8px;
+  opacity: 0.75;
+  margin: 0 0 10px;
   letter-spacing: 0.3px;
 }
 
-// Chip de calificación en la tarjeta
+// Chip de calificación — como el badge "9.5 Parcial" del mock
 .cal-chip {
   display: flex;
   flex-direction: column;
@@ -234,11 +257,7 @@ ion-segment-button {
   border-radius: 12px;
   flex-shrink: 0;
 
-  .cal-num {
-    font-size: 15px;
-    font-weight: 800;
-    line-height: 1;
-  }
+  .cal-num { font-size: 15px; font-weight: 800; line-height: 1; }
   .cal-lbl {
     font-size: 7.5px;
     font-weight: 700;
@@ -248,21 +267,20 @@ ion-segment-button {
   }
 
   &.excelente { background: var(--fh-success-soft); color: var(--fh-success); }
-  &.bien      { background: var(--fh-info-soft);    color: var(--fh-info); }
-  &.regular   { background: rgba(245, 124, 0, 0.12); color: var(--fh-primary); }
-  &.reprobado { background: rgba(211, 47, 47, 0.12);  color: var(--fh-error); }
+  &.bien      { background: var(--fh-info-soft);    color: var(--fh-secondary); }
+  &.regular   { background: rgba(150, 73, 0, 0.1);  color: var(--fh-primary); }
+  &.reprobado { background: rgba(186, 26, 26, 0.1);  color: var(--fh-error); }
   &.sin-nota  { background: var(--fh-bg-2); color: var(--fh-text-2); }
 }
 
-// Indicador de tareas pendientes
 .tareas-indicator {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 11px;
   font-weight: 700;
-  color: var(--fh-primary);
-  background: rgba(245, 124, 0, 0.08);
+  color: var(--fh-error);
+  background: rgba(186, 26, 26, 0.08);
   border-radius: 9px;
   padding: 6px 10px;
   margin-bottom: 12px;
@@ -295,7 +313,7 @@ ion-segment-button {
   padding: 18px 20px;
   box-shadow: var(--fh-shadow-soft);
 
-  &.urgente { border-left: 4px solid var(--fh-primary); }
+  &.urgente { border-left: 4px solid var(--fh-primary-container); }
 }
 
 .pendiente-card-header {
@@ -309,7 +327,7 @@ ion-segment-button {
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: rgba(245, 124, 0, 0.1);
+  background: rgba(150, 73, 0, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -342,7 +360,7 @@ ion-segment-button {
   gap: 5px;
   padding: 4px 10px;
   border-radius: 8px;
-  background: rgba(245, 124, 0, 0.1);
+  background: rgba(150, 73, 0, 0.08);
   color: var(--fh-primary);
   font-size: 9.5px;
   font-weight: 700;
@@ -374,15 +392,12 @@ ion-segment-button {
   align-items: center;
   justify-content: center;
 
-  span {
-    font-size: 17px;
-    font-weight: 800;
-  }
+  span { font-size: 17px; font-weight: 800; }
 
   &.excelente { background: var(--fh-success-soft); color: var(--fh-success); }
-  &.bien      { background: var(--fh-info-soft);    color: var(--fh-info); }
-  &.regular   { background: rgba(245, 124, 0, 0.12); color: var(--fh-primary); }
-  &.reprobado { background: rgba(211, 47, 47, 0.12); color: var(--fh-error); }
+  &.bien      { background: var(--fh-info-soft);    color: var(--fh-secondary); }
+  &.regular   { background: rgba(150, 73, 0, 0.1);  color: var(--fh-primary); }
+  &.reprobado { background: rgba(186, 26, 26, 0.1); color: var(--fh-error); }
   &.sin-nota  { background: var(--fh-bg-2); color: var(--fh-text-2); }
 }
 
@@ -398,13 +413,14 @@ ion-segment-button {
 .cal-docente {
   font-size: 11px;
   color: var(--fh-text-2);
+  opacity: 0.85;
   margin: 0 0 7px;
 }
 
 .cal-parcial-badge {
   padding: 3px 9px;
   border-radius: 8px;
-  background: rgba(245, 124, 0, 0.1);
+  background: rgba(150, 73, 0, 0.08);
   color: var(--fh-primary);
   font-size: 9.5px;
   font-weight: 700;
@@ -414,6 +430,7 @@ ion-segment-button {
   font-size: 11px;
   color: var(--fh-text-2);
   font-style: italic;
+  opacity: 0.75;
 }
 
 .cal-card-right { flex-shrink: 0; }
@@ -441,7 +458,7 @@ ion-segment-button {
 
 .docente-materia-card {
   background: var(--fh-white);
-  border-left: 4px solid var(--fh-primary);
+  border-left: 4px solid var(--fh-primary-container);
   border-radius: 20px;
   margin: 12px 18px 0;
   padding: 18px 20px;
@@ -459,7 +476,7 @@ ion-segment-button {
   width: 42px;
   height: 42px;
   border-radius: 13px;
-  background: rgba(245, 124, 0, 0.1);
+  background: rgba(150, 73, 0, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -472,13 +489,14 @@ ion-segment-button {
 .dm-nombre {
   margin: 0;
   font-size: 15.5px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--fh-text);
 }
 
 .dm-clave {
   font-size: 10.5px;
   color: var(--fh-text-2);
+  opacity: 0.75;
   margin: 3px 0 0;
   letter-spacing: 0.3px;
 }
@@ -494,7 +512,7 @@ ion-segment-button {
   padding: 3px 9px;
   border-radius: 8px;
   background: var(--fh-info-soft);
-  color: var(--fh-info);
+  color: var(--fh-secondary);
   font-size: 9.5px;
   font-weight: 700;
 }
@@ -532,7 +550,7 @@ ion-segment-button {
   font-weight: 700;
 }
 
-// ── Resumen docente ───────────────────────
+// ── Resumen docente — mismo tratamiento que las KPI del mock ──
 .resumen-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -544,18 +562,27 @@ ion-segment-button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   border-radius: 18px;
-  padding: 20px 12px;
+  padding: 22px 12px;
+  background: var(--fh-white);
   box-shadow: var(--fh-shadow-soft);
+  transition: transform 0.3s ease;
 
-  ion-icon { font-size: 24px; margin-bottom: 3px; }
+  &:hover { transform: scale(1.02); }
 
-  .resumen-num {
-    font-size: 23px;
-    font-weight: 800;
-    color: var(--fh-text);
+  ion-icon {
+    font-size: 24px;
+    margin-bottom: 3px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+
+  .resumen-num { font-size: 23px; font-weight: 800; color: var(--fh-text); }
 
   .resumen-lbl {
     font-size: 10px;
@@ -563,12 +590,13 @@ ion-segment-button {
     text-transform: uppercase;
     letter-spacing: 0.4px;
     color: var(--fh-text-2);
+    opacity: 0.85;
   }
 
-  &.orange { background: var(--fh-white); ion-icon { color: var(--fh-primary); } }
-  &.blue   { background: var(--fh-white); ion-icon { color: var(--fh-info); } }
-  &.green  { background: var(--fh-white); ion-icon { color: var(--fh-success); } }
-  &.purple { background: var(--fh-white); ion-icon { color: var(--fh-purple); } }
+  &.orange ion-icon { background: rgba(150, 73, 0, 0.1); color: var(--fh-primary); }
+  &.blue   ion-icon { background: var(--fh-info-soft);   color: var(--fh-secondary); }
+  &.green  ion-icon { background: var(--fh-success-soft); color: var(--fh-success); }
+  &.purple ion-icon { background: var(--fh-purple-soft); color: var(--fh-purple); }
 }
 
 .resumen-row {
@@ -634,6 +662,7 @@ ion-segment-button {
   text-transform: uppercase;
   letter-spacing: 0.4px;
   margin: 0 0 5px;
+  opacity: 0.8;
 }
 
 .promedio-num {
@@ -642,7 +671,7 @@ ion-segment-button {
   font-weight: 800;
 
   &.excelente { color: var(--fh-success); }
-  &.bien      { color: var(--fh-info); }
+  &.bien      { color: var(--fh-secondary); }
   &.regular   { color: var(--fh-primary); }
   &.reprobado { color: var(--fh-error); }
 }
@@ -659,13 +688,13 @@ ion-segment-button {
   ion-icon { font-size: 27px; }
 
   &.excelente { background: var(--fh-success-soft); ion-icon { color: var(--fh-success); } }
-  &.bien      { background: var(--fh-info-soft);    ion-icon { color: var(--fh-info); } }
-  &.regular   { background: rgba(245, 124, 0, 0.12); ion-icon { color: var(--fh-primary); } }
-  &.reprobado { background: rgba(211, 47, 47, 0.12); ion-icon { color: var(--fh-error); } }
+  &.bien      { background: var(--fh-info-soft);    ion-icon { color: var(--fh-secondary); } }
+  &.regular   { background: rgba(150, 73, 0, 0.1);  ion-icon { color: var(--fh-primary); } }
+  &.reprobado { background: rgba(186, 26, 26, 0.1); ion-icon { color: var(--fh-error); } }
   &.sin-nota  { background: var(--fh-bg-2); ion-icon { color: var(--fh-text-2); } }
 }
 
-// ── iPad: aprovechar el ancho en landscape / pantallas grandes ──
+// ── iPad: aprovechar el ancho ──
 @media (min-width: 768px) {
   .materia-card,
   .pendiente-card,

@@ -5,9 +5,10 @@
     </ion-buttons>
     <ion-title class="header-title">Mi Perfil</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="toggleEdicion()" *ngIf="usuario" class="header-edit-btn">
-        <ion-icon [name]="editando ? 'close-outline' : 'create-outline'" slot="icon-only"></ion-icon>
-      </ion-button>
+      <button class="header-edit-btn" [class.header-edit-btn--cancel]="editando" (click)="toggleEdicion()" *ngIf="usuario">
+        <ion-icon [name]="editando ? 'close-outline' : 'create-outline'"></ion-icon>
+        <span>{{ editando ? 'Cancelar' : 'Editar Perfil' }}</span>
+      </button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -19,12 +20,18 @@
     <ng-container *ngIf="usuario; else sinSesion">
 
       <!-- ============================================
-           HERO (con toque de neumorfismo en el avatar)
+           HERO
       ============================================ -->
       <div class="profile-hero">
+        <div class="avatar-halo-bg"></div>
+
         <div class="avatar-wrap" [class.avatar-editable]="editando" (click)="editando && seleccionarFoto()">
-          <div class="avatar-halo"></div>
-          <img [src]="avatarUrl" (error)="onErrorImagen()" class="profile-avatar" alt="Foto de perfil" />
+          <div class="avatar-ring">
+            <div class="avatar-inner">
+              <img [src]="avatarUrl" (error)="onErrorImagen()" class="profile-avatar" alt="Foto de perfil" />
+              <span class="avatar-status-dot" [class.dot-activo]="esActivo()" [class.dot-inactivo]="!esActivo()"></span>
+            </div>
+          </div>
 
           <div class="avatar-edit-overlay" *ngIf="editando">
             <ion-spinner *ngIf="subiendoFoto" name="crescent"></ion-spinner>
@@ -38,6 +45,7 @@
 
         <div class="badge-row">
           <span class="role-badge">{{ getRolDisplay() }}</span>
+          <span class="badge-sep"></span>
           <span class="estatus-badge" [class.estatus-activo]="esActivo()" [class.estatus-inactivo]="!esActivo()">
             <span class="estatus-dot"></span>
             {{ esActivo() ? 'Activa' : 'Inactiva' }}
@@ -55,19 +63,19 @@
       </div>
 
       <!-- ============================================
-           SPLIT LAYOUT PARA IPAD: dos columnas cuando
-           el ancho lo permite, una sola en compacto
+           SPLIT LAYOUT
       ============================================ -->
       <div class="info-grid">
 
         <div class="info-section">
-          <p class="section-label">
-            <ion-icon name="person-circle-outline"></ion-icon>
-            Información de contacto
-          </p>
           <div class="info-card">
+            <div class="card-header">
+              <h2 class="card-title">Información de contacto</h2>
+              <ion-icon name="mail-open-outline" class="card-header-icon"></ion-icon>
+            </div>
+
             <div class="info-row">
-              <div class="info-icon-wrap">
+              <div class="info-icon-wrap icon-primary">
                 <ion-icon name="person-outline"></ion-icon>
               </div>
               <div class="info-text">
@@ -77,7 +85,7 @@
             </div>
 
             <div class="info-row">
-              <div class="info-icon-wrap">
+              <div class="info-icon-wrap icon-secondary">
                 <ion-icon name="mail-outline"></ion-icon>
               </div>
               <div class="info-text">
@@ -87,7 +95,7 @@
             </div>
 
             <div class="info-row">
-              <div class="info-icon-wrap">
+              <div class="info-icon-wrap icon-tertiary">
                 <ion-icon name="call-outline"></ion-icon>
               </div>
               <div class="info-text full-width">
@@ -104,7 +112,7 @@
             </div>
 
             <div class="info-row">
-              <div class="info-icon-wrap">
+              <div class="info-icon-wrap icon-primary">
                 <ion-icon name="location-outline"></ion-icon>
               </div>
               <div class="info-text full-width">
@@ -121,7 +129,7 @@
             </div>
 
             <div class="info-row">
-              <div class="info-icon-wrap">
+              <div class="info-icon-wrap icon-secondary">
                 <ion-icon name="calendar-outline"></ion-icon>
               </div>
               <div class="info-text full-width">
@@ -144,42 +152,45 @@
         </div>
 
         <div class="info-section">
-          <p class="section-label">
-            <ion-icon name="school-outline"></ion-icon>
-            Información académica
-          </p>
           <div class="info-card">
-            <div class="info-row">
-              <div class="info-icon-wrap">
-                <ion-icon name="ribbon-outline"></ion-icon>
-              </div>
-              <div class="info-text">
+            <div class="card-header">
+              <h2 class="card-title">Información académica</h2>
+              <ion-icon name="school-outline" class="card-header-icon"></ion-icon>
+            </div>
+
+            <div class="academic-grid">
+              <div class="academic-stat">
                 <span class="info-label">Rol</span>
-                <span class="info-value">{{ getRolDisplay() }}</span>
+                <p class="academic-value">{{ getRolDisplay() }}</p>
+              </div>
+
+              <div class="academic-stat" *ngIf="usuario.plantel_id">
+                <span class="info-label">Plantel</span>
+                <p class="academic-value">#{{ usuario.plantel_id }}</p>
               </div>
             </div>
 
-            <div class="info-row" *ngIf="usuario.plantel_id">
-              <div class="info-icon-wrap">
-                <ion-icon name="business-outline"></ion-icon>
-              </div>
-              <div class="info-text">
-                <span class="info-label">Plantel</span>
-                <span class="info-value">#{{ usuario.plantel_id }}</span>
+            <div class="estatus-bar">
+              <div class="estatus-bar-left">
+                <ion-icon name="checkmark-circle-outline" [class.icon-ok]="esActivo()" [class.icon-off]="!esActivo()"></ion-icon>
+                <span>Estatus de cuenta: <strong>{{ esActivo() ? 'Activo' : 'Inactivo' }}</strong></span>
               </div>
             </div>
           </div>
 
-          <!-- Acciones (neumorfismo ligero en el botón principal) -->
-          <ion-button
+          <!-- Acciones -->
+          <button
             *ngIf="editando"
-            expand="block"
             class="btn-guardar"
             [disabled]="guardando"
             (click)="guardarCambios()">
-            <ion-spinner *ngIf="guardando" name="crescent" slot="start"></ion-spinner>
-            {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
-          </ion-button>
+            <ion-spinner *ngIf="guardando" name="crescent"></ion-spinner>
+            <ng-container *ngIf="!guardando">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>Guardar cambios</span>
+            </ng-container>
+            <span *ngIf="guardando">Guardando...</span>
+          </button>
 
           <button class="btn-logout" (click)="confirmarCerrarSesion()" [disabled]="cerrandoSesion" *ngIf="!editando">
             <ion-spinner *ngIf="cerrandoSesion" name="crescent"></ion-spinner>
@@ -203,5 +214,7 @@
     </ng-template>
 
   </div>
+
+  <div class="bg-decor"></div>
 
 </ion-content>

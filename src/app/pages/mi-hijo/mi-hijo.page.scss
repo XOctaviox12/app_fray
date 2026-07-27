@@ -1,34 +1,46 @@
 // ============================================
 // HIJO.PAGE.SCSS
-// Rediseño visual iPad · Soft UI + Cupertino + Neumorphism ligero
-// (No existía SCSS previo para esta página; se creó siguiendo el mismo
-// sistema de diseño ya aplicado en clase/comunidad/detalle-tarea/
-// detalle-actividad/herramientas/materias. Solo se usan clases que ya
-// existen en el HTML — ninguna clase, evento o binding fue modificado.)
+// Adaptación visual iPad · alineada al diseño del mockup (Tailwind design tokens)
+// (Solo se usan clases que ya existen en el HTML — ninguna clase, evento
+// o binding fue modificado.)
 // ============================================
 
 :host {
-  --fh-primary: #F57C00;
-  --fh-primary-dark: #E06C00;
-  --fh-secondary: #0D47A1;
-  --fh-error: #D32F2F;
+  // ── Paleta tomada del mockup (design tokens) ──
+  --fh-primary: #964900;          // primary — texto/acentos
+  --fh-primary-bright: #F57C00;   // primary-container — rellenos sólidos
+  --fh-primary-soft: #FFDCC6;     // primary-fixed — chips/avatares claros
+  --fh-primary-dark: #723600;
+
+  --fh-secondary: #4A59A1;
+  --fh-secondary-soft: #A0AFFD;
+  --fh-secondary-container: rgba(74, 89, 161, 0.12);
+  --fh-on-secondary-container: #304086;
+
+  --fh-error: #BA1A1A;
+  --fh-error-soft: rgba(186, 26, 26, 0.1);
+
+  --fh-success: #2E7D32;
+  --fh-success-soft: rgba(46, 125, 50, 0.1);
+
+  // "info" se unifica con el azul de dirección/secundario del sistema
+  --fh-info: var(--fh-secondary);
+  --fh-info-soft: var(--fh-secondary-container);
+
   --fh-white: #FFFFFF;
-  --fh-bg: #F8F9FB;
-  --fh-bg-2: #EEF2F7;
-  --fh-text: #1F2937;
-  --fh-text-2: #6B7280;
-  --fh-border: #E5E7EB;
+  --fh-bg: #F8F9FA;
+  --fh-bg-2: #EDF0F5;
+  --fh-text: #1A1C1E;
+  --fh-text-2: #526069;
+  --fh-border: #E1E3E4;
+  --fh-surface-container: #EDEEEF;
 
-  --fh-success: #16A34A;
-  --fh-success-soft: rgba(22, 163, 74, 0.1);
-  --fh-info: #0D47A1;
-  --fh-info-soft: rgba(13, 71, 161, 0.1);
-
-  --fh-radius-card: 22px;
+  --fh-radius-card: 24px;
+  --fh-radius-stat: 22px;
   --fh-radius-btn: 18px;
 
-  --fh-shadow-soft: 0 8px 30px rgba(15, 23, 42, 0.08);
-  --fh-shadow-lift: 0 14px 40px rgba(15, 23, 42, 0.12);
+  --fh-shadow-soft: 0 8px 30px rgba(26, 28, 30, 0.08);
+  --fh-shadow-lift: 0 14px 40px rgba(26, 28, 30, 0.12);
 
   font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
 }
@@ -72,7 +84,7 @@
 .alumno-card {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   background: var(--fh-white);
   border-radius: var(--fh-radius-card);
   padding: 20px;
@@ -85,16 +97,32 @@
 }
 
 .alumno-avatar {
+  position: relative;
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: rgba(245, 124, 0, 0.1);
+  background: var(--fh-primary-soft);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  // Anillo decorativo, como el borde degradado del avatar en el mockup
+  box-shadow: 0 0 0 3px rgba(150, 73, 0, 0.15), var(--fh-shadow-soft);
 
   ion-icon { font-size: 27px; color: var(--fh-primary); }
+
+  // Punto de estado (activo), igual que el indicador verde del mockup
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--fh-success);
+    border: 3px solid var(--fh-white);
+  }
 }
 
 .alumno-info {
@@ -120,12 +148,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--fh-info-soft);
-  border-radius: 12px;
-  padding: 7px 12px;
+  background: var(--fh-surface-container);
+  border-radius: 9999px;
+  padding: 7px 14px;
   font-size: 11px;
   font-weight: 700;
-  color: var(--fh-info);
+  color: var(--fh-text-2);
   flex-shrink: 0;
 
   ion-icon { font-size: 14px; }
@@ -144,16 +172,19 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  border-radius: 16px;
-  padding: 16px 8px;
+  border-radius: var(--fh-radius-stat);
+  padding: 18px 8px;
   background: var(--fh-white);
   box-shadow: var(--fh-shadow-soft);
+  transition: transform 0.2s ease;
 
-  .stat-num { font-size: 20px; font-weight: 800; }
+  &:hover { transform: scale(1.02); }
+
+  .stat-num { font-size: 26px; font-weight: 800; letter-spacing: -0.3px; }
   .stat-lbl { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--fh-text-2); text-align: center; }
 
   &.color-excelente .stat-num { color: var(--fh-success); }
-  &.color-bien      .stat-num { color: var(--fh-info); }
+  &.color-bien      .stat-num { color: var(--fh-secondary); }
   &.color-regular   .stat-num { color: var(--fh-primary); }
   &.color-reprobado .stat-num { color: var(--fh-error); }
   &.color-neutro,
@@ -200,8 +231,8 @@
 
 .tab-btn {
   flex-shrink: 0;
-  padding: 9px 16px;
-  border-radius: 12px;
+  padding: 12px 22px;
+  border-radius: 9999px;
   border: none;
   background: var(--fh-white);
   box-shadow: var(--fh-shadow-soft);
@@ -212,8 +243,10 @@
   white-space: nowrap;
   transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
+  &:hover { background: var(--fh-bg-2); }
+
   &.active {
-    background: var(--fh-primary);
+    background: var(--fh-primary-bright);
     color: var(--fh-white);
     box-shadow: 0 8px 20px rgba(245, 124, 0, 0.28);
   }
@@ -245,22 +278,23 @@
 
 .materia-clave {
   font-size: 11px;
-  color: var(--fh-text-2);
+  color: var(--fh-primary);
+  font-weight: 700;
 }
 
 .docente-chip {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--fh-bg-2);
-  border-radius: 12px;
-  padding: 7px 12px;
+  background: var(--fh-secondary-container);
+  border-radius: 9999px;
+  padding: 7px 14px;
   font-size: 11.5px;
   font-weight: 600;
-  color: var(--fh-text-2);
+  color: var(--fh-on-secondary-container);
   flex-shrink: 0;
 
-  ion-icon { font-size: 14px; color: var(--fh-primary); }
+  ion-icon { font-size: 14px; color: var(--fh-secondary); }
 }
 
 // ── Mini stats de materia ──────────────────
@@ -276,7 +310,7 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 13px 8px;
   background: var(--fh-white);
   box-shadow: var(--fh-shadow-soft);
@@ -285,7 +319,7 @@
   .mstat-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--fh-text-2); }
 
   &.color-excelente .mstat-num { color: var(--fh-success); }
-  &.color-bien      .mstat-num { color: var(--fh-info); }
+  &.color-bien      .mstat-num { color: var(--fh-secondary); }
   &.color-regular   .mstat-num { color: var(--fh-primary); }
   &.color-reprobado .mstat-num { color: var(--fh-error); }
   &.color-neutro,
@@ -308,27 +342,43 @@
   margin-bottom: 14px;
 }
 
+.boleta-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.estado-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 9999px;
+
+  &.aprobado  { color: var(--fh-success); background: var(--fh-success-soft); }
+  &.reprobado { color: var(--fh-error);   background: var(--fh-error-soft); }
+}
+
 .parcial-badge {
   font-size: 12px;
   font-weight: 800;
   color: var(--fh-text);
   background: var(--fh-bg-2);
-  border-radius: 10px;
-  padding: 6px 12px;
+  border-radius: 9999px;
+  padding: 7px 14px;
 }
 
 .nota-final {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
-  padding: 6px 14px;
-  border-radius: 12px;
+  padding: 7px 16px;
+  border-radius: 9999px;
 
   &.nota-excelente { color: var(--fh-success); background: var(--fh-success-soft); }
-  &.nota-bien      { color: var(--fh-info);    background: var(--fh-info-soft); }
+  &.nota-bien      { color: var(--fh-secondary); background: var(--fh-secondary-container); }
   &.nota-regular   { color: var(--fh-primary); background: rgba(245, 124, 0, 0.1); }
-  &.nota-reprobado { color: var(--fh-error);   background: rgba(211, 47, 47, 0.1); }
+  &.nota-reprobado { color: var(--fh-error); background: var(--fh-error-soft); }
   &.nota-neutro,
-  &.nota-sin-nota  { color: var(--fh-text);    background: var(--fh-bg-2); }
+  &.nota-sin-nota  { color: var(--fh-text); background: var(--fh-bg-2); }
 }
 
 // ── Desglose de rubros ─────────────────────
@@ -355,9 +405,9 @@
 
   ion-icon { font-size: 16px; }
 
-  &.tareas-icon   { background: rgba(245, 124, 0, 0.1);  ion-icon { color: var(--fh-primary); } }
+  &.tareas-icon   { background: rgba(150, 73, 0, 0.1);   ion-icon { color: var(--fh-primary); } }
   &.activ-icon    { background: var(--fh-success-soft);  ion-icon { color: var(--fh-success); } }
-  &.asist-icon    { background: var(--fh-info-soft);     ion-icon { color: var(--fh-info); } }
+  &.asist-icon    { background: var(--fh-secondary-container); ion-icon { color: var(--fh-secondary); } }
   &.examen-icon   { background: rgba(124, 58, 237, 0.1); ion-icon { color: #7C3AED; } }
   &.proyecto-icon { background: rgba(8, 145, 178, 0.1);  ion-icon { color: #0891B2; } }
 }
@@ -390,7 +440,7 @@
   transition: width 0.3s ease;
 
   &.bar-excelente { background: var(--fh-success); }
-  &.bar-bien      { background: var(--fh-info); }
+  &.bar-bien      { background: var(--fh-secondary); }
   &.bar-regular   { background: var(--fh-primary); }
   &.bar-reprobado { background: var(--fh-error); }
   &.bar-neutro,
@@ -405,7 +455,7 @@
   text-align: right;
 
   &.nota-excelente { color: var(--fh-success); }
-  &.nota-bien      { color: var(--fh-info); }
+  &.nota-bien      { color: var(--fh-secondary); }
   &.nota-regular   { color: var(--fh-primary); }
   &.nota-reprobado { color: var(--fh-error); }
   &.nota-neutro,
@@ -419,23 +469,25 @@
   text-align: right;
 }
 
-// ── Asistencia ──────────────────────────────
+// ── Asistencia (dona grande centrada + columnas abajo, como el mock) ──
 .asistencia-card {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 4px;
   background: var(--fh-white);
   border-radius: var(--fh-radius-card);
-  padding: 20px;
+  padding: 24px 20px 20px;
   margin: 0 18px 18px;
   box-shadow: var(--fh-shadow-soft);
 }
 
 .asist-donut-wrap {
   position: relative;
-  width: 84px;
-  height: 84px;
+  width: 132px;
+  height: 132px;
   flex-shrink: 0;
+  margin-bottom: 16px;
 }
 
 .asist-donut {
@@ -445,71 +497,72 @@
   circle:first-child {
     stroke: var(--fh-bg-2);
   }
+  circle:last-child {
+    stroke-width: 3.2;
+  }
 }
 
 .asist-donut-label {
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--fh-text);
+  gap: 2px;
+
+  .asist-donut-pct { font-size: 26px; font-weight: 800; color: var(--fh-text); line-height: 1; }
+  .asist-donut-sub { font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--fh-text-2); }
 }
 
-.asist-detalle {
-  flex: 1;
+// Fila de 3 columnas (Presente / Retardo / Falta), separada por línea superior
+.asist-stats-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--fh-border);
+}
+
+.asist-stat {
   display: flex;
   flex-direction: column;
-  gap: 9px;
-  min-width: 0;
-}
-
-.asist-row {
-  display: flex;
   align-items: center;
-  gap: 9px;
-
-  &.total-row {
-    padding-top: 9px;
-    border-top: 1px dashed var(--fh-border);
-    margin-top: 2px;
-  }
+  gap: 3px;
+  text-align: center;
 }
 
-.asist-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  flex-shrink: 0;
-
-  &.green  { background: var(--fh-success); }
-  &.red    { background: var(--fh-error); }
-  &.orange { background: var(--fh-primary); }
-  &.grey   { background: var(--fh-text-2); }
-}
-
-.asist-tipo {
-  flex: 1;
-  font-size: 12.5px;
-  color: var(--fh-text-2);
+.asist-stat-lbl {
+  font-size: 10px;
   font-weight: 600;
+  color: var(--fh-text-2);
 }
 
-.asist-val {
-  font-size: 13px;
+.asist-stat-num {
+  font-size: 15px;
   font-weight: 800;
-  color: var(--fh-text);
+
+  &.green  { color: var(--fh-success); }
+  &.orange { color: var(--fh-primary); }
+  &.red    { color: var(--fh-error); }
 }
 
+.asist-total-note {
+  margin: 10px 0 0;
+  font-size: 10.5px;
+  color: var(--fh-text-2);
+}
+
+// ── iPad: aprovechar el ancho en landscape / pantallas grandes ──
 // ── iPad: aprovechar el ancho en landscape / pantallas grandes ──
 @media (min-width: 768px) {
   .alumno-card,
   .stats-row,
   .tabs-scroll,
   .materia-header,
-  .materia-stats {
+  .materia-stats,
+  .section-label {
     max-width: 720px;
     margin-left: auto;
     margin-right: auto;

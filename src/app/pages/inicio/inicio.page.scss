@@ -1,54 +1,53 @@
 // ============================================
 // INICIO.PAGE.SCSS
-// Rediseño: Soft UI + Cupertino + Neumorphism ligero (tema claro, iPad)
+// Rediseño: Soft UI claro, acorde al mockup Fray Hub (Tailwind tokens)
 // ============================================
 
-// ── Override de paleta SOLO dentro de esta página ──
-// No se toca variables.scss global: se redefine en :host, que Angular
-// aplica tanto al header (fuera de ion-content) como al contenido.
 :host {
-  --navy:          #F8F9FB;
-  --navy-2:        #FFFFFF;
-  --white:         #1F2937;
-  --white-35:      #6B7280;
-  --orange:        #F57C00;
-  --card-bg:       #FFFFFF;
-  --card-border:   #E5E7EB;
-  --orange-subtle: rgba(245, 124, 0, 0.08);
-  --orange-glow:   rgba(245, 124, 0, 0.25);
+  --bg:              #F8F9FA;
+  --surface-low:     #F3F4F5;
+  --text-main:       #1A1C1E;
+  --text-muted:      #574235;
+  --primary:         #964900;
+  --primary-container: #F57C00;
+  --secondary:       #4A59A1;
+  --success:         #2E7D32;
+  --tertiary:        #526069;
+  --card-bg:         #FFFFFF;
+  --card-border:     #E5E7EB;
+  --primary-subtle:  rgba(150, 73, 0, 0.08);
+  --primary-glow:    rgba(245, 124, 0, 0.28);
 }
 
 .header-toolbar {
-  --background: var(--navy-2);
-  --color: var(--white);
+  --background: rgba(255, 255, 255, 0.85);
+  --color: var(--text-main);
   --border-style: none;
   --min-height: 60px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--card-border);
 }
 
 .header-title {
-  color: var(--white);
+  color: var(--primary);
   font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   letter-spacing: -0.2px;
 }
 
-.header-notif-btn {
-  --color: #{rgba(31, 41, 55, 0.5)};
+.header-icon-btn {
+  --color: #{rgba(26, 28, 30, 0.55)};
 }
 
 .header-accent-bar {
   height: 3px;
-  background: linear-gradient(90deg, var(--orange), transparent);
+  background: linear-gradient(90deg, var(--primary-container), transparent);
 }
 
 .inicio-content {
-  --background: var(--navy);
-}
-
-// ── Contenedor centrado para iPad (Soft UI: mucho aire, contenido acotado) ──
-.inicio-content {
+  --background: var(--bg);
   --padding-start: 0;
   --padding-end: 0;
 }
@@ -84,8 +83,9 @@
   margin: 0 0 6px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--white-35);
-  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
 }
 
 .hero-title {
@@ -93,26 +93,43 @@
   font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
   font-size: 26px;
   font-weight: 700;
-  color: var(--white);
+  color: var(--text-main);
   letter-spacing: -0.4px;
   line-height: 1.2;
 }
 
-.hero-name { color: var(--orange); }
+.hero-name { color: var(--primary); }
 
 .hero-sub {
   margin: 6px 0 0;
   font-size: 12.5px;
-  color: var(--white-35);
+  color: var(--text-muted);
+}
+
+.hero-avatar-wrap {
+  position: relative;
+  width: 62px;
+  height: 62px;
+  flex-shrink: 0;
+}
+
+.hero-avatar-glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-container), var(--primary));
+  filter: blur(6px);
+  opacity: 0.35;
 }
 
 .hero-avatar {
-  width: 56px;
-  height: 56px;
+  position: relative;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  flex-shrink: 0;
-  border: 2px solid var(--orange);
+  border: 3px solid var(--primary-container);
   padding: 2px;
+  background: #fff;
   box-shadow: 0 4px 14px rgba(245, 124, 0, 0.18);
 }
 
@@ -124,25 +141,40 @@
   display: block;
 }
 
+.hero-avatar-dot {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 14px;
+  height: 14px;
+  background: var(--success);
+  border: 2px solid #fff;
+  border-radius: 50%;
+}
+
 // Avatar tutor (ícono en lugar de imagen)
 .tutor-avatar-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--orange-subtle);
+  background: var(--primary-subtle);
+  border: 2px solid var(--primary-container);
 }
 
 .tutor-avatar-icon {
-  font-size: 27px;
-  color: var(--orange);
+  font-size: 26px;
+  color: var(--primary);
 }
 
 // ── Card hijo destacada ───────────────────────
 .hijo-highlight-card {
   margin: 0 20px 16px;
-  padding: 18px;
+  padding: 16px 18px;
   background: var(--card-bg);
-  border: 1px solid rgba(245, 124, 0, 0.22);
+  border: 1px solid var(--card-border);
   border-radius: 20px;
   box-shadow: 0 8px 26px rgba(15, 23, 42, 0.06);
   display: flex;
@@ -150,22 +182,9 @@
   justify-content: space-between;
   gap: 12px;
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
-  &:active {
-    transform: scale(0.99);
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 3px;
-    background: var(--orange);
-    border-radius: 0 2px 2px 0;
-  }
+  &:active { transform: scale(0.99); }
 }
 
 .hijo-highlight-left {
@@ -179,18 +198,14 @@
 .hijo-avatar-circle {
   width: 46px;
   height: 46px;
-  border-radius: 50%;
-  background: var(--orange-subtle);
-  border: 2px solid var(--orange);
+  border-radius: 16px;
+  background: var(--primary-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 
-  ion-icon {
-    font-size: 20px;
-    color: var(--orange);
-  }
+  ion-icon { font-size: 20px; color: var(--primary); }
 }
 
 .hijo-info { min-width: 0; }
@@ -199,7 +214,7 @@
   margin: 0 0 2px;
   font-size: 10px;
   font-weight: 700;
-  color: #b45c00;
+  color: var(--primary);
   text-transform: uppercase;
   letter-spacing: 0.8px;
 }
@@ -209,65 +224,86 @@
   font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
   font-size: 16px;
   font-weight: 700;
-  color: var(--white);
+  color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.hijo-highlight-right {
+.hijo-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: none;
+  background: var(--primary);
+  color: #fff;
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(150, 73, 0, 0.25);
+  transition: transform 0.15s ease;
 
-  ion-icon { color: var(--orange); font-size: 16px; }
+  &:active { transform: scale(0.92); }
+
+  ion-icon { font-size: 20px; }
 }
 
-.ver-detalle-btn {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--orange);
-}
-
-// ── Stats (detalle Neumorphism sutil, permitido por spec en widgets/dashboard) ──
+// ── Stats ──────────────────────────────────────
 .stats-row {
   display: flex;
   gap: 12px;
   padding: 0 20px;
   margin-bottom: 24px;
+
+  &.two-col .stat-card { flex: 1; }
 }
 
 .stat-card {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 18px;
-  padding: 16px 12px;
-  text-align: center;
+  padding: 14px;
   box-shadow:
     0 6px 18px rgba(15, 23, 42, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  transition: transform 0.2s ease;
+}
 
-  .stat-num {
-    font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--white);
-    display: block;
-  }
+.stat-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 18px;
+}
 
-  &.orange .stat-num { color: var(--orange); }
+.stat-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stat-num {
+  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.1;
 }
 
 .stat-lbl {
   font-size: 10px;
-  color: var(--white-35);
-  display: block;
-  margin-top: 3px;
-  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  letter-spacing: 0.3px;
   text-transform: uppercase;
+  margin-top: 2px;
 }
 
 // ── Section label ─────────────────────────────
@@ -277,92 +313,86 @@
   font-weight: 700;
   letter-spacing: 1.6px;
   text-transform: uppercase;
-  color: var(--white-35);
+  color: var(--text-muted);
   padding: 0 20px;
   margin: 0 0 12px;
 }
 
-// ── Quick cards (Soft UI: tarjetas flotantes, mucho aire) ───
+// ── Quick access: grid tipo soft-ui (2 columnas) ─
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 0 20px;
+  margin-bottom: 8px;
+}
+
 .quick-card {
-  margin: 0 20px 12px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 18px;
-  padding: 18px;
+  padding: 16px;
   display: flex;
-  align-items: center;
-  gap: 14px;
+  flex-direction: column;
   box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
 
   &:active {
-    transform: scale(0.99);
+    transform: scale(0.98);
     box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 3px;
-    background: var(--orange);
-    border-radius: 0 2px 2px 0;
   }
 }
 
+.quick-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
 .quick-card-icon {
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   font-size: 20px;
-
-  &.orange-icon {
-    background: var(--orange-subtle);
-    border: 1px solid var(--orange-glow);
-    color: var(--orange);
-  }
-
-  &.blue-icon {
-    background: rgba(13, 71, 161, 0.08);
-    border: 1px solid rgba(13, 71, 161, 0.22);
-    color: #0D47A1;
-  }
 }
 
-.quick-card-text { flex: 1; min-width: 0; }
+.orange-icon    { background: var(--primary-subtle); color: var(--primary); }
+.blue-icon      { background: rgba(74, 89, 161, 0.1); color: var(--secondary); }
+.green-icon     { background: rgba(46, 125, 50, 0.1); color: var(--success); }
+.tertiary-icon  { background: rgba(82, 96, 105, 0.1); color: var(--tertiary); }
+
+.quick-card-arrow {
+  color: var(--text-muted);
+  font-size: 15px;
+  opacity: 0.6;
+}
 
 .quick-card-title {
   margin: 0;
   font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
-  color: var(--white);
+  color: var(--text-main);
 }
 
 .quick-card-sub {
-  margin: 3px 0 0;
-  font-size: 12px;
-  color: var(--white-35);
-}
-
-.quick-card-arrow {
-  margin-left: auto;
-  color: var(--white-35);
-  flex-shrink: 0;
+  margin: 4px 0 0;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.35;
 }
 
 // ── Botón explorar ────────────────────────────
 .btn-explore {
   margin: 18px 20px 28px;
-  --border-color: rgba(245, 124, 0, 0.3);
-  --color: var(--orange);
+  --border-color: rgba(150, 73, 0, 0.3);
+  --color: var(--primary);
   --border-radius: 16px;
   --padding-top: 12px;
   --padding-bottom: 12px;
@@ -373,14 +403,13 @@
 }
 
 // ─────────────────────────────────────────────────────────
-// RESPONSIVE — iPad: contenido centrado, más aire, no estirar
-// tarjetas edge-to-edge en pantallas grandes
+// RESPONSIVE — iPad: contenido centrado, grid a 4 columnas
 // ─────────────────────────────────────────────────────────
 @media (min-width: 768px) {
   .hero-section,
   .stats-row,
   .section-label,
-  .quick-card,
+  .quick-grid,
   .hijo-highlight-card,
   .btn-explore,
   .error-banner {
@@ -392,16 +421,16 @@
   .hero-section { padding-left: 0; padding-right: 0; }
   .stats-row    { padding-left: 0; padding-right: 0; }
   .section-label { padding-left: 0; padding-right: 0; }
+  .quick-grid   { padding-left: 0; padding-right: 0; grid-template-columns: repeat(4, 1fr); }
 
   .hero-title { font-size: 28px; }
-  .quick-card { padding: 20px; }
 }
 
 @media (min-width: 1024px) {
   .hero-section,
   .stats-row,
   .section-label,
-  .quick-card,
+  .quick-grid,
   .hijo-highlight-card,
   .btn-explore,
   .error-banner {

@@ -23,40 +23,64 @@
       {{ error }}
     </div>
 
-    <!-- ── Hero + stats ── -->
+    <!-- ── Hero ── -->
     <div class="tareas-hero">
       <p class="hero-sub-name" *ngIf="alumnoNombre">
         <ion-icon name="person-outline"></ion-icon>
         {{ alumnoNombre }}
       </p>
-      <h2 class="hero-title">Seguimiento de Tareas</h2>
-      <p class="hero-sub">Monitorea las entregas y calificaciones</p>
 
-      <div class="stats-row">
-        <div class="stat-chip" [class.active]="filtro === 'TODAS'" (click)="cambiarFiltro('TODAS')">
-          <span class="stat-num">{{ tareas.length }}</span>
-          <span class="stat-lbl">Total</span>
+      <div class="hero-top">
+        <div>
+          <h2 class="hero-title">Seguimiento de Tareas</h2>
+          <p class="hero-sub">Monitorea las entregas y calificaciones</p>
         </div>
-        <div class="stat-chip orange" [class.active]="filtro === 'PENDIENTE'" (click)="cambiarFiltro('PENDIENTE')">
-          <span class="stat-num">{{ totalPendientes }}</span>
-          <span class="stat-lbl">Pendiente</span>
+
+        <!-- Anillo de progreso -->
+        <div class="progress-card" *ngIf="tareas.length > 0">
+          <div class="progress-ring">
+            <svg viewBox="0 0 36 36">
+              <circle class="ring-bg" cx="18" cy="18" r="16" fill="none" stroke-width="3"></circle>
+              <circle class="ring-fg" cx="18" cy="18" r="16" fill="none" stroke-width="3"
+                stroke-linecap="round"
+                [attr.stroke-dasharray]="(((totalEntregadas + totalCalificadas) / tareas.length) * 100) + ', 100'">
+              </circle>
+            </svg>
+            <span class="ring-label">{{ (((totalEntregadas + totalCalificadas) / tareas.length) * 100) | number:'1.0-0' }}%</span>
+          </div>
+          <div>
+            <p class="progress-title">Progreso general</p>
+            <p class="progress-sub">{{ totalEntregadas + totalCalificadas }} de {{ tareas.length }} completadas</p>
+          </div>
         </div>
-        <div class="stat-chip green" [class.active]="filtro === 'ENTREGADA'" (click)="cambiarFiltro('ENTREGADA')">
-          <span class="stat-num">{{ totalEntregadas }}</span>
-          <span class="stat-lbl">Entregada</span>
-        </div>
-        <div class="stat-chip blue" [class.active]="filtro === 'CALIFICADA'" (click)="cambiarFiltro('CALIFICADA')">
-          <span class="stat-num">{{ totalCalificadas }}</span>
-          <span class="stat-lbl">Calificada</span>
-        </div>
-        <div class="stat-chip red" [class.active]="filtro === 'TARDE'" (click)="cambiarFiltro('TARDE')" *ngIf="totalTarde > 0">
-          <span class="stat-num">{{ totalTarde }}</span>
-          <span class="stat-lbl">Tardía</span>
-        </div>
-        <div class="stat-chip dark" [class.active]="filtro === 'NO_ENTREGADA'" (click)="cambiarFiltro('NO_ENTREGADA')" *ngIf="totalNoEntregadas > 0">
-          <span class="stat-num">{{ totalNoEntregadas }}</span>
-          <span class="stat-lbl">No entregada</span>
-        </div>
+      </div>
+
+      <!-- Chips de filtro -->
+      <div class="filter-row">
+        <button class="filter-chip" [class.active]="filtro === 'TODAS'" (click)="cambiarFiltro('TODAS')">
+          <ion-icon name="list-outline"></ion-icon>
+          Todas ({{ tareas.length }})
+        </button>
+        <button class="filter-chip" [class.active]="filtro === 'PENDIENTE'" (click)="cambiarFiltro('PENDIENTE')">
+          <ion-icon name="time-outline"></ion-icon>
+          Pendientes ({{ totalPendientes }})
+        </button>
+        <button class="filter-chip" [class.active]="filtro === 'ENTREGADA'" (click)="cambiarFiltro('ENTREGADA')">
+          <ion-icon name="cloud-upload-outline"></ion-icon>
+          Entregadas ({{ totalEntregadas }})
+        </button>
+        <button class="filter-chip" [class.active]="filtro === 'CALIFICADA'" (click)="cambiarFiltro('CALIFICADA')">
+          <ion-icon name="checkmark-done-circle-outline"></ion-icon>
+          Calificadas ({{ totalCalificadas }})
+        </button>
+        <button class="filter-chip warn" [class.active]="filtro === 'TARDE'" (click)="cambiarFiltro('TARDE')" *ngIf="totalTarde > 0">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          Tardías ({{ totalTarde }})
+        </button>
+        <button class="filter-chip danger" [class.active]="filtro === 'NO_ENTREGADA'" (click)="cambiarFiltro('NO_ENTREGADA')" *ngIf="totalNoEntregadas > 0">
+          <ion-icon name="close-circle-outline"></ion-icon>
+          No entregadas ({{ totalNoEntregadas }})
+        </button>
       </div>
     </div>
 
@@ -64,14 +88,13 @@
     <ng-container *ngIf="cargando">
       <div class="skeleton-list">
         <div class="skeleton-card" *ngFor="let i of [1,2,3,4]">
-          <div style="display:flex;gap:10px;align-items:flex-start">
-            <ion-skeleton-text animated style="width:42px;height:42px;border-radius:13px;flex-shrink:0"></ion-skeleton-text>
-            <div style="flex:1">
-              <ion-skeleton-text animated style="width:65%;height:13px;margin-bottom:6px"></ion-skeleton-text>
-              <ion-skeleton-text animated style="width:40%;height:11px;margin-bottom:4px"></ion-skeleton-text>
-              <ion-skeleton-text animated style="width:80%;height:11px"></ion-skeleton-text>
-            </div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+            <ion-skeleton-text animated style="width:46px;height:46px;border-radius:16px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width:50px;height:22px;border-radius:12px"></ion-skeleton-text>
           </div>
+          <ion-skeleton-text animated style="width:70%;height:14px;margin-bottom:8px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width:45%;height:11px;margin-bottom:6px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width:90%;height:11px"></ion-skeleton-text>
         </div>
       </div>
     </ng-container>
@@ -104,35 +127,47 @@
         (click)="toggleDetalle(t.id)"
       >
 
-        <!-- Header -->
-        <div class="task-header">
-          <!-- Ícono estado -->
+        <!-- Barra de acento: elemento real, no pseudo-elemento -->
+        <div class="card-accent"></div>
+
+        <!-- Ícono + badge -->
+        <div class="card-top">
           <div class="task-estado-icon" [class]="'estado-' + getEstadoClass(t)">
             <ion-icon [name]="getEstadoIcon(t)"></ion-icon>
           </div>
 
-          <div class="task-info">
-            <h4 class="task-title">{{ t.titulo }}</h4>
-            <div class="task-meta-row">
-              <ion-icon name="book-outline" class="meta-icon"></ion-icon>
-              <span class="task-materia">{{ t.asignatura }}</span>
-              <span class="meta-sep">·</span>
-              <ion-icon name="person-outline" class="meta-icon"></ion-icon>
-              <span class="task-docente">{{ t.docente }}</span>
-            </div>
+          <div class="badge-slot">
+            <span class="pill-badge urgent" *ngIf="esCritica(t)">Vence pronto</span>
+            <span
+              class="nota-badge"
+              *ngIf="!esCritica(t) && t.entrega?.calificacion != null"
+              [class]="'nota-' + colorNota(t.entrega!.calificacion!)"
+            >
+              {{ t.entrega!.calificacion | number:'1.1-1' }}<small>/10</small>
+            </span>
+            <span class="pill-badge neutral" *ngIf="!esCritica(t) && t.entrega?.calificacion == null">
+              {{ getEstadoLabel(t) }}
+            </span>
           </div>
-
-          <!-- Badge nota si calificada -->
-          <div class="nota-badge" *ngIf="t.entrega?.calificacion != null"
-            [class]="'nota-' + colorNota(t.entrega!.calificacion!)">
-            {{ t.entrega!.calificacion | number:'1.1-1' }}
-          </div>
-
-          <ion-icon class="expand-chevron" [name]="expandidoId === t.id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
         </div>
 
-        <!-- Descripción: resumen siempre visible, completa al expandir -->
-        <p class="task-desc" *ngIf="t.descripcion" [class.clamp]="expandidoId !== t.id">{{ t.descripcion }}</p>
+        <h3 class="task-title">{{ t.titulo }}</h3>
+
+        <div class="task-meta-row">
+          <ion-icon name="book-outline" class="meta-icon"></ion-icon>
+          <span class="task-materia">{{ t.asignatura }}</span>
+          <span class="meta-sep">·</span>
+          <ion-icon name="person-outline" class="meta-icon"></ion-icon>
+          <span class="task-docente">{{ t.docente }}</span>
+        </div>
+
+        <!-- Descripción -->
+        <ng-container *ngIf="t.descripcion">
+          <p class="task-desc" [class.clamp]="expandidoId !== t.id">{{ t.descripcion }}</p>
+          <button class="ver-mas-btn" (click)="$event.stopPropagation(); toggleDetalle(t.id)">
+            {{ expandidoId === t.id ? 'Ver menos' : 'Ver más' }}
+          </button>
+        </ng-container>
 
         <!-- Alerta crítica -->
         <div class="alerta-critica" *ngIf="esCritica(t)">
@@ -161,19 +196,22 @@
         <!-- Footer -->
         <div class="task-footer">
           <div class="footer-left">
-            <span class="task-date">
-              <ion-icon name="calendar-outline"></ion-icon>
-              {{ formatFecha(t.fecha_entrega) }}
-            </span>
-            <span class="dias-restantes" [class.vence-hoy]="diasRestantes(t.fecha_entrega).includes('hoy')"
-              [class.vencido]="diasRestantes(t.fecha_entrega).includes('Venció')">
-              {{ diasRestantes(t.fecha_entrega) }}
-            </span>
+            <p class="footer-label">{{ t.entrega?.entregada_en ? 'Entregado el' : 'Fecha límite' }}</p>
+            <p class="footer-value">{{ formatFecha(t.entrega?.entregada_en || t.fecha_entrega) }}</p>
           </div>
-          <span class="task-status" [class]="'status-' + getEstadoClass(t)">
-            <ion-icon [name]="getEstadoIcon(t)"></ion-icon>
-            {{ getEstadoLabel(t) }}
-          </span>
+          <div class="footer-right">
+            <p
+              class="dias-restantes"
+              [class.vence-hoy]="diasRestantes(t.fecha_entrega).includes('hoy')"
+              [class.vencido]="diasRestantes(t.fecha_entrega).includes('Venció')"
+            >
+              {{ diasRestantes(t.fecha_entrega) }}
+            </p>
+            <p class="task-status" [class]="'status-' + getEstadoClass(t)">
+              <ion-icon [name]="getEstadoIcon(t)"></ion-icon>
+              {{ getEstadoLabel(t) }}
+            </p>
+          </div>
         </div>
 
       </div>

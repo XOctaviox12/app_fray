@@ -24,170 +24,181 @@
 
   <!-- ════════════════════════════════════ -->
   <!--  FORMULARIO — solo docente/director -->
+  <!--  Ahora colapsable: el encabezado actúa como interruptor -->
   <!-- ════════════════════════════════════ -->
   <ng-container *ngIf="esDocente">
 
-    <div class="publish-card">
-      <div class="publish-card-header">
+    <div class="publish-card" [class.collapsed]="!mostrarFormulario">
+
+      <div class="publish-card-header" (click)="mostrarFormulario = !mostrarFormulario">
         <ion-icon name="megaphone-outline" class="publish-icon"></ion-icon>
         <span class="publish-label">Nuevo comunicado</span>
+        <ion-icon
+          name="chevron-down-outline"
+          class="toggle-chevron"
+          [class.open]="mostrarFormulario">
+        </ion-icon>
       </div>
 
-      <div *ngIf="errorPublicar" class="error-inline">
-        <ion-icon name="alert-circle-outline"></ion-icon>
-        {{ errorPublicar }}
-      </div>
+      <div class="publish-card-body" *ngIf="mostrarFormulario">
 
-      <input
-        type="text"
-        class="input-titulo"
-        placeholder="Título del comunicado"
-        [(ngModel)]="nuevoTitulo"
-      />
-
-      <ion-textarea
-        [(ngModel)]="nuevoCuerpo"
-        placeholder="Escribe el mensaje..."
-        rows="4"
-        autoGrow="true"
-        class="post-textarea"
-      ></ion-textarea>
-
-      <!-- ── Paso 1: audiencia (no aplica si es solo para docentes) ── -->
-      <div class="audiencia-section" *ngIf="destinatario !== 'DOCENTES'">
-        <p class="destinatario-label">¿A quién va dirigido?</p>
-        <div class="audiencia-opts">
-          <button class="aud-opt" [class.active]="publico === 'ALUMNOS'" (click)="publico = 'ALUMNOS'">
-            <ion-icon name="school-outline"></ion-icon>
-            Alumnos
-          </button>
-          <button class="aud-opt" [class.active]="publico === 'PADRES'" (click)="publico = 'PADRES'">
-            <ion-icon name="people-outline"></ion-icon>
-            Padres
-          </button>
-          <button class="aud-opt" [class.active]="publico === 'AMBOS'" (click)="publico = 'AMBOS'">
-            <ion-icon name="people-circle-outline"></ion-icon>
-            Ambos
-          </button>
-        </div>
-      </div>
-
-      <!-- ── Paso 2: alcance ───────────────────── -->
-      <div class="destinatario-section">
-        <p class="destinatario-label">¿A qué alcanza?</p>
-        <div class="destinatario-opts">
-
-          <button class="dest-opt"
-            [class.active]="destinatario === 'TODOS'"
-            (click)="onDestinatarioChange('TODOS')">
-            <ion-icon name="people-outline"></ion-icon>
-            <div class="dest-opt-text">
-              <strong>Toda la comunidad</strong>
-              <span>Todos los grupos del plantel</span>
-            </div>
-          </button>
-
-          <button class="dest-opt"
-            [class.active]="destinatario === 'GRUPO'"
-            (click)="onDestinatarioChange('GRUPO')">
-            <ion-icon name="school-outline"></ion-icon>
-            <div class="dest-opt-text">
-              <strong>Uno o varios grupos</strong>
-              <span>Elige tu materia y a qué grupos les llega</span>
-            </div>
-          </button>
-
-          <button class="dest-opt"
-            [class.active]="destinatario === 'DOCENTES'"
-            (click)="onDestinatarioChange('DOCENTES')">
-            <ion-icon name="briefcase-outline"></ion-icon>
-            <div class="dest-opt-text">
-              <strong>Solo docentes</strong>
-              <span>Nadie más lo verá</span>
-            </div>
-          </button>
-
+        <div *ngIf="errorPublicar" class="error-inline">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ errorPublicar }}
         </div>
 
-        <!-- ── Paso 3: materia → grupo(s) ── -->
-        <div class="grupo-selector" *ngIf="destinatario === 'GRUPO'">
+        <input
+          type="text"
+          class="input-titulo"
+          placeholder="Título del comunicado"
+          [(ngModel)]="nuevoTitulo"
+        />
 
-          <p class="destinatario-label">
-            Materia <span class="label-opcional">(opcional)</span>
-          </p>
-          <div class="select-wrap" [class.loading-select]="cargandoOpciones">
-            <ion-icon name="book-outline" class="field-icon"></ion-icon>
-            <select [(ngModel)]="materiaSeleccionada" (ngModelChange)="onMateriaChange()"
-                    [disabled]="cargandoOpciones || misMaterias.length === 0">
-              <option [ngValue]="null">
-                {{ misMaterias.length === 0 ? 'Comunicado general' : 'Comunicado general (todas tus materias)' }}
-              </option>
-              <option *ngFor="let m of misMaterias" [ngValue]="m.id">{{ getLabelMateria(m) }}</option>
-            </select>
-            <ion-spinner *ngIf="cargandoOpciones" name="crescent"
-              style="width:14px;height:14px;color:var(--orange);flex-shrink:0">
-            </ion-spinner>
-          </div>
+        <ion-textarea
+          [(ngModel)]="nuevoCuerpo"
+          placeholder="Escribe el mensaje..."
+          rows="4"
+          autoGrow="true"
+          class="post-textarea"
+        ></ion-textarea>
 
-          <p class="destinatario-label" style="margin-top:12px">
-            Grupo(s)
-          </p>
-          <div class="empty-mini" *ngIf="gruposCandidatos.length === 0 && !cargandoOpciones">
-            No tienes grupos para esta materia.
-          </div>
-          <div class="grupos-multi-list">
-            <button class="grupo-chip" *ngFor="let g of gruposCandidatos"
-              [class.active]="gruposSeleccionados.includes(g.id)"
-              (click)="toggleGrupo(g.id)">
-              <ion-icon [name]="gruposSeleccionados.includes(g.id) ? 'checkbox' : 'square-outline'"></ion-icon>
-              {{ g.grado }}° Grupo {{ g.nombre }}
+        <!-- ── Paso 1: audiencia (no aplica si es solo para docentes) ── -->
+        <div class="audiencia-section" *ngIf="destinatario !== 'DOCENTES'">
+          <p class="destinatario-label">¿A quién va dirigido?</p>
+          <div class="audiencia-opts">
+            <button class="aud-opt" [class.active]="publico === 'ALUMNOS'" (click)="publico = 'ALUMNOS'">
+              <ion-icon name="school-outline"></ion-icon>
+              Alumnos
+            </button>
+            <button class="aud-opt" [class.active]="publico === 'PADRES'" (click)="publico = 'PADRES'">
+              <ion-icon name="people-outline"></ion-icon>
+              Padres
+            </button>
+            <button class="aud-opt" [class.active]="publico === 'AMBOS'" (click)="publico = 'AMBOS'">
+              <ion-icon name="people-circle-outline"></ion-icon>
+              Ambos
             </button>
           </div>
+        </div>
 
-          <p class="grupo-hint">
+        <!-- ── Paso 2: alcance ───────────────────── -->
+        <div class="destinatario-section">
+          <p class="destinatario-label">¿A qué alcanza?</p>
+          <div class="destinatario-opts">
+
+            <button class="dest-opt"
+              [class.active]="destinatario === 'TODOS'"
+              (click)="onDestinatarioChange('TODOS')">
+              <ion-icon name="people-outline"></ion-icon>
+              <div class="dest-opt-text">
+                <strong>Toda la comunidad</strong>
+                <span>Todos los grupos del plantel</span>
+              </div>
+            </button>
+
+            <button class="dest-opt"
+              [class.active]="destinatario === 'GRUPO'"
+              (click)="onDestinatarioChange('GRUPO')">
+              <ion-icon name="school-outline"></ion-icon>
+              <div class="dest-opt-text">
+                <strong>Uno o varios grupos</strong>
+                <span>Elige tu materia y a qué grupos les llega</span>
+              </div>
+            </button>
+
+            <button class="dest-opt"
+              [class.active]="destinatario === 'DOCENTES'"
+              (click)="onDestinatarioChange('DOCENTES')">
+              <ion-icon name="briefcase-outline"></ion-icon>
+              <div class="dest-opt-text">
+                <strong>Solo docentes</strong>
+                <span>Nadie más lo verá</span>
+              </div>
+            </button>
+
+          </div>
+
+          <!-- ── Paso 3: materia → grupo(s) ── -->
+          <div class="grupo-selector" *ngIf="destinatario === 'GRUPO'">
+
+            <p class="destinatario-label">
+              Materia <span class="label-opcional">(opcional)</span>
+            </p>
+            <div class="select-wrap" [class.loading-select]="cargandoOpciones">
+              <ion-icon name="book-outline" class="field-icon"></ion-icon>
+              <select [(ngModel)]="materiaSeleccionada" (ngModelChange)="onMateriaChange()"
+                      [disabled]="cargandoOpciones || misMaterias.length === 0">
+                <option [ngValue]="null">
+                  {{ misMaterias.length === 0 ? 'Comunicado general' : 'Comunicado general (todas tus materias)' }}
+                </option>
+                <option *ngFor="let m of misMaterias" [ngValue]="m.id">{{ getLabelMateria(m) }}</option>
+              </select>
+              <ion-spinner *ngIf="cargandoOpciones" name="crescent"
+                style="width:14px;height:14px;color:var(--orange);flex-shrink:0">
+              </ion-spinner>
+            </div>
+
+            <p class="destinatario-label" style="margin-top:12px">
+              Grupo(s)
+            </p>
+            <div class="empty-mini" *ngIf="gruposCandidatos.length === 0 && !cargandoOpciones">
+              No tienes grupos para esta materia.
+            </div>
+            <div class="grupos-multi-list">
+              <button class="grupo-chip" *ngFor="let g of gruposCandidatos"
+                [class.active]="gruposSeleccionados.includes(g.id)"
+                (click)="toggleGrupo(g.id)">
+                <ion-icon [name]="gruposSeleccionados.includes(g.id) ? 'checkbox' : 'square-outline'"></ion-icon>
+                {{ g.grado }}° Grupo {{ g.nombre }}
+              </button>
+            </div>
+
+            <p class="grupo-hint">
+              <ion-icon name="information-circle-outline"></ion-icon>
+              <ng-container *ngIf="gruposSeleccionados.length === 0">Elige a qué grupo(s) les llegará.</ng-container>
+              <ng-container *ngIf="gruposSeleccionados.length === 1">Se enviará a 1 grupo.</ng-container>
+              <ng-container *ngIf="gruposSeleccionados.length > 1">Se enviará el mismo comunicado a los {{ gruposSeleccionados.length }} grupos elegidos.</ng-container>
+            </p>
+          </div>
+
+          <p class="grupo-hint" *ngIf="destinatario === 'DOCENTES'">
             <ion-icon name="information-circle-outline"></ion-icon>
-            <ng-container *ngIf="gruposSeleccionados.length === 0">Elige a qué grupo(s) les llegará.</ng-container>
-            <ng-container *ngIf="gruposSeleccionados.length === 1">Se enviará a 1 grupo.</ng-container>
-            <ng-container *ngIf="gruposSeleccionados.length > 1">Se enviará el mismo comunicado a los {{ gruposSeleccionados.length }} grupos elegidos.</ng-container>
+            Este comunicado solo será visible para otros docentes y dirección.
           </p>
         </div>
 
-        <p class="grupo-hint" *ngIf="destinatario === 'DOCENTES'">
-          <ion-icon name="information-circle-outline"></ion-icon>
-          Este comunicado solo será visible para otros docentes y dirección.
-        </p>
-      </div>
-
-      <!-- Adjunto seleccionado -->
-      <div class="adjunto-preview" *ngIf="adjuntoNombre">
-        <ion-icon name="document-attach-outline"></ion-icon>
-        <span>{{ adjuntoNombre }}</span>
-        <div class="adj-progress" *ngIf="subiendoAdj">
-          <div class="adj-progress-fill" [style.width.%]="progresoAdj"></div>
+        <!-- Adjunto seleccionado -->
+        <div class="adjunto-preview" *ngIf="adjuntoNombre">
+          <ion-icon name="document-attach-outline"></ion-icon>
+          <span>{{ adjuntoNombre }}</span>
+          <div class="adj-progress" *ngIf="subiendoAdj">
+            <div class="adj-progress-fill" [style.width.%]="progresoAdj"></div>
+          </div>
+          <button class="quitar-adjunto" (click)="quitarAdjunto()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
         </div>
-        <button class="quitar-adjunto" (click)="quitarAdjunto()">
-          <ion-icon name="close-outline"></ion-icon>
-        </button>
-      </div>
 
-      <input
-        id="adjuntoInput"
-        type="file"
-        accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
-        style="display:none"
-        (change)="onAdjuntoChange($event)"
-      />
+        <input
+          id="adjuntoInput"
+          type="file"
+          accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
+          style="display:none"
+          (change)="onAdjuntoChange($event)"
+        />
 
-      <div class="publish-actions">
-        <button class="attach-btn" (click)="triggerFileInput()">
-          <ion-icon name="attach-outline"></ion-icon>
-          Adjuntar
-        </button>
-        <button class="publish-btn" (click)="publicarComunicado()" [disabled]="publicando">
-          <ion-spinner *ngIf="publicando" name="crescent" style="width:14px;height:14px"></ion-spinner>
-          <ion-icon *ngIf="!publicando" name="send-outline"></ion-icon>
-          {{ publicando ? 'Publicando…' : 'Publicar' }}
-        </button>
+        <div class="publish-actions">
+          <button class="attach-btn" (click)="triggerFileInput()">
+            <ion-icon name="attach-outline"></ion-icon>
+            Adjuntar
+          </button>
+          <button class="publish-btn" (click)="publicarComunicado()" [disabled]="publicando">
+            <ion-spinner *ngIf="publicando" name="crescent" style="width:14px;height:14px"></ion-spinner>
+            <ion-icon *ngIf="!publicando" name="send-outline"></ion-icon>
+            {{ publicando ? 'Publicando…' : 'Publicar' }}
+          </button>
+        </div>
+
       </div>
     </div>
 

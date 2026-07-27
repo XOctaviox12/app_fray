@@ -1,12 +1,16 @@
 <ion-app>
 
   <ion-menu contentId="main-content">
-    <ion-header>
+    <ion-header class="ion-no-border">
       <ion-toolbar>
-        <ion-title>
-          <ion-icon name="school-outline" class="menu-logo-icon"></ion-icon>
-          Fray Hub
-        </ion-title>
+       <ion-title>
+  <div class="brand-row">
+    <div class="brand-icon">
+      <ion-icon name="school-outline"></ion-icon>
+    </div>
+    <span>Fray Hub</span>
+  </div>
+</ion-title>
       </ion-toolbar>
     </ion-header>
 
@@ -16,22 +20,17 @@
       <div *ngIf="loggedIn" class="user-card-container">
         <div class="user-card">
           <div class="avatar-section">
-  <img [src]="avatarUrl" (error)="onErrorImagen()" class="user-avatar" />
-  <div class="online-badge"></div>
-</div>
+            <img [src]="avatarUrl" (error)="onErrorImagen()" class="user-avatar" alt="Foto de perfil" />
+            <div class="online-badge"></div>
+          </div>
           <div class="info-section">
             <h3 class="user-name">{{ getNombreDisplay() }}</h3>
             <p class="user-email">{{ getEmailDisplay() }}</p>
-            <div class="status-text">
-              <ion-icon name="ellipse" class="status-dot"></ion-icon>
-              Conectado
-            </div>
           </div>
         </div>
 
         <ion-menu-toggle auto-hide="false" *ngIf="!esTutor">
-          <ion-button expand="block" fill="outline" class="btn-profile" routerLink="/perfil">
-            <ion-icon name="person-circle-outline" slot="start"></ion-icon>
+          <ion-button expand="block" fill="clear" class="btn-profile" routerLink="/perfil">
             Ver Perfil
           </ion-button>
         </ion-menu-toggle>
@@ -39,8 +38,8 @@
 
       <!-- Skeleton sin sesión -->
       <div *ngIf="!loggedIn" class="user-card-skeleton">
-        <ion-skeleton-text animated style="width: 42px; height: 42px; border-radius: 13px;"></ion-skeleton-text>
-        <div style="flex: 1; margin-left: 10px;">
+        <ion-skeleton-text animated style="width: 56px; height: 56px; border-radius: 16px;"></ion-skeleton-text>
+        <div style="flex: 1; margin-left: 12px;">
           <ion-skeleton-text animated style="width: 65%; height: 13px;"></ion-skeleton-text>
           <ion-skeleton-text animated style="width: 85%; height: 11px; margin-top: 6px;"></ion-skeleton-text>
         </div>
@@ -51,10 +50,9 @@
         <p class="nav-section-label">Principal</p>
 
         <ion-menu-toggle auto-hide="false">
-          <ion-item routerLink="/inicio" routerLinkActive="active-item" lines="none">
-            <div class="nav-icon-wrap" slot="start">
-              <ion-icon name="home-outline"></ion-icon>
-            </div>
+          <ion-item routerLink="/inicio" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                    lines="none" aria-label="Inicio">
+            <ion-icon name="home-outline" slot="start"></ion-icon>
             <ion-label>Inicio</ion-label>
           </ion-item>
         </ion-menu-toggle>
@@ -62,13 +60,12 @@
         <!-- ===================== ALUMNO ===================== -->
         <ng-container *ngIf="esAlumno">
 
-          <!-- Clase en Vivo -->
+          <p class="nav-section-label">Aprendizaje</p>
+
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/clase" routerLinkActive="active-item" lines="none"
-                      class="clase-item">
-              <div class="nav-icon-wrap clase-icon-wrap" slot="start">
-                <ion-icon name="radio-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/clase" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" class="clase-item" aria-label="Clase en vivo, contenido de tu docente">
+              <ion-icon name="radio-outline" slot="start"></ion-icon>
               <ion-label>
                 Clase en Vivo
                 <p class="nav-sublabel">Contenido de tu docente</p>
@@ -78,57 +75,36 @@
           </ion-menu-toggle>
 
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/tareas" routerLinkActive="active-item" lines="none">
-              <div class="nav-icon-wrap" slot="start">
-                <ion-icon name="document-text-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/tareas" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" aria-label="Tareas">
+              <ion-icon name="document-text-outline" slot="start"></ion-icon>
               <ion-label>Tareas</ion-label>
             </ion-item>
           </ion-menu-toggle>
 
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/actividad" routerLinkActive="active-item" lines="none">
-              <div class="nav-icon-wrap" slot="start">
-                <ion-icon name="checkmark-done-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/actividad" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" aria-label="Actividades">
+              <ion-icon name="rocket-outline" slot="start"></ion-icon>
               <ion-label>Actividades</ion-label>
             </ion-item>
           </ion-menu-toggle>
 
-          <p class="nav-section-label">Académico</p>
+          <p class="nav-section-label">Explorar</p>
 
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/comunidad" routerLinkActive="active-item" lines="none">
-              <div class="nav-icon-wrap" slot="start">
-                <ion-icon name="people-outline"></ion-icon>
-              </div>
-              <ion-label>Comunidad</ion-label>
-            </ion-item>
-          </ion-menu-toggle>
-
-          <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/materias" routerLinkActive="active-item" lines="none">
-              <div class="nav-icon-wrap" slot="start">
-                <ion-icon name="book-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/materias" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" aria-label="Materias">
+              <ion-icon name="book-outline" slot="start"></ion-icon>
               <ion-label>Materias</ion-label>
             </ion-item>
           </ion-menu-toggle>
 
-          <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/aula" routerLinkActive="active-item" lines="none">
-              <div class="nav-icon-wrap" slot="start">
-                <ion-icon name="school-outline"></ion-icon>
-              </div>
-              <ion-label>Aula</ion-label>
-            </ion-item>
-          </ion-menu-toggle>
 
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/herramientas" routerLinkActive="active-item" lines="none">
-              <div class="nav-icon-wrap" slot="start">
-                <ion-icon name="construct-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/herramientas" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" aria-label="Herramientas">
+              <ion-icon name="construct-outline" slot="start"></ion-icon>
               <ion-label>Herramientas</ion-label>
             </ion-item>
           </ion-menu-toggle>
@@ -138,33 +114,30 @@
         <!-- ===================== DOCENTE ===================== -->
         <ng-container *ngIf="esDocente">
 
+          <p class="nav-section-label">Académico</p>
+
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/aula" routerLinkActive="active-item" lines="none">
-              <div class="nav-icon-wrap" slot="start">
-                <ion-icon name="school-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/aula" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" aria-label="Mis grupos">
+              <ion-icon name="school-outline" slot="start"></ion-icon>
               <ion-label>Mis Grupos</ion-label>
             </ion-item>
           </ion-menu-toggle>
 
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/materias" routerLinkActive="active-item" lines="none">
-              <div class="nav-icon-wrap" slot="start">
-                <ion-icon name="book-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/materias" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" aria-label="Materias">
+              <ion-icon name="book-outline" slot="start"></ion-icon>
               <ion-label>Materias</ion-label>
             </ion-item>
           </ion-menu-toggle>
 
           <p class="nav-section-label">Gestión Académica</p>
 
-          <!-- Tomar Lista -->
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/asistencia" routerLinkActive="active-item" lines="none"
-                      class="asistencia-item">
-              <div class="nav-icon-wrap asistencia-icon-wrap" slot="start">
-                <ion-icon name="people-circle-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/asistencia" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" class="asistencia-item" aria-label="Tomar lista, asistencia de grupos">
+              <ion-icon name="people-circle-outline" slot="start"></ion-icon>
               <ion-label>
                 Tomar Lista
                 <p class="nav-sublabel">Asistencia de grupos</p>
@@ -173,13 +146,10 @@
             </ion-item>
           </ion-menu-toggle>
 
-          <!-- Clase en Vivo -->
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/clase" routerLinkActive="active-item" lines="none"
-                      class="clase-item">
-              <div class="nav-icon-wrap clase-icon-wrap" slot="start">
-                <ion-icon name="radio-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/clase" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" class="clase-item" aria-label="Clase en vivo, presenta contenido en tiempo real">
+              <ion-icon name="radio-outline" slot="start"></ion-icon>
               <ion-label>
                 Clase en Vivo
                 <p class="nav-sublabel">Presenta contenido en tiempo real</p>
@@ -189,37 +159,40 @@
           </ion-menu-toggle>
 
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/tareas" routerLinkActive="active-item" lines="none">
-              <div class="nav-icon-wrap" slot="start">
-                <ion-icon name="document-text-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/tareas" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" aria-label="Tareas">
+              <ion-icon name="document-text-outline" slot="start"></ion-icon>
               <ion-label>Tareas</ion-label>
             </ion-item>
           </ion-menu-toggle>
 
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/actividad" routerLinkActive="active-item" lines="none">
-              <div class="nav-icon-wrap" slot="start">
-                <ion-icon name="checkmark-done-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/actividad" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" aria-label="Actividades">
+              <ion-icon name="rocket-outline" slot="start"></ion-icon>
               <ion-label>Actividades</ion-label>
             </ion-item>
           </ion-menu-toggle>
 
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/herramientas" routerLinkActive="active-item" lines="none">
-              <div class="nav-icon-wrap" slot="start">
-                <ion-icon name="construct-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/herramientas" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" aria-label="Material de apoyo">
+              <ion-icon name="construct-outline" slot="start"></ion-icon>
               <ion-label>Material de Apoyo</ion-label>
             </ion-item>
           </ion-menu-toggle>
 
+        </ng-container>
+
+        <!-- ============= COMUNICACIÓN (compartida alumno / docente) ============= -->
+        <ng-container *ngIf="esAlumno || esDocente">
+
+          <p class="nav-section-label">Comunicación</p>
+
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/comunidad" routerLinkActive="active-item" lines="none">
-              <div class="nav-icon-wrap" slot="start">
-                <ion-icon name="people-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/comunidad" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" aria-label="Comunidad">
+              <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
               <ion-label>Comunidad</ion-label>
             </ion-item>
           </ion-menu-toggle>
@@ -232,28 +205,27 @@
           <p class="nav-section-label">Seguimiento</p>
 
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/mi-hijo" routerLinkActive="active-item" lines="none">
-              <div class="nav-icon-wrap" slot="start">
-                <ion-icon name="school-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/mi-hijo" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" aria-label="Mi hijo o hija">
+              <ion-icon name="school-outline" slot="start"></ion-icon>
               <ion-label>Mi Hijo(a)</ion-label>
             </ion-item>
           </ion-menu-toggle>
 
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/tareas-hijo" routerLinkActive="active-item" lines="none">
-              <div class="nav-icon-wrap" slot="start">
-                <ion-icon name="document-text-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/tareas-hijo" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" aria-label="Tareas de mi hijo o hija">
+              <ion-icon name="document-text-outline" slot="start"></ion-icon>
               <ion-label>Tareas Hijo(a)</ion-label>
             </ion-item>
           </ion-menu-toggle>
 
+          <p class="nav-section-label">Comunicación</p>
+
           <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/comunidad" routerLinkActive="active-item" lines="none">
-              <div class="nav-icon-wrap" slot="start">
-                <ion-icon name="megaphone-outline"></ion-icon>
-              </div>
+            <ion-item routerLink="/comunidad" routerLinkActive="active-item" ariaCurrentWhenActive="page"
+                      lines="none" aria-label="Comunicados">
+              <ion-icon name="megaphone-outline" slot="start"></ion-icon>
               <ion-label>Comunicados</ion-label>
             </ion-item>
           </ion-menu-toggle>
@@ -264,18 +236,19 @@
 
         <!-- Sin ion-menu-toggle a propósito: el menú se cierra manualmente
              desde cerrarSesion() solo después de confirmar, no al primer toque. -->
-        <ion-item button (click)="cerrarSesion()" class="logout-item" lines="none">
-          <div class="nav-icon-wrap logout-icon-wrap" slot="start">
-            <ion-icon name="log-out-outline"></ion-icon>
-          </div>
-          <ion-label class="logout-label">Cerrar sesión</ion-label>
+        <ion-item button (click)="cerrarSesion()" class="logout-item" lines="none" aria-label="Cerrar sesión">
+          <ion-icon name="log-out-outline" slot="start"></ion-icon>
+          <ion-label>Cerrar sesión</ion-label>
         </ion-item>
 
       </ion-list>
 
       <div class="menu-footer">
-        <img src="assets/img/logotipo_lisboa.webp" alt="logo" />
-        <span class="menu-footer-text">Universidad Lisboa · {{ currentYear }}</span>
+        <div class="footer-brand">
+          <img src="assets/img/logotipo_lisboa.webp" alt="Logo Universidad Lisboa" />
+          <span class="menu-footer-text">Universidad Lisboa</span>
+        </div>
+        <p class="menu-footer-copy">© {{ currentYear }} Fray Hub Educational Portal</p>
       </div>
 
     </ion-content>

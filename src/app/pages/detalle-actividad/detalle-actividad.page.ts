@@ -46,6 +46,18 @@ interface ActividadDetalle {
   archivo: string | null;       // adjunto de la propia actividad (opcional)
 }
 
+interface Comentario {
+  id: number;
+  texto: string;
+  creado_en: string;
+  autor_id: number;
+  actividad_id: number;
+  autor_nombre: string;
+  autor_rol: string;
+  editando?: boolean;
+  textoEdit?: string;
+}
+
 const MAX_MB = 20;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -89,6 +101,11 @@ export class DetalleActividadPage implements OnInit {
   progresoEntrega = 0;
   errorEntrega = '';
 
+  // ── Comentarios (docente, alumno y tutor) ─────────────────
+  comentarios: Comentario[] = [];
+  nuevoComentario = '';
+  enviandoComentario = false;
+
   constructor(
     private route: ActivatedRoute,
     private sesion: SesionService,
@@ -124,6 +141,8 @@ export class DetalleActividadPage implements OnInit {
       if (this.esDocente)      await this.cargarRosterDocente();
       else if (this.esAlumno)  await this.cargarEntregaAlumno();
       else if (this.esTutor)   await this.cargarEntregaTutor();
+
+      await this.cargarComentarios();
     } catch (e: any) {
       this.error = 'Error al cargar: ' + e.message;
     } finally {
@@ -383,6 +402,120 @@ export class DetalleActividadPage implements OnInit {
     }
   }
 
+  esTardia(): boolean {
+    if (!this.actividad || !this.entregaPropia) return false;
+    return new Date(this.entregaPropia.entregada_en) > new Date(this.actividad.fecha_entrega);
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  COMENTARIOS (docente, alumno y tutor)
+  // ══════════════════════════════════════════════════════════
+
+  async cargarComentarios() {
+    try {
+      const { data, error } = await this.supabase
+        .from('academic_comentarioactividad')
+        .select('*')
+        .eq('actividad_id', this.actividadId)
+        .order('creado_en', { ascending: true });
+      if (error) throw error;
+
+      const autorIds = [...new Set((data || []).map((c: any) => c.autor_id))];
+      let autores = new Map<number, { nombre: string; rol: string }>();
+      if (autorIds.length) {
+        const { data: usuarios, error: eU } = await this.supabase
+          .from('users_user').select('id, first_name, last_name, rol').in('id', autorIds);
+        if (eU) throw eU;
+        (usuarios || []).forEach((u: any) => {
+          autores.set(u.id, { nombre: `${u.first_name} ${u.last_name}`.trim(), rol: u.rol });
+        });
+      }
+
+      this.comentarios = (data || []).map((c: any) => ({
+        ...c,
+        autor_nombre: autores.get(c.autor_id)?.nombre || 'Usuario',
+        autor_rol: autores.get(c.autor_id)?.rol || '',
+      }));
+    } catch (e: any) {
+      this.toast(`No se pudieron cargar los comentarios: ${e.message}`, 'danger');
+    }
+  }
+
+  async enviarComentario() {
+    const texto = this.nuevoComentario.trim();
+    if (!texto) return;
+    this.enviandoComentario = true;
+    try {
+      const uid = this.sesion.usuario!.id;
+      const { error } = await this.supabase
+        .from('academic_comentarioactividad')
+        .insert({ actividad_id: this.actividadId, autor_id: uid, texto, creado_en: new Date().toISOString() });
+      if (error) throw error;
+      this.nuevoComentario = '';
+      await this.cargarComentarios();
+    } catch (e: any) {
+      this.toast(`No se pudo comentar: ${e.message}`, 'danger');
+    } finally {
+      this.enviandoComentario = false;
+    }
+  }
+
+  esMiComentario(c: Comentario): boolean {
+    return c.autor_id === this.sesion.usuario?.id;
+  }
+
+  activarEdicion(c: Comentario) {
+    c.editando = true;
+    c.textoEdit = c.texto;
+  }
+
+  cancelarEdicionComentario(c: Comentario) {
+    c.editando = false;
+  }
+
+  async guardarEdicionComentario(c: Comentario) {
+    const nuevo = (c.textoEdit || '').trim();
+    if (!nuevo) { this.toast('El comentario no puede quedar vacío.', 'warning'); return; }
+    try {
+      const { error } = await this.supabase
+        .from('academic_comentarioactividad')
+        .update({ texto: nuevo })
+        .eq('id', c.id)
+        .eq('autor_id', this.sesion.usuario?.id);
+      if (error) throw error;
+      c.texto = nuevo;
+      c.editando = false;
+      this.toast('Comentario actualizado.', 'success');
+    } catch (e: any) {
+      this.toast(`No se pudo editar: ${e.message}`, 'danger');
+    }
+  }
+
+  async eliminarComentario(c: Comentario) {
+    const a = await this.alertCtrl.create({
+      header: 'Eliminar comentario',
+      message: '¿Eliminar este comentario?',
+      buttons: [{ text: 'Cancelar', role: 'cancel' }, {
+        text: 'Eliminar', role: 'destructive',
+        handler: async () => {
+          try {
+            const { error } = await this.supabase
+              .from('academic_comentarioactividad')
+              .delete()
+              .eq('id', c.id)
+              .eq('autor_id', this.sesion.usuario?.id);
+            if (error) throw error;
+            this.comentarios = this.comentarios.filter(x => x.id !== c.id);
+            this.toast('Comentario eliminado.', 'success');
+          } catch (e: any) {
+            this.toast(`No se pudo eliminar: ${e.message}`, 'danger');
+          }
+        }
+      }],
+    });
+    await a.present();
+  }
+
   // ══════════════════════════════════════════════════════════
   //  HELPERS
   // ══════════════════════════════════════════════════════════
@@ -390,11 +523,6 @@ export class DetalleActividadPage implements OnInit {
   esVencida(): boolean {
     if (!this.actividad) return false;
     return new Date(this.actividad.fecha_entrega) < new Date();
-  }
-
-  esTardia(): boolean {
-    if (!this.actividad || !this.entregaPropia) return false;
-    return new Date(this.entregaPropia.entregada_en) > new Date(this.actividad.fecha_entrega);
   }
 
   // una vez calificada, ya no se puede reemplazar la entrega

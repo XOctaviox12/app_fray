@@ -1,14 +1,19 @@
 // ============================================
 // DETALLE-TAREA.PAGE.SCSS
-// Rediseño visual iPad · Soft UI + Cupertino + Neumorphism ligero
-// (Solo estilos. Ninguna clase, evento o binding del HTML fue modificado)
+// Rediseño visual · Soft UI + layout de 2 columnas estilo Fray Hub web
+// (Solo estilos. Ninguna clase, evento o binding del HTML fue modificado,
+// sólo se reorganizó la posición de los elementos existentes)
 //
 // Cambios agregados en esta versión:
-// - box-sizing: border-box en todas las tarjetas con padding
-// - min-width:0 + word-break/overflow-wrap en textos largos dentro de
-//   filas flex (título, nombre de alumno, autor de comentario, feedback,
-//   nombre de archivo, comentario de entrega)
-// - flex-shrink:0 en insignias/íconos para que no se compriman
+// - Layout de 2 columnas (.detalle-grid / .col-left / .col-right) que
+//   entra en vigor a partir de 900px de ancho; en pantallas angostas
+//   todo se apila en una sola columna como antes
+// - Tarjeta "Material adjunto" con lista de archivos con ícono
+// - Tarjeta "Tu entrega" (alumno) en la columna derecha
+// - Tarjeta de comentarios con scroll interno en la columna derecha
+// - KPIs con ícono en círculo de color (naranja / azul / verde)
+// - Burbuja de comentario del docente resaltada en color primario,
+//   alineada a la derecha, con ancho acotado (no ocupa toda la fila)
 // ============================================
 
 :host {
@@ -58,6 +63,12 @@
   font-weight: 700;
   font-size: 17px;
   letter-spacing: -0.2px;
+}
+
+.header-bell {
+  font-size: 21px;
+  color: var(--fh-text-2);
+  margin-right: 4px;
 }
 
 .header-accent-bar {
@@ -140,8 +151,17 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
   margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.tarea-header-top-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
 }
 
 .tarea-titulo {
@@ -157,6 +177,7 @@
 }
 
 .badge {
+  align-self: flex-start;
   flex-shrink: 0;
   font-size: 10px;
   font-weight: 800;
@@ -178,6 +199,30 @@
     background: var(--fh-success-soft);
     color: var(--fh-success);
   }
+}
+
+.btn-descargar-guia {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  height: 42px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--fh-primary), var(--fh-primary-dark));
+  color: var(--fh-white);
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(245, 124, 0, 0.3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+
+  ion-icon { font-size: 16px; }
+
+  &:active { transform: scale(0.96); }
 }
 
 .tarea-header-meta {
@@ -215,43 +260,6 @@
   overflow-wrap: anywhere;
 }
 
-.tarea-archivos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 9px;
-  margin-top: 14px;
-}
-
-.archivo-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 9px 14px;
-  background: var(--fh-info-soft);
-  border-radius: 12px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--fh-info);
-  text-decoration: none;
-  transition: background 0.2s ease;
-  max-width: 100%;
-  box-sizing: border-box;
-
-  span {
-    min-width: 0;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-  }
-
-  ion-icon {
-    font-size: 15px;
-    color: var(--fh-info);
-    flex-shrink: 0;
-  }
-
-  &:active { background: rgba(13, 71, 161, 0.16); }
-}
-
 // ─────────────────────────────────────────────
 // KPIs (docente)
 // ─────────────────────────────────────────────
@@ -265,31 +273,195 @@
 .kpi-chip {
   background: var(--fh-white);
   border-radius: 16px;
-  padding: 1.1rem 0.5rem;
-  text-align: center;
+  padding: 1rem 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   box-shadow: var(--fh-shadow-soft);
   box-sizing: border-box;
   min-width: 0;
+}
 
-  &.kpi-green .kpi-num { color: var(--fh-success); }
-  &.kpi-orange .kpi-num { color: var(--fh-primary); }
+.kpi-icon-wrap {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 19px;
+  }
+
+  &.kpi-icon-orange {
+    background: rgba(245, 124, 0, 0.1);
+    ion-icon { color: var(--fh-primary); }
+  }
+  &.kpi-icon-blue {
+    background: var(--fh-info-soft);
+    ion-icon { color: var(--fh-secondary); }
+  }
+  &.kpi-icon-green {
+    background: var(--fh-success-soft);
+    ion-icon { color: var(--fh-success); }
+  }
+}
+
+.kpi-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .kpi-num {
-  display: block;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
   color: var(--fh-text);
+  line-height: 1.15;
 }
 
 .kpi-lbl {
-  display: block;
   font-size: 9.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--fh-text-2);
-  margin-top: 3px;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+// ─────────────────────────────────────────────
+// Layout de 2 columnas
+// ─────────────────────────────────────────────
+.detalle-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0 1.1rem 2.2rem;
+}
+
+.col-left,
+.col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .detalle-grid {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr;
+    align-items: start;
+    gap: 20px;
+    max-width: 1180px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+// Dentro del grid, las tarjetas ya no necesitan su propio margen
+// horizontal de página: el contenedor .detalle-grid se encarga de eso.
+.col-left,
+.col-right {
+  .entrega-row,
+  .mi-entrega-status,
+  .empty-entregas,
+  .comentarios-card,
+  .material-card,
+  .tu-entrega-card,
+  .form-entrega {
+    margin: 0;
+  }
+
+  .section-title {
+    margin: 4px 0 0;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Material adjunto
+// ─────────────────────────────────────────────
+.material-card {
+  background: var(--fh-white);
+  border-radius: var(--fh-radius-card);
+  padding: 1.1rem 1.2rem;
+  box-shadow: var(--fh-shadow-soft);
+  box-sizing: border-box;
+}
+
+.material-card-header {
+  margin-bottom: 10px;
+}
+
+.material-card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--fh-text-2);
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--fh-primary);
+  }
+}
+
+.material-file-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 10px;
+  border-radius: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  & + & {
+    margin-top: 4px;
+  }
+
+  &:active {
+    background: var(--fh-bg-2);
+  }
+}
+
+.material-file-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--fh-info-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--fh-info);
+  }
+}
+
+.material-file-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fh-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.material-file-download {
+  flex-shrink: 0;
+  font-size: 17px;
+  color: var(--fh-text-2);
 }
 
 // ─────────────────────────────────────────────
@@ -311,7 +483,6 @@
   align-items: center;
   gap: 10px;
   padding: 2.4rem 1rem;
-  margin: 0 1.1rem;
   background: var(--fh-white);
   border-radius: var(--fh-radius-card);
   text-align: center;
@@ -335,7 +506,6 @@
   border-left: 4px solid var(--fh-primary);
   border-radius: 18px;
   padding: 1.1rem 1.2rem;
-  margin: 0 1.1rem 12px;
   box-shadow: var(--fh-shadow-soft);
   box-sizing: border-box;
 }
@@ -512,13 +682,12 @@
 }
 
 // ─────────────────────────────────────────────
-// Mi entrega (alumno)
+// Mi entrega (alumno, columna izquierda)
 // ─────────────────────────────────────────────
 .mi-entrega-status {
   background: var(--fh-white);
   border-radius: var(--fh-radius-card);
   padding: 1.1rem 1.2rem;
-  margin: 0 1.1rem 1.1rem;
   box-shadow: var(--fh-shadow-soft);
   box-sizing: border-box;
 }
@@ -563,14 +732,41 @@
   overflow-wrap: anywhere;
 }
 
+// ─────────────────────────────────────────────
+// Tu entrega (alumno, columna derecha)
+// ─────────────────────────────────────────────
+.tu-entrega-card {
+  background: var(--fh-white);
+  border-radius: var(--fh-radius-card);
+  padding: 1.2rem;
+  box-shadow: var(--fh-shadow-soft);
+  box-sizing: border-box;
+}
+
+.tu-entrega-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--fh-text-2);
+  margin: 0 0 14px;
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--fh-primary);
+  }
+}
+
 .btn-editar-entrega,
 .btn-entregar {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  width: calc(100% - 2.2rem);
-  margin: 0 1.1rem 1.1rem;
+  width: 100%;
   height: 50px;
   border-radius: var(--fh-radius-btn);
   font-size: 13.5px;
@@ -592,20 +788,12 @@
 .btn-editar-entrega {
   background: var(--fh-bg-2);
   color: var(--fh-text-2);
-  width: 100%;
-  margin: 12px 0 0;
 }
 
 .form-entrega {
-  background: var(--fh-white);
-  border-radius: var(--fh-radius-card);
-  padding: 1.1rem 1.2rem;
-  margin: 0 1.1rem 1.4rem;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  box-shadow: var(--fh-shadow-soft);
-  box-sizing: border-box;
 
   textarea {
     width: 100%;
@@ -760,13 +948,12 @@
 }
 
 // ─────────────────────────────────────────────
-// Comentarios
+// Comentarios (columna derecha)
 // ─────────────────────────────────────────────
 .comentarios-card {
   background: var(--fh-white);
   border-radius: var(--fh-radius-card);
-  margin: 0 1.1rem 2.2rem;
-  padding: 1.2rem 1.2rem;
+  padding: 1.2rem;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -774,10 +961,49 @@
   box-sizing: border-box;
 }
 
+.comentarios-titulo {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--fh-text-2);
+  margin: 0;
+}
+
+.comentarios-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+@media (min-width: 900px) {
+  .comentarios-scroll {
+    max-height: 360px;
+    overflow-y: auto;
+    padding-right: 4px;
+
+    &::-webkit-scrollbar { width: 5px; }
+    &::-webkit-scrollbar-thumb {
+      background: var(--fh-border);
+      border-radius: 4px;
+    }
+  }
+}
+
 .comentario-row {
   display: flex;
   gap: 11px;
   min-width: 0;
+
+  // El comentario del docente se alinea a la derecha, como en el mockup
+  &.comentario-row-propio {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+
+    .comentario-bubble {
+      flex: 0 1 auto;
+    }
+  }
 }
 
 .comentario-avatar {
@@ -795,7 +1021,7 @@
   text-transform: uppercase;
 
   &.avatar-docente {
-    background: linear-gradient(135deg, var(--fh-success), #15803D);
+    background: linear-gradient(135deg, var(--fh-primary), var(--fh-primary-dark));
     color: var(--fh-white);
   }
 }
@@ -807,6 +1033,34 @@
   padding: 10px 14px;
   min-width: 0;
   box-sizing: border-box;
+
+  // Burbuja destacada del docente, en color primario, alineada a la derecha
+  &.bubble-docente {
+    max-width: 82%;
+    margin-left: auto;
+    background: var(--fh-primary);
+    color: var(--fh-white);
+    border-top-right-radius: 4px;
+
+    .comentario-autor,
+    .comentario-texto {
+      color: var(--fh-white);
+    }
+
+    .comentario-rol {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .comentario-fecha {
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    .comentario-acciones ion-icon {
+      color: rgba(255, 255, 255, 0.85);
+
+      &:active { color: var(--fh-white); }
+    }
+  }
 }
 
 .comentario-top {
@@ -928,7 +1182,6 @@
   display: flex;
   gap: 9px;
   align-items: center;
-  padding-top: 5px;
 
   input {
     flex: 1;
@@ -975,40 +1228,5 @@
       height: 16px;
       --color: var(--fh-white);
     }
-  }
-}
-
-// ── iPad: aprovechar el ancho en landscape / pantallas grandes ──
-@media (min-width: 768px) {
-  .tarea-header-card,
-  .form-entrega,
-  .comentarios-card {
-    max-width: 720px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .kpi-row {
-    max-width: 720px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .entrega-row,
-  .mi-entrega-status,
-  .empty-entregas {
-    max-width: 720px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .calificar-row {
-    flex-direction: row;
-    align-items: flex-end;
-    flex-wrap: wrap;
-
-    .calificar-input-wrap { flex: 0 0 120px; }
-    .calificar-feedback-wrap { flex: 1; min-width: 220px; }
-    .btn-guardar-calif { flex: 0 0 auto; padding: 0 22px; }
   }
 }

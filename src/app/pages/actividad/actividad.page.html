@@ -93,6 +93,10 @@
       <span class="stat-num text-nowrap-number">{{ totalBorradores }}</span>
       <span class="stat-label text-truncate">Borrador</span>
     </div>
+    <button class="btn-nueva-act-inline" (click)="abrirFormularioNuevo()">
+      <ion-icon name="add-outline"></ion-icon>
+      Nueva Actividad
+    </button>
   </div>
 
   <!-- ── Stats / filtros TUTOR ── -->
@@ -378,6 +382,7 @@
       [style.animationDelay]="i * 0.05 + 's'"
       [routerLink]="['/detalle-actividad', a.id]">
 
+      <div class="activity-card-scroll">
       <!-- Header -->
       <div class="card-header">
         <div class="tipo-icon-wrap" [class]="'estado-' + getEstadoClass(a)">
@@ -418,7 +423,7 @@
       </div>
 
       <!-- Instrucciones -->
-      <p class="activity-desc text-clamp-3" *ngIf="a.instrucciones" [title]="a.instrucciones">{{ a.instrucciones }}</p>
+      <p class="activity-desc text-clamp-2" *ngIf="a.instrucciones" [title]="a.instrucciones">{{ a.instrucciones }}</p>
 
       <!-- Chips -->
       <div class="chips-row">
@@ -446,7 +451,8 @@
       <!-- Feedback del docente (alumno/tutor) -->
       <div class="feedback-box" *ngIf="a.entrega?.feedback">
         <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-        <p class="text-clamp-3" [title]="a.entrega!.feedback">{{ a.entrega!.feedback }}</p>
+        <p class="text-clamp-2" [title]="a.entrega!.feedback">{{ a.entrega!.feedback }}</p>
+      </div>
       </div>
 
       <!-- ── PANEL ENTREGAS (docente) ── -->
@@ -561,7 +567,7 @@
   <div style="height: 80px"></div>
 
   <!-- FAB docente -->
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="esDocente">
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="esDocente" class="fab-only-mobile">
     <ion-fab-button class="fab-agregar" (click)="abrirFormularioNuevo()">
       <ion-icon name="add-outline"></ion-icon>
     </ion-fab-button>

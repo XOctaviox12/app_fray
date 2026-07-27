@@ -7,6 +7,12 @@
 // theme/_layout.scss global) + min-width:0 en contenedores flex con
 // texto dinámico + word-break en archivos/links largos, para que
 // nada empuje o se salga de las tarjetas.
+//
+// v2 — Reacomodo de layout siguiendo el mock (hero con stats a la
+// derecha, barra de filtros + botón "Nueva Tarea" en una sola fila
+// en tablet/desktop, grid tipo masonry sin estirar tarjetas, variante
+// "urgente" para tareas próximas a vencer, bloque de progreso de
+// entregas, cita de retroalimentación y eyebrows de sección.
 // ============================================
 
 :host {
@@ -125,10 +131,21 @@
 
 .tareas-hero {
   padding: 28px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 
   @media (min-width: 768px) {
     padding: 32px 28px 22px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
   }
+}
+
+.hero-text {
+  min-width: 0;
 }
 
 .hero-title {
@@ -150,7 +167,10 @@
 .stats-row {
   display: flex;
   gap: 12px;
-  margin-top: 20px;
+
+  @media (min-width: 768px) {
+    flex-shrink: 0;
+  }
 }
 
 .stat-chip {
@@ -163,6 +183,12 @@
   text-align: center;
   box-shadow: var(--sh-soft);
   transition: transform 200ms ease;
+
+  @media (min-width: 768px) {
+    flex: 0 0 auto;
+    min-width: 84px;
+    padding: 12px 18px;
+  }
 
   .stat-num {
     display: block;
@@ -208,6 +234,9 @@
 
   @media (min-width: 768px) {
     padding: 4px 28px 18px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
   }
 }
 
@@ -221,6 +250,10 @@
   padding: 0 14px;
   box-shadow: var(--sh-soft);
   transition: border-color 200ms ease;
+
+  @media (min-width: 768px) {
+    flex: 1 1 240px;
+  }
 
   &:focus-within {
     border-color: var(--p-primary);
@@ -251,6 +284,10 @@
 .filter-chips-row {
   display: flex;
   gap: 8px;
+
+  @media (min-width: 768px) {
+    flex: 0 0 auto;
+  }
 }
 
 .filter-chip {
@@ -271,6 +308,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
 
+  @media (min-width: 768px) {
+    flex: 0 0 auto;
+    padding: 10px 16px;
+  }
+
   &.active {
     background: var(--p-primary);
     border-color: var(--p-primary);
@@ -282,6 +324,10 @@
   display: flex;
   gap: 8px;
   align-items: center;
+
+  @media (min-width: 768px) {
+    flex: 0 0 auto;
+  }
 }
 
 .filter-select-wrap {
@@ -292,6 +338,10 @@
   border-radius: var(--r-input);
   padding: 0 12px;
   box-shadow: var(--sh-soft);
+
+  @media (min-width: 768px) {
+    flex: 0 0 168px;
+  }
 
   select {
     width: 100%;
@@ -329,6 +379,38 @@
   &:active { transform: scale(0.94); }
 
   ion-icon { font-size: 17px; }
+}
+
+// ---- Botón "Nueva Tarea" inline (tablet/desktop) ----
+// En mobile se usa el FAB (.fab-only-mobile); en tablet/desktop este
+// botón vive dentro de la barra de filtros, como en el mock.
+.btn-nueva-tarea-inline {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 20px;
+  border-radius: var(--r-btn);
+  border: none;
+  background: var(--p-primary);
+  color: var(--p-white);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--f-display);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 6px 6px 14px rgba(245, 124, 0, 0.22), -4px -4px 10px rgba(255, 255, 255, 0.6);
+  transition: transform 200ms ease;
+
+  &:active { transform: scale(0.97); }
+
+  ion-icon { font-size: 16px; }
+
+  @media (min-width: 768px) {
+    display: flex;
+    margin-left: auto;
+  }
 }
 
 // ============================================
@@ -752,7 +834,7 @@
 }
 
 // ============================================
-// LISTA DE TAREAS — grid split view en iPad
+// LISTA DE TAREAS — grid tipo masonry en iPad
 // ============================================
 
 .tasks-list {
@@ -760,11 +842,17 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
+  align-items: stretch;
+  // Todas las filas tienen un alto mínimo fijo, así todas las tarjetas
+  // se ven del mismo tamaño; una fila solo crece si una tarjeta abre
+  // su panel de entregas / formulario (contenido que no se recorta).
+  grid-auto-rows: minmax(300px, auto);
 
   @media (min-width: 768px) {
     padding: 4px 28px 120px;
     grid-template-columns: repeat(2, 1fr);
     gap: 18px;
+    grid-auto-rows: minmax(360px, auto);
   }
 
   @media (min-width: 1180px) {
@@ -784,12 +872,12 @@
   cursor: pointer;
   min-width: 0;
 
-  // ── clave del acomodo ──
+  // ── clave del acomodo: todas las tarjetas ocupan el 100% del alto
+  // de fila (fijo por grid-auto-rows), el bloque variable se recorta
+  // con .task-card-scroll y el footer siempre queda pegado abajo ──
+  height: 100%;
   display: flex;
   flex-direction: column;
-  height: 100%; // se estira al alto de la fila del grid
-
-  // (se quitó `align-self: start;`)
 
   @media (hover: hover) {
     &:hover {
@@ -798,15 +886,71 @@
     }
   }
 
-&.completed {
-  .task-title { text-decoration: line-through; color: var(--p-text-2); }
-  .task-desc, .task-materia, .task-date { color: #9CA3AF; }
-}
+  &.completed {
+    .task-title { text-decoration: line-through; color: var(--p-text-2); }
+    .task-desc, .task-materia, .task-date { color: #9CA3AF; }
+  }
 
   &.draft {
     border-style: dashed;
     opacity: 0.9;
   }
+
+  // ── Variante "urgente" — tarea próxima a vencer (vista alumno) ──
+  &.urgente {
+    background: linear-gradient(155deg, #FB8C1F 0%, var(--p-primary) 100%);
+    border-color: transparent;
+    box-shadow: var(--sh-soft-lg);
+
+    .task-eyebrow,
+    .task-title,
+    .task-desc,
+    .task-materia,
+    .task-meta-dot,
+    .task-date {
+      color: var(--p-white);
+    }
+
+    .task-desc { color: rgba(255, 255, 255, 0.88); }
+    .task-materia { color: rgba(255, 255, 255, 0.85); }
+
+    .task-materia-badge {
+      background: rgba(255, 255, 255, 0.2);
+
+      ion-icon { color: var(--p-white); }
+    }
+
+    .meta-icon { color: var(--p-white); }
+
+    .task-footer { border-top-color: rgba(255, 255, 255, 0.25); }
+
+    .btn-entregar {
+      background: var(--p-white);
+      color: var(--p-primary);
+      border-color: transparent;
+    }
+  }
+}
+
+.task-eyebrow {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--p-primary);
+  margin: 0 0 6px;
+  font-family: var(--f-text);
+}
+
+.section-eyebrow {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--p-text-2);
+  margin: 10px 0 6px;
+  font-family: var(--f-text);
+  display: block;
 }
 
 .task-header {
@@ -908,6 +1052,60 @@
   margin: 10px 0 0;
   line-height: 1.5;
   font-family: var(--f-text);
+}
+
+// ── Zona "recortable" de la tarjeta ──
+// Agrupa encabezado + descripción + progreso + archivos. Se lleva
+// todo el espacio sobrante de la tarjeta (flex:1) y esconde
+// cualquier exceso de contenido, para que el footer y los botones
+// de acción queden siempre en la misma posición y todas las
+// tarjetas midan exactamente lo mismo.
+.task-card-scroll {
+  flex: 1 1 auto;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.files-more-hint {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--p-text-2);
+  font-family: var(--f-text);
+  margin-top: 2px;
+}
+
+// ── Progreso de entregas (vista docente) ──
+.progreso-entregas-wrap {
+  margin-top: 12px;
+}
+
+.progreso-entregas-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--p-text-2);
+  font-family: var(--f-text);
+  margin-bottom: 5px;
+}
+
+.progreso-entregas-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 4px;
+  background: var(--p-bg-2);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.progreso-entregas-fill {
+  height: 100%;
+  background: var(--p-primary);
+  border-radius: 4px;
+  transition: width 300ms ease;
 }
 
 .task-files {
@@ -1039,8 +1237,15 @@
 }
 
 // ============================================
-// FAB — punto de neumorfismo ligero
+// FAB — solo en mobile (en tablet/desktop se usa
+// el botón inline .btn-nueva-tarea-inline)
 // ============================================
+
+.fab-only-mobile {
+  @media (min-width: 768px) {
+    display: none;
+  }
+}
 
 .fab-agregar {
   --background: var(--p-primary);
@@ -1306,6 +1511,31 @@
 
 .mi-entrega-header {
   display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;
+}
+
+// ── Cita de retroalimentación (calificación del docente) ──
+.feedback-quote {
+  position: relative;
+  padding: 12px 14px;
+  margin: 10px 0 0;
+  background: var(--p-white);
+  border-left: 3px solid var(--p-success);
+  border-radius: 0 var(--r-input) var(--r-input) 0;
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--p-text);
+  line-height: 1.5;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.feedback-quote-author {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 600;
+  color: var(--p-text-2);
 }
 
 .mi-calificacion {

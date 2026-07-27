@@ -1,40 +1,43 @@
 // ============================================
 // PERFIL.PAGE.SCSS
-// Rediseño premium iPad — Soft UI (70%) + Cupertino (20%) + Neumorphism ligero (10%)
-// Variables locales al componente: no se toca el theme global de la app.
+// Alineado a la paleta del mock — tarjetas grandes,
+// iconos alternados por color, halo tras el avatar.
 // ============================================
 
 :host {
   // ---- Paleta ----
-  --p-primary: #F57C00;
-  --p-primary-soft: rgba(245, 124, 0, 0.10);
-  --p-primary-glow: rgba(245, 124, 0, 0.28);
-  --p-secondary: #0D47A1;
-  --p-secondary-soft: rgba(13, 71, 161, 0.08);
-  --p-error: #D32F2F;
-  --p-error-soft: rgba(211, 47, 47, 0.08);
+  --p-primary: #964900;
+  --p-primary-container: #F57C00;
+  --p-primary-container-end: #EF6C00;
+  --p-primary-soft: rgba(150, 73, 0, 0.06);
+  --p-secondary: #4A59A1;
+  --p-on-secondary-container: #304086;
+  --p-secondary-soft: rgba(74, 89, 161, 0.06);
+  --p-tertiary: #526069;
+  --p-tertiary-soft: rgba(82, 96, 105, 0.08);
+  --p-error: #BA1A1A;
+  --p-error-container: #FFDAD6;
+  --p-on-error-container: #93000A;
   --p-success: #2E7D32;
-  --p-success-soft: rgba(46, 125, 50, 0.08);
   --p-white: #FFFFFF;
-  --p-bg: #F8F9FB;
-  --p-bg-2: #EEF2F7;
-  --p-text: #1F2937;
-  --p-text-2: #6B7280;
-  --p-border: #E5E7EB;
+  --p-bg: #F8F9FA;
+  --p-cool-grey: #EDF0F5;
+  --p-outline-variant: #DEC1AF;
+  --p-text: #1A1C1E;
+  --p-text-2: #574235;
 
   // ---- Radios ----
-  --r-card: 22px;
-  --r-btn: 18px;
+  --r-card: 28px;
+  --r-stat: 22px;
+  --r-btn: 22px;
   --r-input: 16px;
   --r-modal: 24px;
 
   // ---- Sombras ----
-  --sh-soft: 0 8px 30px rgba(15, 23, 42, 0.08);
-  --sh-soft-lg: 0 16px 40px rgba(15, 23, 42, 0.10);
-  --sh-neu-out: 8px 8px 18px rgba(163, 177, 198, 0.35), -8px -8px 18px rgba(255, 255, 255, 0.85);
-  --sh-neu-in: inset 4px 4px 10px rgba(163, 177, 198, 0.30), inset -4px -4px 10px rgba(255, 255, 255, 0.75);
+  --sh-card: 0 30px 60px -15px rgba(48, 64, 134, 0.08), 0 4px 12px -4px rgba(0, 0, 0, 0.04);
+  --sh-soft: 0 8px 24px rgba(15, 23, 42, 0.06);
+  --sh-btn: 0 10px 24px rgba(245, 124, 0, 0.28);
 
-  // ---- Tipografía ----
   --f-display: 'SF Pro Display', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --f-text: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
 
@@ -42,11 +45,11 @@
 }
 
 // ============================================
-// HEADER — Cupertino: limpio, translúcido, sin ruido
+// HEADER
 // ============================================
 
 .header-toolbar {
-  --background: rgba(248, 249, 251, 0.86);
+  --background: rgba(248, 249, 250, 0.86);
   --color: var(--p-text);
   --border-style: none;
   --min-height: 60px;
@@ -67,35 +70,52 @@
 }
 
 .header-edit-btn {
-  --color: var(--p-primary);
-  --background-hover: var(--p-primary-soft);
-  --border-radius: 12px;
-  transition: transform 200ms ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--p-cool-grey);
+  color: var(--p-text-2);
+  font-family: var(--f-text);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 200ms ease, color 200ms ease, transform 150ms ease;
 
-  &:active {
-    transform: scale(0.92);
+  ion-icon { font-size: 18px; }
+  &:active { transform: scale(0.95); }
+
+  &.header-edit-btn--cancel {
+    background: var(--p-error-container);
+    color: var(--p-error);
   }
 }
 
 .perfil-content {
   --background: var(--p-bg);
+  position: relative;
 }
 
 // ============================================
-// SHELL — centra y limita el ancho en iPad Pro 13"
+// SHELL
 // ============================================
 
 .page-shell {
   max-width: 980px;
   margin: 0 auto;
   padding-bottom: 40px;
+  position: relative;
+  z-index: 1;
 }
 
 // ============================================
-// HERO DE PERFIL
+// HERO
 // ============================================
 
 .profile-hero {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -103,47 +123,71 @@
   padding: 40px 24px 28px;
 }
 
-// Avatar: único punto donde aplicamos neumorfismo ligero
-.avatar-wrap {
-  position: relative;
-  width: 108px;
-  height: 108px;
+.avatar-halo-bg {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 220px;
+  height: 220px;
+  background: var(--p-primary-soft);
   border-radius: 50%;
-  padding: 5px;
-  margin-bottom: 16px;
-  background: var(--p-bg);
-  box-shadow: var(--sh-neu-out);
-  transition: transform 220ms ease, box-shadow 220ms ease;
+  filter: blur(50px);
+  z-index: 0;
 }
 
-.avatar-halo {
-  position: absolute;
-  inset: -3px;
+.avatar-wrap {
+  position: relative;
+  z-index: 1;
+  width: 128px;
+  height: 128px;
+  margin-bottom: 16px;
+}
+
+.avatar-ring {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  background: conic-gradient(from 180deg, var(--p-primary), #ffb066, var(--p-primary));
-  opacity: 0.9;
-  z-index: 0;
+  padding: 5px;
+  background: linear-gradient(135deg, rgba(150, 73, 0, 0.2), var(--p-bg) 50%, rgba(150, 73, 0, 0.2));
+  box-shadow: var(--sh-soft);
+}
+
+.avatar-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid var(--p-bg);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
 }
 
 .avatar-editable {
   cursor: pointer;
-
-  &:active {
-    transform: scale(0.96);
-    box-shadow: var(--sh-neu-in);
-  }
+  &:active .avatar-ring { transform: scale(0.97); }
 }
 
 .profile-avatar {
-  position: relative;
-  z-index: 1;
   width: 100%;
   height: 100%;
-  border-radius: 50%;
   object-fit: cover;
   display: block;
-  background: var(--p-bg-2);
-  border: 3px solid var(--p-white);
+  background: var(--p-cool-grey);
+}
+
+.avatar-status-dot {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid var(--p-bg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+  &.dot-activo { background: var(--p-success); }
+  &.dot-inactivo { background: var(--p-error); }
 }
 
 .avatar-edit-overlay {
@@ -155,20 +199,13 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
-  background: rgba(31, 41, 55, 0.55);
+  background: rgba(26, 28, 30, 0.55);
   border-radius: 50%;
   color: var(--p-white);
   pointer-events: none;
 
-  ion-icon {
-    font-size: 24px;
-  }
-
-  ion-spinner {
-    width: 22px;
-    height: 22px;
-    --color: var(--p-primary);
-  }
+  ion-icon { font-size: 22px; }
+  ion-spinner { width: 20px; height: 20px; --color: var(--p-primary-container); }
 
   .progreso-txt {
     font-family: var(--f-display);
@@ -195,17 +232,21 @@
   justify-content: center;
 }
 
+.badge-sep {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--p-outline-variant);
+}
+
 .role-badge {
-  display: inline-block;
   padding: 5px 14px;
-  border-radius: 20px;
-  background: var(--p-secondary-soft);
-  border: 1px solid rgba(13, 71, 161, 0.16);
+  border-radius: 999px;
+  background: rgba(74, 89, 161, 0.12);
   color: var(--p-secondary);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--f-text);
 }
 
 .estatus-badge {
@@ -213,12 +254,11 @@
   align-items: center;
   gap: 6px;
   padding: 5px 14px;
-  border-radius: 20px;
+  border-radius: 999px;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  border: 1px solid transparent;
 }
 
 .estatus-dot {
@@ -229,21 +269,20 @@
 }
 
 .estatus-activo {
-  background: var(--p-success-soft);
-  border-color: rgba(46, 125, 50, 0.22);
+  background: rgba(46, 125, 50, 0.1);
   color: var(--p-success);
 }
 
 .estatus-inactivo {
-  background: var(--p-error-soft);
-  border-color: rgba(211, 47, 47, 0.2);
-  color: var(--p-error);
+  background: var(--p-error-container);
+  color: var(--p-on-error-container);
 }
 
 .member-since {
   margin: 10px 0 0;
   font-size: 12px;
   color: var(--p-text-2);
+  opacity: 0.75;
   font-family: var(--f-text);
 }
 
@@ -258,28 +297,16 @@
   margin: 0 20px 20px;
   padding: 14px 16px;
   border-radius: var(--r-input);
-  background: var(--p-error-soft);
-  border: 1px solid rgba(211, 47, 47, 0.18);
+  background: var(--p-error-container);
+  border: 1px solid rgba(186, 26, 26, 0.15);
   animation: fadeSlideIn 220ms ease;
 
-  ion-icon {
-    font-size: 18px;
-    color: var(--p-error);
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-
-  p {
-    margin: 0;
-    font-size: 13px;
-    color: var(--p-error);
-    line-height: 1.45;
-    font-family: var(--f-text);
-  }
+  ion-icon { font-size: 18px; color: var(--p-on-error-container); flex-shrink: 0; margin-top: 1px; }
+  p { margin: 0; font-size: 13px; color: var(--p-on-error-container); line-height: 1.45; font-family: var(--f-text); }
 }
 
 // ============================================
-// GRID DE INFORMACIÓN — split view en iPad
+// GRID
 // ============================================
 
 .info-grid {
@@ -288,15 +315,13 @@
   gap: 20px;
   padding: 0 20px;
 
-  // iPad (768px) en adelante: dos columnas lado a lado
   @media (min-width: 768px) {
-    grid-template-columns: 1.2fr 1fr;
+    grid-template-columns: 1.15fr 1fr;
     align-items: start;
     gap: 24px;
     padding: 0 28px;
   }
 
-  // iPad Pro 11" / 13" en adelante: más aire
   @media (min-width: 1024px) {
     gap: 28px;
     padding: 0 36px;
@@ -306,66 +331,59 @@
 .info-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
 }
 
-.section-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--f-display);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: var(--p-text-2);
-  margin: 0 0 2px 6px;
-
-  ion-icon {
-    font-size: 14px;
-    color: var(--p-primary);
-  }
-}
-
-// ---- Tarjeta Soft UI ----
+// ---- Tarjeta ----
 .info-card {
   background: var(--p-white);
-  border: 1px solid var(--p-border);
   border-radius: var(--r-card);
-  overflow: hidden;
-  box-shadow: var(--sh-soft);
+  padding: 24px;
+  box-shadow: var(--sh-card);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.card-title {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--p-text);
+}
+
+.card-header-icon {
+  font-size: 20px;
+  color: var(--p-outline-variant);
 }
 
 .info-row {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
-  transition: background 200ms ease;
+  gap: 16px;
 
-  &:not(:last-child) {
-    border-bottom: 1px solid var(--p-border);
-  }
-
-  &:hover {
-    background: var(--p-bg);
-  }
+  &:not(:last-child) { margin-bottom: 20px; }
 }
 
 .info-icon-wrap {
-  width: 40px;
-  height: 40px;
-  border-radius: 13px;
-  background: var(--p-primary-soft);
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 
-  ion-icon {
-    font-size: 18px;
-    color: var(--p-primary);
-  }
+  ion-icon { font-size: 19px; }
+
+  &.icon-primary { background: var(--p-primary-soft); ion-icon { color: var(--p-primary); } }
+  &.icon-secondary { background: var(--p-secondary-soft); ion-icon { color: var(--p-secondary); } }
+  &.icon-tertiary { background: var(--p-tertiary-soft); ion-icon { color: var(--p-tertiary); } }
 }
 
 .info-text {
@@ -376,20 +394,19 @@
   gap: 3px;
 }
 
-.full-width {
-  flex-basis: 100%;
-}
+.full-width { flex-basis: 100%; }
 
 .info-label {
   font-size: 11px;
   color: var(--p-text-2);
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   font-family: var(--f-text);
+  opacity: 0.85;
 }
 
 .info-value {
-  font-size: 14px;
+  font-size: 14.5px;
   color: var(--p-text);
   font-weight: 600;
   font-family: var(--f-text);
@@ -399,7 +416,6 @@
 }
 
 // ---- Inputs de edición inline ----
-
 .inline-input {
   --background: transparent;
   --color: var(--p-text);
@@ -408,7 +424,7 @@
   --padding-end: 0;
   --padding-top: 3px;
   --padding-bottom: 3px;
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 600;
   font-family: var(--f-text);
 }
@@ -423,7 +439,7 @@ ion-datetime-button {
   margin-top: 3px;
 
   &::part(native) {
-    background: var(--p-bg-2);
+    background: var(--p-cool-grey);
     color: var(--p-text);
     font-size: 13px;
     font-weight: 600;
@@ -435,30 +451,92 @@ ion-datetime-button {
 
 .soft-modal {
   --border-radius: var(--r-modal);
-  --box-shadow: var(--sh-soft-lg);
+  --box-shadow: var(--sh-card);
 }
 
 // ============================================
-// GUARDAR CAMBIOS — neumorfismo ligero en la acción principal
+// ACADÉMICO
+// ============================================
+
+.academic-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.academic-stat {
+  padding: 18px;
+  border-radius: var(--r-stat);
+  background: rgba(237, 240, 245, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.academic-value {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--p-text);
+  font-family: var(--f-display);
+}
+
+.estatus-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--p-primary-soft);
+  border-radius: 16px;
+}
+
+.estatus-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--p-text-2);
+  font-family: var(--f-text);
+
+  strong { color: var(--p-text); font-weight: 700; }
+
+  ion-icon {
+    font-size: 20px;
+    &.icon-ok { color: var(--p-success); }
+    &.icon-off { color: var(--p-error); }
+  }
+}
+
+// ============================================
+// GUARDAR CAMBIOS
 // ============================================
 
 .btn-guardar {
-  --background: var(--p-primary);
-  --background-activated: #d96e00;
-  --background-hover: #ff8a1f;
-  --color: var(--p-white);
-  --border-radius: var(--r-btn);
-  --box-shadow: 6px 6px 14px rgba(245, 124, 0, 0.22), -4px -4px 10px rgba(255, 255, 255, 0.6);
-  margin: 4px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  padding: 16px;
+  border-radius: var(--r-btn);
+  background: linear-gradient(180deg, var(--p-primary-container), var(--p-primary-container-end));
+  color: var(--p-white);
   font-family: var(--f-display);
   font-weight: 700;
-  font-size: 14px;
-  height: 50px;
-  transition: transform 200ms ease, box-shadow 200ms ease;
+  font-size: 14.5px;
+  box-shadow: var(--sh-btn);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  animation: fadeSlideIn 250ms ease;
 
-  &:active {
-    transform: translateY(1px) scale(0.99);
-  }
+  ion-icon { font-size: 20px; }
+  ion-spinner { width: 20px; height: 20px; --color: var(--p-white); }
+
+  &:active:not(:disabled) { transform: scale(0.98); }
+  &:disabled { opacity: 0.6; cursor: default; box-shadow: none; }
 }
 
 // ============================================
@@ -471,42 +549,25 @@ ion-datetime-button {
   justify-content: center;
   gap: 8px;
   width: 100%;
-  margin: 4px 0 0;
-  padding: 15px;
-  border: 1px solid rgba(211, 47, 47, 0.18);
-  border-radius: var(--r-btn);
-  background: var(--p-error-soft);
-  color: var(--p-error);
-  font-family: var(--f-display);
-  font-size: 14px;
-  font-weight: 700;
+  border: none;
   cursor: pointer;
-  transition: background 200ms ease, transform 200ms ease;
+  padding: 16px;
+  border-radius: var(--r-btn);
+  background: var(--p-error-container);
+  color: var(--p-on-error-container);
+  font-family: var(--f-display);
+  font-size: 14.5px;
+  font-weight: 700;
+  transition: background 200ms ease, transform 150ms ease;
 
-  ion-icon {
-    font-size: 18px;
-  }
+  ion-icon { font-size: 18px; }
+  ion-spinner { width: 17px; height: 17px; --color: var(--p-on-error-container); }
 
-  ion-spinner {
-    width: 17px;
-    height: 17px;
-    --color: var(--p-error);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: default;
-  }
-
-  &:active {
-    background: rgba(211, 47, 47, 0.14);
-    transform: scale(0.99);
-  }
+  &:disabled { opacity: 0.6; cursor: default; }
+  &:active { transform: scale(0.99); }
 
   @media (hover: hover) {
-    &:hover:not(:disabled) {
-      background: rgba(211, 47, 47, 0.12);
-    }
+    &:hover:not(:disabled) { background: rgba(255, 218, 214, 0.7); }
   }
 }
 
@@ -534,10 +595,7 @@ ion-datetime-button {
   margin-bottom: 18px;
   box-shadow: var(--sh-soft);
 
-  ion-icon {
-    font-size: 36px;
-    color: var(--p-primary);
-  }
+  ion-icon { font-size: 36px; color: var(--p-primary); }
 }
 
 .empty-title {
@@ -556,16 +614,27 @@ ion-datetime-button {
 }
 
 // ============================================
-// ANIMACIONES SUTILES
+// FONDO DECORATIVO
+// ============================================
+
+.bg-decor {
+  position: fixed;
+  bottom: -10%;
+  right: -5%;
+  width: 320px;
+  height: 320px;
+  background: rgba(74, 89, 161, 0.05);
+  border-radius: 50%;
+  filter: blur(90px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+// ============================================
+// ANIMACIONES
 // ============================================
 
 @keyframes fadeSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

@@ -1,6 +1,10 @@
 <ion-content class="login-content">
   <div class="login-wrapper">
 
+    <!-- Fondos decorativos, igual que el mock -->
+    <div class="bg-blob blob-top"></div>
+    <div class="bg-blob blob-bottom"></div>
+
     <div class="login-card">
 
       <!-- Logo -->
@@ -14,6 +18,7 @@
 
       <!-- Selector de modo -->
       <div class="mode-selector">
+        <div class="mode-selector-glider" [class.glider-tutor]="modo === 'tutor'"></div>
         <button class="mode-btn" [class.active]="modo === 'escolar'" (click)="setModo('escolar')">
           <ion-icon name="school-outline"></ion-icon>
           Alumnos / Maestros
@@ -141,10 +146,12 @@
           </ng-container>
         </button>
 
+        <a class="forgot-link" href="#">¿Olvidaste tu contraseña?</a>
+
         <div class="security-badges">
           <div class="badge">
             <div class="dot"></div>
-            Seguro
+            Conexión segura
           </div>
           <div class="badge">
             <div class="dot"></div>
@@ -154,5 +161,13 @@
 
       </div>
     </div>
+
+    <!-- Onda decorativa inferior -->
+    <div class="bg-wave">
+      <svg viewBox="0 0 1000 100" preserveAspectRatio="none">
+        <path d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 L1000,100 L0,100 Z"></path>
+      </svg>
+    </div>
+
   </div>
 </ion-content>

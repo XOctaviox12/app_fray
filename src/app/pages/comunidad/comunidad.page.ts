@@ -48,6 +48,7 @@ export class ComunidadPage implements OnInit {
   nuevoTitulo = '';
   nuevoCuerpo = '';
 
+  mostrarFormulario = false;
   // Paso 1: audiencia
   publico: Publico = 'AMBOS';
 
@@ -56,7 +57,7 @@ export class ComunidadPage implements OnInit {
 
   // Paso 3 (solo si alcance = GRUPO): materia → grupo(s)
   misMaterias:   MateriaOpt[] = [];
-  misGrupos:     GrupoOpt[]   = []; // todos los grupos del docente
+  misGrupos:     GrupoOpt[]   = []; // SOLO los grupos donde el docente da clases
   gruposCandidatos: GrupoOpt[] = []; // filtrados según la materia elegida
   materiaSeleccionada:  number | null = null;
   gruposSeleccionados:  number[] = [];
@@ -81,6 +82,11 @@ export class ComunidadPage implements OnInit {
   private plantelId:    number | null = null;
   private grupoIdPropio: number | null = null;
 
+  // Bandera de diagnóstico: se activa si no se pudo resolver el contexto
+  // del tutor (plantel/grupo del hijo). Úsala en el HTML para mostrarle
+  // al tutor un mensaje claro en vez de una lista vacía silenciosa.
+  contextoTutorNoResuelto = false;
+
   constructor(
     private sesion:     SesionService,
     private cloudinary: CloudinaryService,
@@ -99,6 +105,7 @@ export class ComunidadPage implements OnInit {
   }
 
   // ── Contexto plantel/grupo ────────────────
+// ── Contexto plantel/grupo ────────────────
   private async resolverContexto() {
     if (this.esDocente || this.esAlumno) {
       const { data } = await this.sesion.supabase
@@ -109,33 +116,78 @@ export class ComunidadPage implements OnInit {
       this.grupoIdPropio = (data as any)?.alumno_grupo_id || null;
 
     } else if (this.esTutor) {
-      // TODO(schema): users_tutor no tiene columna user_id que la conecte
-      // con users_user, así que no hay forma confirmada de saber qué fila
-      // de users_tutor corresponde a la sesión actual. Se asume que el
-      // login de tutor deja un campo alumno_id colgado directamente en
-      // sesion.usuario (el objeto Usuario admite columnas extra). Si esto
-      // no es así, este bloque no podrá resolver el grupo del tutor y la
-      // vista de comunicados quedará vacía para ese rol — pendiente
-      // confirmar cómo se relaciona el login del tutor con users_tutor.
-      const alumnoId = (this.sesion.usuario as any)?.alumno_id;
-      if (!alumnoId) return;
-      const { data } = await this.sesion.supabase
+      // La sesión de tutor vive en sesion.tutor, no en sesion.usuario
+      // (sesion.usuario es null para un tutor). alumno_id ya viene
+      // resuelto directo desde el login por código de acceso.
+      const alumnoId = this.sesion.tutor?.alumno_id ?? null;
+
+      if (!alumnoId) {
+        this.contextoTutorNoResuelto = true;
+        return;
+      }
+
+      const { data, error } = await this.sesion.supabase
         .from('users_user')
         .select('plantel_id, alumno_grupo_id')
         .eq('id', alumnoId).single();
+
+      if (error || !data) {
+        this.contextoTutorNoResuelto = true;
+        return;
+      }
+
       this.plantelId     = (data as any)?.plantel_id     || null;
       this.grupoIdPropio = (data as any)?.alumno_grupo_id || null;
     }
   }
 
+  // ── Resolución del alumno vinculado a la sesión de tutor ──
+  //
+  // TODO(schema): confirma con SesionService cuál de estas rutas es la
+  // real y borra las demás. Se intentan en cascada, en orden de más a
+  // menos probable, para no dejar al tutor sin comunicados mientras se
+  // confirma el esquema exacto:
+  //
+  //   1) sesion.usuario.alumno_id       -> ya viene resuelto en el login
+  //   2) sesion.usuario.alumno.id       -> viene como objeto anidado
+  //   3) users_tutor (por id de sesión) -> se consulta la tabla directo
+  //
+  private async resolverAlumnoIdDeTutor(): Promise<number | null> {
+    const usuario = this.sesion.usuario as any;
+
+    // 1) Campo plano directo en el objeto de sesión
+    if (usuario?.alumno_id) return usuario.alumno_id;
+
+    // 2) Objeto anidado (por si el login trae el alumno ya "joineado")
+    if (usuario?.alumno?.id) return usuario.alumno.id;
+
+    // 3) Consulta directa a users_tutor usando el id que trae la sesión
+    //    como el id propio de la fila de tutor. AJUSTA el nombre de la
+    //    columna si en tu tabla no se llama "alumno_id".
+    if (usuario?.id) {
+      const { data, error } = await this.sesion.supabase
+        .from('users_tutor')
+        .select('alumno_id')
+        .eq('id', usuario.id)
+        .maybeSingle();
+
+      if (!error && data?.alumno_id) return data.alumno_id;
+    }
+
+    return null;
+  }
+
   // ── Opciones del docente: materias y grupos ───────────────
+  // Esta consulta ya filtra por el docente en sesión (uid), así que
+  // this.misGrupos SOLO contiene los grupos donde él da clases, nunca
+  // el listado completo del plantel.
   async cargarOpcionesDocente() {
     const uid = this.sesion.usuario?.id;
     if (!uid) return;
     this.cargandoOpciones = true;
 
     try {
-      // Grupos asignados al docente
+      // Grupos asignados al docente (filtro por user_id = docente logueado)
       const { data: relGrupos, error: eG } = await this.sesion.supabase
         .from('academic_grupo_docentes')
         .select('grupo_id')
@@ -143,6 +195,7 @@ export class ComunidadPage implements OnInit {
       if (eG) throw eG;
 
       const grupoIds = [...new Set((relGrupos || []).map((r: any) => r.grupo_id))];
+
       if (grupoIds.length) {
         const { data, error: eGD } = await this.sesion.supabase
           .from('academic_grupo')
@@ -151,6 +204,11 @@ export class ComunidadPage implements OnInit {
           .order('grado');
         if (eGD) throw eGD;
         this.misGrupos = data || [];
+      } else {
+        // Sin relación en academic_grupo_docentes -> el docente no tiene
+        // grupos asignados. Se deja vacío a propósito: NUNCA debe caer
+        // aquí a mostrar "todos los grupos" como respaldo.
+        this.misGrupos = [];
       }
 
       // Materias del docente
@@ -179,18 +237,21 @@ export class ComunidadPage implements OnInit {
 
         const misGrupoIds = new Set(grupoIds);
         (relAG || []).forEach((r: any) => {
-          if (!misGrupoIds.has(r.grupo_id)) return;
+          if (!misGrupoIds.has(r.grupo_id)) return; // descarta grupos ajenos
           const lista = this.asignaturaGrupoMap.get(r.asignatura_id) || [];
           lista.push(r.grupo_id);
           this.asignaturaGrupoMap.set(r.asignatura_id, lista);
         });
       }
 
-      // Sin materia elegida todavía: candidatos = todos los grupos del docente
+      // Sin materia elegida todavía: candidatos = SOLO los grupos del docente
       this.gruposCandidatos = this.misGrupos;
 
     } catch (e: any) {
       this.errorPublicar = `No se pudieron cargar tus materias/grupos. Detalle: ${e.message}`;
+      // En caso de error también se deja vacío, nunca "todos los grupos".
+      this.misGrupos = [];
+      this.gruposCandidatos = [];
     } finally {
       this.cargandoOpciones = false;
     }
@@ -200,7 +261,7 @@ export class ComunidadPage implements OnInit {
   onMateriaChange() {
     this.gruposSeleccionados = [];
     if (!this.materiaSeleccionada) {
-      this.gruposCandidatos = this.misGrupos; // "comunicado general"
+      this.gruposCandidatos = this.misGrupos; // "comunicado general" = sus propios grupos
       return;
     }
     const idsPermitidos = new Set(this.asignaturaGrupoMap.get(this.materiaSeleccionada) || []);
@@ -209,6 +270,10 @@ export class ComunidadPage implements OnInit {
 
   // ── Paso 3b: elegir uno o varios grupos ──────────────────────
   toggleGrupo(id: number) {
+    // Guard extra: nunca permitir seleccionar un grupo que no esté en
+    // misGrupos, aunque llegara un id inesperado desde el template.
+    if (!this.misGrupos.some(g => g.id === id)) return;
+
     const i = this.gruposSeleccionados.indexOf(id);
     if (i === -1) this.gruposSeleccionados.push(id);
     else this.gruposSeleccionados.splice(i, 1);
@@ -228,8 +293,6 @@ export class ComunidadPage implements OnInit {
     this.error    = '';
     try {
       if (!this.plantelId) {
-        // Para un tutor cuyo contexto no se pudo resolver (ver TODO en
-        // resolverContexto), no truena la pantalla: solo se queda vacía.
         if (this.esTutor) { this.comunicadosMaestros = []; this.comunicadosDireccion = []; return; }
         throw new Error('No se encontró el plantel.');
       }
@@ -258,6 +321,8 @@ export class ComunidadPage implements OnInit {
 
       let visibles: Comunicado[];
       if (this.esDocente) {
+        // SOLO grupos donde el docente da clases (this.misGrupos ya viene
+        // restringido desde cargarOpcionesDocente).
         const grupoIds = this.misGrupos.map(g => g.id);
         visibles = todos.filter(c =>
           c.destinatario === 'TODOS' ||
@@ -291,8 +356,9 @@ export class ComunidadPage implements OnInit {
 
     } catch (e: any) {
       this.error = 'Error al cargar comunicados: ' + e.message;
+    } finally {
+      this.cargando = false;
     }
-    this.cargando = false;
   }
 
   // ── Publicar ──────────────────────────────
@@ -303,6 +369,17 @@ export class ComunidadPage implements OnInit {
     if (!this.nuevoCuerpo.trim()) { this.errorPublicar = 'El mensaje es obligatorio.'; return; }
     if (this.destinatario === 'GRUPO' && this.gruposSeleccionados.length === 0)
       { this.errorPublicar = 'Elige al menos un grupo destinatario.'; return; }
+
+    // Guard extra: todos los grupos seleccionados deben pertenecer a
+    // this.misGrupos (nunca publicar hacia un grupo ajeno al docente).
+    if (this.destinatario === 'GRUPO') {
+      const idsValidos = new Set(this.misGrupos.map(g => g.id));
+      const algunoInvalido = this.gruposSeleccionados.some(id => !idsValidos.has(id));
+      if (algunoInvalido) {
+        this.errorPublicar = 'Uno de los grupos seleccionados no te pertenece.';
+        return;
+      }
+    }
 
     this.publicando = true;
     try {
@@ -317,8 +394,6 @@ export class ComunidadPage implements OnInit {
           );
           adjuntoUrl = r.url;
         } finally {
-          // Se resetea pase lo que pase, para no dejar el spinner de
-          // subida trabado si la subida falla a medias.
           this.subiendoAdj = false;
         }
       }
@@ -327,15 +402,12 @@ export class ComunidadPage implements OnInit {
         titulo:        this.nuevoTitulo.trim(),
         cuerpo:        this.nuevoCuerpo.trim(),
         destinatario:  this.destinatario,
-        // "Solo docentes" no aplica el filtro de público (alumnos/padres)
         publico:       this.destinatario === 'DOCENTES' ? 'AMBOS' : this.publico,
         asignatura_id: this.materiaSeleccionada,
         plantel_id:    this.plantelId,
         autor_id:      this.sesion.usuario!.id,
         adjunto:       adjuntoUrl,
         activo:        true,
-        // Necesario porque la columna creado_en es NOT NULL en la BD
-        // y no tiene un DEFAULT now() configurado en Supabase.
         creado_en:     new Date().toISOString(),
       };
 
@@ -372,7 +444,7 @@ export class ComunidadPage implements OnInit {
   }
 
   async eliminarComunicado(c: Comunicado) {
-    if (this.eliminandoId) return; // evita doble click mientras hay una petición en curso
+    if (this.eliminandoId) return;
     const confirmado = window.confirm('¿Eliminar este comunicado? Ya no será visible para nadie.');
     if (!confirmado) return;
 
@@ -384,7 +456,6 @@ export class ComunidadPage implements OnInit {
         .eq('id', c.id);
       if (error) throw error;
 
-      // Quita el comunicado de las listas locales sin tener que recargar todo
       this.comunicadosMaestros  = this.comunicadosMaestros.filter(x => x.id !== c.id);
       this.comunicadosDireccion = this.comunicadosDireccion.filter(x => x.id !== c.id);
     } catch (e: any) {
@@ -463,26 +534,23 @@ export class ComunidadPage implements OnInit {
   doRefresh(event: any) {
     this.cargarComunicados().then(() => event.target.complete());
   }
+
   urlArchivo(raw: string | null | undefined): string {
-  if (!raw) return '';
+    if (!raw) return '';
 
-  const idx = raw.indexOf('http');
-  if (idx === 0) return raw;
-  if (idx > 0)  return raw.slice(idx);
+    const idx = raw.indexOf('http');
+    if (idx === 0) return raw;
+    if (idx > 0)  return raw.slice(idx);
 
-  // No trae "http": es un public_id guardado directo (sin resource_type)
-  const cloudName = (environment as any).cloudinaryCloudName;
-  if (!cloudName) return raw;
+    const cloudName = (environment as any).cloudinaryCloudName;
+    if (!cloudName) return raw;
 
-  const rutaLimpia = raw.replace(/^\/+/, '');
+    const rutaLimpia = raw.replace(/^\/+/, '');
 
-  // Si ya viene con el segmento resource_type/upload incluido, se usa tal cual
-  if (/^(image|raw|video)\/upload\//.test(rutaLimpia)) {
-    return `https://res.cloudinary.com/${cloudName}/${rutaLimpia}`;
+    if (/^(image|raw|video)\/upload\//.test(rutaLimpia)) {
+      return `https://res.cloudinary.com/${cloudName}/${rutaLimpia}`;
+    }
+
+    return `https://res.cloudinary.com/${cloudName}/raw/upload/${rutaLimpia}`;
   }
-
-  // Los adjuntos de comunicados se suben todos como resource_type=raw
-  // (confirmado en Cloudinary), así que se asume ese prefijo por defecto
-  return `https://res.cloudinary.com/${cloudName}/raw/upload/${rutaLimpia}`;
-}
 }

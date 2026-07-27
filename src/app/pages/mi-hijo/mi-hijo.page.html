@@ -148,8 +148,15 @@
           <!-- Header parcial -->
           <div class="boleta-header">
             <div class="parcial-badge">{{ nombreParcial(b.parcial) }}</div>
-            <div class="nota-final" [class]="'nota-' + colorNota(b.calificacion_final)">
-              {{ b.calificacion_final | number:'1.1-2' }}
+            <div class="boleta-header-right">
+              <span class="estado-badge" *ngIf="b.calificacion_final != null"
+                [class.aprobado]="b.calificacion_final >= 6"
+                [class.reprobado]="b.calificacion_final < 6">
+                {{ b.calificacion_final >= 6 ? 'Aprobado' : 'Reprobado' }}
+              </span>
+              <div class="nota-final" [class]="'nota-' + colorNota(b.calificacion_final)">
+                {{ b.calificacion_final | number:'1.1-2' }}
+              </div>
             </div>
           </div>
 
@@ -235,41 +242,38 @@
 
           <div class="asist-donut-wrap">
             <svg viewBox="0 0 36 36" class="asist-donut">
-              <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="3"/>
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#EDF0F5" stroke-width="3"/>
               <circle
                 cx="18" cy="18" r="15.9" fill="none"
-                [attr.stroke]="m.asistencias.porcentaje >= 90 ? '#22c55e' : m.asistencias.porcentaje >= 75 ? '#f97316' : '#ef4444'"
+                [attr.stroke]="m.asistencias.porcentaje >= 90 ? '#2E7D32' : m.asistencias.porcentaje >= 75 ? '#964900' : '#BA1A1A'"
                 stroke-width="3"
                 [attr.stroke-dasharray]="m.asistencias.porcentaje + ', 100'"
                 stroke-linecap="round"
                 transform="rotate(-90 18 18)"
               />
             </svg>
-            <span class="asist-donut-label">{{ m.asistencias.porcentaje }}%</span>
+            <span class="asist-donut-label">
+              <span class="asist-donut-pct">{{ m.asistencias.porcentaje }}%</span>
+              <span class="asist-donut-sub">Asistencia</span>
+            </span>
           </div>
 
-          <div class="asist-detalle">
-            <div class="asist-row">
-              <div class="asist-dot green"></div>
-              <span class="asist-tipo">Presentes</span>
-              <span class="asist-val">{{ m.asistencias.presentes }}</span>
+          <div class="asist-stats-row">
+            <div class="asist-stat">
+              <span class="asist-stat-num green">{{ m.asistencias.presentes }}</span>
+              <span class="asist-stat-lbl">Presente</span>
             </div>
-            <div class="asist-row">
-              <div class="asist-dot red"></div>
-              <span class="asist-tipo">Ausentes</span>
-              <span class="asist-val">{{ m.asistencias.ausentes }}</span>
+            <div class="asist-stat">
+              <span class="asist-stat-num orange">{{ m.asistencias.retardos }}</span>
+              <span class="asist-stat-lbl">Retardo</span>
             </div>
-            <div class="asist-row">
-              <div class="asist-dot orange"></div>
-              <span class="asist-tipo">Retardos</span>
-              <span class="asist-val">{{ m.asistencias.retardos }}</span>
-            </div>
-            <div class="asist-row total-row">
-              <div class="asist-dot grey"></div>
-              <span class="asist-tipo">Total clases</span>
-              <span class="asist-val">{{ m.asistencias.total }}</span>
+            <div class="asist-stat">
+              <span class="asist-stat-num red">{{ m.asistencias.ausentes }}</span>
+              <span class="asist-stat-lbl">Falta</span>
             </div>
           </div>
+
+          <p class="asist-total-note">Total de clases: {{ m.asistencias.total }}</p>
 
         </div>
 

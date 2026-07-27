@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, MenuController } from '@ionic/angular';
+import { Subscription } from 'rxjs';
 import { SesionService, Usuario } from './services/sesion.service';
+import { NetworkStatusService } from '../environments/network-status.service';
 
 @Component({
   selector: 'app-root',
@@ -9,16 +11,22 @@ import { SesionService, Usuario } from './services/sesion.service';
   styleUrls: ['app.component.scss'],
   standalone: false,
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
 
   // Año dinámico para el footer del menú (antes estaba fijo en "2025").
   currentYear = new Date().getFullYear();
 
-  // Fallback real de avatar: antes el handler (error) estaba vacío y no
-  // hacía nada si la imagen fallaba en tiempo real (URL rota, Cloudinary
-  // caído, etc.). Ahora sí conmuta a un avatar local por defecto.
+  // Fallback real de avatar: si la imagen falla en tiempo real (URL rota,
+  // Cloudinary/Supabase caído, etc.) se conmuta a un avatar local por defecto.
   private avatarFallback = 'assets/img/usuario.png';
   private avatarErrorOcurrido = false;
+
+  // Guarda la última URL "cruda" (sin cache-busting) que devolvió el
+  // servicio de sesión. Sirve para detectar cuándo el usuario cambió su
+  // foto de perfil: si la URL cambió, reseteamos el estado de error y
+  // regeneramos el parámetro de cache-busting.
+  private ultimaAvatarUrlCruda: string | null = null;
+  private avatarCacheBuster = 0;
 
   // Badge "HOY" real: se calcula revisando si falta tomar asistencia hoy
   // en algún grupo+materia del docente. Antes estaba encendido siempre.
@@ -31,16 +39,31 @@ export class AppComponent implements OnInit {
   // aquí en cuanto exista esa función.
   hayClaseEnVivoActiva = false;
 
+  // Estado de conexión a internet, para mostrar un banner/alerta en el
+  // layout cuando el usuario se quede sin red (wifi del plantel caído,
+  // sin señal de datos móviles, etc.).
+  sinConexion = false;
+  private networkSub?: Subscription;
+
   constructor(
     private router: Router,
     private sesion: SesionService,
     private alertCtrl: AlertController,
     private menuCtrl: MenuController,
+    private networkStatus: NetworkStatusService,
   ) {}
 
   ngOnInit() {
     // La sesion local ya se carga dentro del constructor de SesionService.
     if (this.esDocente) this.chequearAsistenciaPendienteHoy();
+
+    this.networkSub = this.networkStatus.online$.subscribe(isOnline => {
+      this.sinConexion = !isOnline;
+    });
+  }
+
+  ngOnDestroy() {
+    this.networkSub?.unsubscribe();
   }
 
   get usuario(): Usuario | null {
@@ -52,7 +75,27 @@ export class AppComponent implements OnInit {
   }
 
   get avatarUrl(): string {
-    return this.avatarErrorOcurrido ? this.avatarFallback : this.sesion.getAvatarUrl();
+    const urlCruda = this.sesion.getAvatarUrl();
+
+    // Si la URL cambió respecto a la última vez (ej. se subió una foto
+    // nueva), reseteamos el flag de error para no quedar pegados en el
+    // fallback para siempre, y renovamos el cache-buster.
+    if (urlCruda !== this.ultimaAvatarUrlCruda) {
+      this.ultimaAvatarUrlCruda = urlCruda;
+      this.avatarErrorOcurrido = false;
+      this.avatarCacheBuster = Date.now();
+    }
+
+    if (this.avatarErrorOcurrido || !urlCruda) {
+      return this.avatarFallback;
+    }
+
+    // Cache-busting: si el storage reutiliza el mismo nombre de archivo
+    // al subir una foto nueva, la URL pública queda idéntica y el
+    // navegador puede servir la imagen vieja desde caché. Se agrega un
+    // parámetro de versión que solo cambia cuando la URL cruda cambia.
+    const separador = urlCruda.includes('?') ? '&' : '?';
+    return `${urlCruda}${separador}v=${this.avatarCacheBuster}`;
   }
 
   // ── Helpers de rol para el menú dinámico ───────────────────────────
@@ -81,13 +124,10 @@ export class AppComponent implements OnInit {
   }
 
   onErrorImagen() {
-    // Antes este método estaba vacío. Ahora sí activa el fallback local
-    // para que no se quede el ícono de imagen rota si la URL falla.
     this.avatarErrorOcurrido = true;
   }
 
   async cerrarSesion() {
-    // Antes cerraba sesión al instante con un solo toque, sin confirmar.
     const alert = await this.alertCtrl.create({
       header: 'Cerrar sesión',
       message: '¿Seguro que quieres cerrar tu sesión?',
@@ -97,8 +137,6 @@ export class AppComponent implements OnInit {
           text: 'Cerrar sesión',
           role: 'destructive',
           handler: async () => {
-            // El item de logout no usa ion-menu-toggle (para no cerrar el
-            // menú antes de confirmar), así que se cierra manualmente aquí.
             await this.menuCtrl.close();
             this.sesion.cerrarSesion();
             this.router.navigate(['/login']);
@@ -133,10 +171,6 @@ export class AppComponent implements OnInit {
       const materiaIds = [...new Set((relMaterias || []).map((r: any) => r.asignatura_id))];
       if (!materiaIds.length) return;
 
-      // Combinaciones materia+grupo que este docente realmente imparte
-      // (simplificación: se asume que si el docente da la materia Y está
-      // asignado al grupo, la combinación aplica — igual que el patrón
-      // usado en asistencia.page).
       const { data: relAG } = await this.sesion.supabase
         .from('academic_asignatura_grupos')
         .select('asignatura_id, grupo_id')
@@ -158,8 +192,6 @@ export class AppComponent implements OnInit {
 
       this.hayAsistenciaPendienteHoy = [...combos].some(c => !combosConLista.has(c));
     } catch {
-      // Si algo falla, se deja el badge apagado en vez de mostrar
-      // información que podría ser incorrecta.
       this.hayAsistenciaPendienteHoy = false;
     }
   }

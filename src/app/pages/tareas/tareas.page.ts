@@ -827,4 +827,10 @@ urlArchivo(raw: string | null | undefined): string {
   }
   return raw;
 }
+esProximaAVencer(tarea: any): boolean {
+  const ahora = new Date();
+  const limite = new Date(tarea.fecha_entrega);
+  const horas = (limite.getTime() - ahora.getTime()) / (1000 * 60 * 60);
+  return horas > 0 && horas <= 24;
+}
 }
