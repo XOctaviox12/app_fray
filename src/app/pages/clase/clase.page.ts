@@ -4,6 +4,7 @@ import { SesionService } from '../../services/sesion.service';
 import { CloudinaryService } from '../../services/cloudinary.service';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { environment } from 'src/environments/environment';
+import { ActividadSyncService } from '../../services/actividad-sync.service';
 
 
 export type BloqueType = 'texto' | 'pdf' | 'video' | 'actividad' | 'imagen' | 'link';
@@ -17,8 +18,10 @@ export interface BloqueClase {
   titulo?: string;
   activo: boolean;
   creado_en?: string;
+  publicado_en?: string | null;
 }
 
+export const HORAS_LIMITE_ACTIVIDAD = 24;
 export const ESTADO_SESION_ACTIVA = 'ACTIVA';
 export const ESTADO_SESION_FINALIZADA = 'FINALIZADA';
 export const ESTADO_SESION_BORRADOR = 'BORRADOR';
@@ -213,12 +216,14 @@ private asignaturasDocente: number[] = [];
     { value: 'BIMESTRE', label: 'Bimestral' },
     { value: 'SEMESTRE', label: 'Semestral' },
     { value: 'ANUAL',    label: 'Anual' },
+
   ];
 
 constructor(
   public sesion: SesionService,
   private cloudinary: CloudinaryService,
   private sanitizer: DomSanitizer,
+  private actividadSync: ActividadSyncService,
 ) {}
 
   ngOnInit()    { this.inicializar(); }
@@ -721,7 +726,22 @@ volverAListaFinalizadas() {
     }
 
     this.sesionActiva = data;
-    this.misBorradores = this.misBorradores.filter(x => x.id !== data.id);
+this.misBorradores = this.misBorradores.filter(x => x.id !== data.id);
+
+// Los bloques que se prepararon durante el borrador arrancan su cuenta
+// de 24h justo ahora, que es cuando de verdad se vuelven visibles.
+const sesionId = this.sesionActiva!.id!;
+await this.sesion.supabase
+  .from('academic_bloqueclase')
+  .update({ publicado_en: new Date().toISOString() })
+  .eq('sesion_id', sesionId)
+  .is('publicado_en', null);
+
+await this.cargarBloques(); // refresca con los publicado_en ya seteados
+
+for (const b of this.bloques.filter(b => b.tipo === 'actividad')) {
+  await this.actividadSync.sincronizarBloque(b, this.sesionActiva!);
+}
   }
 
   // Sale del modo edición sin publicar. El borrador y todo lo que ya se
@@ -914,24 +934,26 @@ volverAListaFinalizadas() {
 
   // Exige que todas las preguntas tengan respuesta antes de habilitar "Enviar".
   // Además, si la clase ya terminó (modo lectura) no se puede enviar nada.
-  actividadListaParaEnviar(bloque: BloqueClase): boolean {
-    if (!bloque.id || this.actividadesEnviadas[bloque.id]) return false;
-    if (this.sesionFinalizada) return false;
-    const act = this.parsearActividad(bloque.contenido);
-    if (!act.preguntas.length) return false;
+actividadListaParaEnviar(bloque: BloqueClase): boolean {
+  if (!bloque.id || this.actividadesEnviadas[bloque.id]) return false;
+  if (this.sesionFinalizada) return false;
+  if (this.actividadVencida(bloque)) return false;   // ← nuevo
+  const act = this.parsearActividad(bloque.contenido);
+  if (!act.preguntas.length) return false;
 
-    return act.preguntas.every(p => {
-      const v = this.respuestasAlumno[this.respuestaKey(bloque.id!, p.id)];
-      return v !== undefined && v !== '';
-    });
-  }
+  return act.preguntas.every(p => {
+    const v = this.respuestasAlumno[this.respuestaKey(bloque.id!, p.id)];
+    return v !== undefined && v !== '';
+  });
+}
 
-  async enviarActividad(bloque: BloqueClase) {
-    const alumnoId = this.sesion.usuario?.id;
-    if (!alumnoId || !bloque.id) return;
-    if (this.actividadesEnviadas[bloque.id]) return;
-    if (this.sesionFinalizada) return;
-    if (!this.actividadListaParaEnviar(bloque)) return;
+async enviarActividad(bloque: BloqueClase) {
+  const alumnoId = this.sesion.usuario?.id;
+  if (!alumnoId || !bloque.id) return;
+  if (this.actividadesEnviadas[bloque.id]) return;
+  if (this.sesionFinalizada) return;
+  if (this.actividadVencida(bloque)) return;
+  if (!this.actividadListaParaEnviar(bloque)) return;
 
     this.enviandoActividad[bloque.id] = true;
     const act = this.parsearActividad(bloque.contenido);
@@ -1170,14 +1192,17 @@ volverAListaFinalizadas() {
       } else {
         const { error } = await this.sesion.supabase
           .from('academic_bloqueclase')
-          .insert({
-            sesion_id: this.nuevoBloque.sesion_id,
-            tipo,
-            contenido: contenidoFinal,
-            titulo: this.nuevoBloque.titulo || '',
-            orden: this.nuevoBloque.orden,
-            activo: true,
-            creado_en: new Date().toISOString(),
+    .insert({
+      sesion_id: this.nuevoBloque.sesion_id,
+      tipo,
+      contenido: contenidoFinal,
+      titulo: this.nuevoBloque.titulo || '',
+      orden: this.nuevoBloque.orden,
+      activo: true,
+      creado_en: new Date().toISOString(),
+      // Si la sesión ya está ACTIVA, el bloque es visible de inmediato.
+      // Si es un borrador, todavía no hay reloj corriendo.
+      publicado_en: this.claseEnVivo ? new Date().toISOString() : null,
           });
         if (error) throw error;
       }
@@ -1185,6 +1210,17 @@ volverAListaFinalizadas() {
       this.mostrarModalBloque = false;
       this.editandoBloque = null;
       await this.cargarBloques();
+
+      // Si es una actividad y la clase ya es visible para alumnos (en vivo
+      // o el borrador se acaba de publicar), la reflejamos en Tareas.
+      if (tipo === 'actividad' && (this.claseEnVivo || this.esBorradorEnEdicion === false)) {
+        const bloqueGuardado = this.bloques.find(b =>
+          this.editandoBloque ? b.id === this.editandoBloque!.id : b.orden === this.nuevoBloque.orden
+        );
+        if (bloqueGuardado) {
+          await this.actividadSync.sincronizarBloque(bloqueGuardado, this.sesionActiva!);
+        }
+      }
     } catch (e: any) {
       console.error('Error guardando bloque:', e.message);
       this.errorArchivo = 'No se pudo guardar: ' + e.message;
@@ -1194,11 +1230,16 @@ volverAListaFinalizadas() {
     }
   }
 
-  async eliminarBloque(bloque: BloqueClase) {
+async eliminarBloque(bloque: BloqueClase) {
     await this.sesion.supabase
       .from('academic_bloqueclase')
       .update({ activo: false })
       .eq('id', bloque.id!);
+
+    if (bloque.tipo === 'actividad' && bloque.id) {
+      await this.actividadSync.despublicarPorBloque(bloque.id);   // ← nuevo
+    }
+
     this.bloques = this.bloques.filter(b => b.id !== bloque.id);
   }
 
@@ -1609,4 +1650,24 @@ private transformarVideoUrl(url: string): string {
   doRefresh(event: any) {
     this.inicializar(true).then(() => event.target.complete());
   }
+  private deadlineActividad(bloque: BloqueClase): number | null {
+  if (!bloque.publicado_en) return null; // dato viejo sin publicado_en: no bloqueamos
+  return new Date(bloque.publicado_en).getTime() + HORAS_LIMITE_ACTIVIDAD * 60 * 60 * 1000;
+}
+
+actividadVencida(bloque: BloqueClase): boolean {
+  const limite = this.deadlineActividad(bloque);
+  return limite !== null && Date.now() > limite;
+}
+
+// Texto tipo "3h 20m restantes" para mostrar al alumno mientras puede responder.
+tiempoRestanteActividad(bloque: BloqueClase): string {
+  const limite = this.deadlineActividad(bloque);
+  if (limite === null) return '';
+  const ms = limite - Date.now();
+  if (ms <= 0) return 'Tiempo agotado';
+  const horas = Math.floor(ms / 3600000);
+  const minutos = Math.floor((ms % 3600000) / 60000);
+  return horas > 0 ? `${horas}h ${minutos}m restantes` : `${minutos}m restantes`;
+}
 }

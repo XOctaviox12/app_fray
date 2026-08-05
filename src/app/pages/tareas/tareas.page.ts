@@ -525,24 +525,42 @@ export class TareasPage implements OnInit {
     };
   }
 
-  async deleteTask(tarea: Tarea) {
-    const detalle = tarea.totalEntregas
-      ? ` Esta tarea tiene ${tarea.totalEntregas} entrega(s) que también se perderán.`
-      : '';
-    const a = await this.alertCtrl.create({
-      header: 'Eliminar tarea', message: `¿Eliminar "${tarea.titulo}"?${detalle}`,
-      buttons: [{ text: 'Cancelar', role: 'cancel' }, {
-        text: 'Eliminar', role: 'destructive',
-        handler: async () => {
-          const { error } = await this.sesion.supabase.from('academic_tarea').delete().eq('id', tarea.id);
-          if (error) { this.toast('No se pudo eliminar.', 'danger'); return; }
+async deleteTask(tarea: Tarea) {
+  const detalle = tarea.totalEntregas
+    ? ` Esta tarea tiene ${tarea.totalEntregas} entrega(s) que también se perderán.`
+    : '';
+  const a = await this.alertCtrl.create({
+    header: 'Eliminar tarea', message: `¿Eliminar "${tarea.titulo}"?${detalle}`,
+    buttons: [{ text: 'Cancelar', role: 'cancel' }, {
+      text: 'Eliminar', role: 'destructive',
+      handler: async () => {
+        try {
+          // 1) Borrar comentarios de la tarea (si existen)
+          const { error: eCom } = await this.sesion.supabase
+            .from('academic_comentariotarea').delete().eq('tarea_id', tarea.id);
+          if (eCom) throw eCom;
+
+          // 2) Borrar entregas de los alumnos
+          const { error: eEnt } = await this.sesion.supabase
+            .from('academic_entregatarea').delete().eq('tarea_id', tarea.id);
+          if (eEnt) throw eEnt;
+
+          // 3) Ahora sí, borrar la tarea
+          const { error } = await this.sesion.supabase
+            .from('academic_tarea').delete().eq('id', tarea.id);
+          if (error) throw error;
+
           this.tareas = this.tareas.filter(t => t.id !== tarea.id);
           this.toast('Tarea eliminada.', 'success');
+        } catch (e: any) {
+          console.error('Eliminar tarea:', e);
+          this.toast('No se pudo eliminar: ' + e.message, 'danger');
         }
-      }],
-    });
-    await a.present();
-  }
+      }
+    }],
+  });
+  await a.present();
+}
 
   async togglePublicada(tarea: Tarea, ev: Event) {
     ev.stopPropagation();

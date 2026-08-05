@@ -96,6 +96,56 @@
       <!-- ── Columna izquierda ── -->
       <div class="col-left">
 
+        <!-- ALUMNO: Preguntas de la actividad (MULTIPLE / MIXTA) — recuadro grande, sin necesidad de botón -->
+        <div class="preguntas-card" *ngIf="esAlumno && esPreguntas && mostrarPreguntasAuto">
+          <div class="preguntas-card-header">
+            <span class="preguntas-card-title">
+              <ion-icon name="help-buoy-outline"></ion-icon>
+              Responde las preguntas
+            </span>
+            <span class="preguntas-card-count" *ngIf="preguntasAlumno.length">{{ preguntasAlumno.length }} preguntas</span>
+          </div>
+
+          <div class="loading-preguntas" *ngIf="cargandoPreguntas">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>Cargando preguntas...</p>
+          </div>
+
+          <div class="pregunta-form-item" *ngFor="let p of preguntasAlumno; let i = index" [ngSwitch]="p.tipo">
+            <label class="input-label">{{ i + 1 }}. {{ p.texto }}</label>
+
+            <div class="opciones-respuesta" *ngSwitchCase="'opcion_multiple'">
+              <label class="opcion-radio" *ngFor="let o of p.opciones">
+                <input type="radio" [name]="'preg-' + p.id" [value]="o.id" [(ngModel)]="respuestasSeleccionadas[p.id]" />
+                <span class="text-wrap-anywhere">{{ o.texto }}</span>
+              </label>
+            </div>
+
+            <div class="opciones-respuesta" *ngSwitchCase="'verdadero_falso'">
+              <label class="opcion-radio" *ngFor="let o of p.opciones">
+                <input type="radio" [name]="'preg-' + p.id" [value]="o.id" [(ngModel)]="respuestasSeleccionadas[p.id]" />
+                <span class="text-wrap-anywhere">{{ o.texto }}</span>
+              </label>
+            </div>
+
+            <textarea *ngSwitchCase="'respuesta_corta'" rows="2"
+              [(ngModel)]="respuestasTextoPorPregunta[p.id]" placeholder="Escribe tu respuesta..."></textarea>
+          </div>
+
+          <div class="opciones-error" *ngIf="errorEntrega">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <span class="text-clamp-2">{{ errorEntrega }}</span>
+          </div>
+
+          <div class="form-actions" *ngIf="!cargandoPreguntas">
+            <button class="btn-save" (click)="enviarEntrega()"
+              [disabled]="subiendoEntrega || !respuestaPreguntaListaParaEnviar()">
+              <ion-spinner *ngIf="subiendoEntrega" name="crescent"></ion-spinner>
+              {{ subiendoEntrega ? (progresoEntrega + '%') : 'Enviar entrega' }}
+            </button>
+          </div>
+        </div>
+
         <!-- Material / recurso -->
         <div class="material-card" *ngIf="actividad.archivo || actividad.url_interactiva">
           <div class="material-card-header">
@@ -147,6 +197,24 @@
                 "{{ row.entrega.respuesta_texto }}"
               </p>
 
+              <!-- Desglose por pregunta (MULTIPLE / MIXTA) con aciertos — solo el docente ve es_correcta -->
+              <div class="respuestas-detalle" *ngIf="esPreguntas && row.entrega.respuestasDetalle?.length">
+                <div class="resumen-autocalif" *ngIf="row.entrega.resumenAutocalif as resumen">
+                  <ion-icon name="checkmark-circle-outline"></ion-icon>
+                  {{ resumen.correctas }} / {{ resumen.calificables }} correctas
+                </div>
+                <div class="pregunta-detalle-row" *ngFor="let d of row.entrega.respuestasDetalle">
+                  <p class="pregunta-detalle-texto text-clamp-2">{{ d.pregunta_texto }}</p>
+                  <p class="pregunta-detalle-respuesta text-wrap-anywhere"
+                    [class.respuesta-correcta]="d.es_correcta === true"
+                    [class.respuesta-incorrecta]="d.es_correcta === false">
+                    <ion-icon *ngIf="d.es_correcta === true" name="checkmark-circle"></ion-icon>
+                    <ion-icon *ngIf="d.es_correcta === false" name="close-circle"></ion-icon>
+                    {{ d.respuesta_mostrar || 'Sin responder' }}
+                  </p>
+                </div>
+              </div>
+
               <a class="entrega-archivo-link text-wrap-anywhere" *ngIf="actividad.tipo === 'ARCHIVO' && row.entrega.archivo"
                 [href]="urlArchivo(row.entrega.archivo)" target="_blank" rel="noopener">
                 <ion-icon [name]="getFileIcon(urlArchivo(row.entrega.archivo))"></ion-icon>
@@ -187,6 +255,14 @@
             "{{ entregaPropia.respuesta_texto }}"
           </p>
 
+          <!-- Mis respuestas (MULTIPLE / MIXTA) — nunca se muestra cuál era la correcta -->
+          <div class="respuestas-detalle" *ngIf="esPreguntas && entregaPropia.respuestasDetalle?.length">
+            <div class="pregunta-detalle-row" *ngFor="let d of entregaPropia.respuestasDetalle">
+              <p class="pregunta-detalle-texto text-clamp-2">{{ d.pregunta_texto }}</p>
+              <p class="pregunta-detalle-respuesta text-wrap-anywhere">{{ d.respuesta_mostrar || 'Sin responder' }}</p>
+            </div>
+          </div>
+
           <a class="entrega-archivo-link text-wrap-anywhere" *ngIf="actividad.tipo === 'ARCHIVO' && entregaPropia.archivo"
             [href]="urlArchivo(entregaPropia.archivo)" target="_blank" rel="noopener">
             <ion-icon [name]="getFileIcon(urlArchivo(entregaPropia.archivo))"></ion-icon>
@@ -217,6 +293,14 @@
               "{{ entregaPropia.respuesta_texto }}"
             </p>
 
+            <!-- Respuestas del hijo (MULTIPLE / MIXTA) — sin revelar cuál era la correcta -->
+            <div class="respuestas-detalle" *ngIf="esPreguntas && entregaPropia.respuestasDetalle?.length">
+              <div class="pregunta-detalle-row" *ngFor="let d of entregaPropia.respuestasDetalle">
+                <p class="pregunta-detalle-texto text-clamp-2">{{ d.pregunta_texto }}</p>
+                <p class="pregunta-detalle-respuesta text-wrap-anywhere">{{ d.respuesta_mostrar || 'Sin responder' }}</p>
+              </div>
+            </div>
+
             <a class="entrega-archivo-link text-wrap-anywhere" *ngIf="actividad.tipo === 'ARCHIVO' && entregaPropia.archivo"
               [href]="urlArchivo(entregaPropia.archivo)" target="_blank" rel="noopener">
               <ion-icon [name]="getFileIcon(urlArchivo(entregaPropia.archivo))"></ion-icon>
@@ -244,8 +328,8 @@
       <!-- ── Columna derecha ── -->
       <div class="col-right">
 
-        <!-- ALUMNO: Tu entrega -->
-        <ng-container *ngIf="esAlumno">
+        <!-- ALUMNO: Tu entrega (solo para ABIERTA / ARCHIVO / INTERACTIVA — las preguntas viven en el recuadro de la izquierda) -->
+        <ng-container *ngIf="esAlumno && !esPreguntas">
           <div class="tu-entrega-card">
             <h3 class="tu-entrega-title">
               <ion-icon name="cloud-upload-outline"></ion-icon>
@@ -267,10 +351,10 @@
             </button>
 
             <!-- Tipos no entregables vía app -->
-            <div class="no-entregable" *ngIf="!entregaPropia && (actividad.tipo === 'MULTIPLE' || actividad.tipo === 'INTERACTIVA')">
+            <div class="no-entregable" *ngIf="!entregaPropia && actividad.tipo === 'INTERACTIVA'">
               <ion-icon name="information-circle-outline"></ion-icon>
               <div>
-                <strong class="text-truncate">{{ actividad.tipo === 'INTERACTIVA' ? 'Actividad interactiva' : 'Opción múltiple' }}</strong>
+                <strong class="text-truncate">Actividad interactiva</strong>
                 <p>Esta actividad se completa en un enlace externo, no se entrega desde la app.</p>
                 <a *ngIf="actividad.url_interactiva" [href]="actividad.url_interactiva" target="_blank" class="link-chip text-wrap-anywhere">
                   <ion-icon name="open-outline"></ion-icon>

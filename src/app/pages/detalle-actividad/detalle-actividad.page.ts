@@ -11,6 +11,28 @@ import { VisorArchivosService } from '../../services/visor-archivos.service';
 
 // ─── Tipos ──────────────────────────────────────────────────────────────────
 
+export type TipoPregunta = 'opcion_multiple' | 'verdadero_falso' | 'respuesta_corta';
+
+export interface RespuestaDetalle {
+  pregunta_id: number;
+  pregunta_texto: string;
+  tipo: TipoPregunta;
+  respuesta_mostrar: string;   // texto de la opción elegida, o texto libre
+  es_correcta: boolean | null; // null = no autocalificable o sin responder
+}
+
+export interface ResumenAutocalif {
+  correctas: number;
+  calificables: number;
+}
+
+interface PreguntaAlumno {
+  id: number;
+  tipo: TipoPregunta;
+  texto: string;
+  opciones: { id: number; texto: string }[]; // nunca trae es_correcta: el alumno no debe verla
+}
+
 interface EntregaDetalle {
   id: number;
   archivo: string | null;
@@ -18,6 +40,8 @@ interface EntregaDetalle {
   calificacion: number | null;
   feedback: string;
   entregada_en: string;
+  respuestasDetalle?: RespuestaDetalle[];   // desglose por pregunta (MULTIPLE / MIXTA)
+  resumenAutocalif?: ResumenAutocalif;
 }
 
 interface EntregaRow {
@@ -33,7 +57,7 @@ interface ActividadDetalle {
   id: number;
   titulo: string;
   instrucciones: string;
-  tipo: string;                 // ABIERTA | MULTIPLE | ARCHIVO | INTERACTIVA
+  tipo: string;                 // ABIERTA | MULTIPLE | MIXTA | ARCHIVO | INTERACTIVA
   fecha_entrega: string;
   valor_total: number;
   url_interactiva: string | null;
@@ -83,6 +107,8 @@ export class DetalleActividadPage implements OnInit {
   get esDocente(): boolean { return this.sesion.esDocente(); }
   get esTutor():   boolean { return this.sesion.esTutor(); }
 
+  get esPreguntas(): boolean { return this.actividad?.tipo === 'MULTIPLE' || this.actividad?.tipo === 'MIXTA'; }
+
   // ── Docente: roster completo del grupo ────────────────────
   entregasAlumnos: EntregaRow[] = [];
 
@@ -100,6 +126,12 @@ export class DetalleActividadPage implements OnInit {
   subiendoEntrega = false;
   progresoEntrega = 0;
   errorEntrega = '';
+
+  // ── Preguntas mixtas — responder alumno (nunca incluyen es_correcta) ──
+  preguntasAlumno: PreguntaAlumno[] = [];
+  respuestasSeleccionadas: Record<number, number> = {};     // pregunta_id -> opcion_id
+  respuestasTextoPorPregunta: Record<number, string> = {};  // pregunta_id -> texto (respuesta_corta)
+  cargandoPreguntas = false;
 
   // ── Comentarios (docente, alumno y tutor) ─────────────────
   comentarios: Comentario[] = [];
@@ -141,6 +173,15 @@ export class DetalleActividadPage implements OnInit {
       if (this.esDocente)      await this.cargarRosterDocente();
       else if (this.esAlumno)  await this.cargarEntregaAlumno();
       else if (this.esTutor)   await this.cargarEntregaTutor();
+      if (this.esDocente) {
+      await this.cargarRosterDocente();
+    } else if (this.esAlumno) {
+      await this.cargarEntregaAlumno();
+      if (this.esPreguntas) await this.cargarFormularioPreguntas();
+    } else if (this.esTutor) {
+      await this.cargarEntregaTutor();
+    }
+
 
       await this.cargarComentarios();
     } catch (e: any) {
@@ -149,7 +190,9 @@ export class DetalleActividadPage implements OnInit {
       this.cargando = false;
     }
   }
-
+get mostrarPreguntasAuto(): boolean {
+  return this.esPreguntas && !this.tareaBloqueada() && (!!this.entregaPropia || !this.esVencida());
+}
   private async cargarActividadBase() {
     const { data: a, error } = await this.supabase
       .from('academic_actividad')
@@ -200,7 +243,63 @@ export class DetalleActividadPage implements OnInit {
 
     const entIds = (entregas || []).map((e: any) => e.id);
     let textoMap: Record<number, string> = {};
-    if (entIds.length && this.actividad.tipo === 'ABIERTA') {
+    let detalleMap: Record<number, RespuestaDetalle[]> = {};
+    let resumenMap: Record<number, ResumenAutocalif> = {};
+
+    if (this.esPreguntas) {
+      // Preguntas + opciones (con es_correcta, el docente sí puede verla)
+      const { data: pregs } = await this.supabase
+        .from('academic_preguntaactividad')
+        .select('id, texto, tipo, orden').eq('actividad_id', this.actividadId).order('orden');
+
+      const pregIds = (pregs || []).map((p: any) => p.id);
+      let opcionesPorPregunta: Record<number, any[]> = {};
+      if (pregIds.length) {
+        const { data: ops } = await this.supabase
+          .from('academic_opcionrespuesta').select('id, texto, es_correcta, pregunta_id').in('pregunta_id', pregIds);
+        (ops || []).forEach((o: any) => {
+          if (!opcionesPorPregunta[o.pregunta_id]) opcionesPorPregunta[o.pregunta_id] = [];
+          opcionesPorPregunta[o.pregunta_id].push(o);
+        });
+      }
+
+      let respPorEntrega: Record<number, any[]> = {};
+      if (entIds.length) {
+        const { data: resps } = await this.supabase
+          .from('academic_respuestaalumno').select('entrega_id, pregunta_id, opcion_id, texto').in('entrega_id', entIds);
+        (resps || []).forEach((r: any) => {
+          if (!respPorEntrega[r.entrega_id]) respPorEntrega[r.entrega_id] = [];
+          respPorEntrega[r.entrega_id].push(r);
+        });
+      }
+
+      (entregas || []).forEach((e: any) => {
+        const respuestas = respPorEntrega[e.id] || [];
+        let correctas = 0, calificables = 0;
+
+        const detalle: RespuestaDetalle[] = (pregs || []).map((p: any) => {
+          const r = respuestas.find((x: any) => x.pregunta_id === p.id);
+          const tipo = (p.tipo || 'opcion_multiple') as TipoPregunta;
+
+          if (tipo === 'respuesta_corta') {
+            return { pregunta_id: p.id, pregunta_texto: p.texto, tipo, respuesta_mostrar: r?.texto || '', es_correcta: null };
+          }
+
+          const opcion = r?.opcion_id ? (opcionesPorPregunta[p.id] || []).find((o: any) => o.id === r.opcion_id) : null;
+          const esCorrecta: boolean | null = r ? !!opcion?.es_correcta : null;
+          if (esCorrecta !== null) { calificables++; if (esCorrecta) correctas++; }
+
+          return {
+            pregunta_id: p.id, pregunta_texto: p.texto, tipo,
+            respuesta_mostrar: opcion?.texto || r?.texto || '',
+            es_correcta: esCorrecta,
+          };
+        });
+
+        detalleMap[e.id] = detalle;
+        resumenMap[e.id] = { correctas, calificables };
+      });
+    } else if (this.actividad.tipo === 'ABIERTA' && entIds.length) {
       const { data: resps } = await this.supabase
         .from('academic_respuestaalumno')
         .select('entrega_id, texto')
@@ -220,6 +319,8 @@ export class DetalleActividadPage implements OnInit {
         calificacion: e.calificacion != null ? parseFloat(e.calificacion) : null,
         feedback: e.feedback || '',
         entregada_en: e.entregada_en,
+        respuestasDetalle: detalleMap[e.id] || [],
+        resumenAutocalif: resumenMap[e.id],
       } : null;
       return {
         alumno_id: u.id,
@@ -282,6 +383,8 @@ export class DetalleActividadPage implements OnInit {
     if (!e) { this.entregaPropia = null; return; }
 
     let textoResp = '';
+    let respuestasDetalle: RespuestaDetalle[] | undefined;
+
     if (this.actividad?.tipo === 'ABIERTA') {
       const { data: resp } = await this.supabase
         .from('academic_respuestaalumno')
@@ -289,6 +392,30 @@ export class DetalleActividadPage implements OnInit {
         .eq('entrega_id', (e as any).id)
         .maybeSingle();
       textoResp = (resp as any)?.texto || '';
+    } else if (this.esPreguntas) {
+      // El propio alumno/tutor puede ver sus respuestas, pero NUNCA cuál era
+      // la correcta — solo lo que él mismo contestó.
+      const { data: pregs } = await this.supabase
+        .from('academic_preguntaactividad')
+        .select('id, texto, tipo, orden').eq('actividad_id', this.actividadId).order('orden');
+
+      const pregIds = (pregs || []).map((p: any) => p.id);
+      let opcionTextoPorId: Record<number, string> = {};
+      if (pregIds.length) {
+        const { data: ops } = await this.supabase
+          .from('academic_opcionrespuesta').select('id, texto').in('pregunta_id', pregIds);
+        (ops || []).forEach((o: any) => { opcionTextoPorId[o.id] = o.texto; });
+      }
+
+      const { data: resps } = await this.supabase
+        .from('academic_respuestaalumno').select('pregunta_id, opcion_id, texto').eq('entrega_id', (e as any).id);
+      const respMap = new Map((resps || []).map((r: any) => [r.pregunta_id, r]));
+
+      respuestasDetalle = (pregs || []).map((p: any) => {
+        const r = respMap.get(p.id);
+        const mostrar = r?.opcion_id ? (opcionTextoPorId[r.opcion_id] || '') : (r?.texto || '');
+        return { pregunta_id: p.id, pregunta_texto: p.texto, tipo: p.tipo, respuesta_mostrar: mostrar, es_correcta: null };
+      });
     }
 
     this.entregaPropia = {
@@ -298,6 +425,7 @@ export class DetalleActividadPage implements OnInit {
       calificacion: (e as any).calificacion != null ? parseFloat((e as any).calificacion) : null,
       feedback: (e as any).feedback || '',
       entregada_en: (e as any).entregada_en,
+      respuestasDetalle,
     };
   }
 
@@ -305,13 +433,46 @@ export class DetalleActividadPage implements OnInit {
   //  ENVIAR / REEMPLAZAR ENTREGA (alumno)
   // ══════════════════════════════════════════════════════════
 
-  toggleFormEntrega() {
+  async toggleFormEntrega() {
+    if (this.esPreguntas) return;
     this.mostrarFormEntrega = !this.mostrarFormEntrega;
-    if (this.mostrarFormEntrega) {
-      this.respuestaTexto = this.entregaPropia?.respuesta_texto || '';
-      this.archivoEntregaSeleccionado = null;
-      this.errorEntrega = '';
-      this.progresoEntrega = 0;
+    if (!this.mostrarFormEntrega) return;
+
+    this.respuestaTexto = this.entregaPropia?.respuesta_texto || '';
+    this.archivoEntregaSeleccionado = null;
+    this.errorEntrega = '';
+    this.progresoEntrega = 0;
+    this.preguntasAlumno = [];
+    this.respuestasSeleccionadas = {};
+    this.respuestasTextoPorPregunta = {};
+
+    if (this.esPreguntas) {
+      this.cargandoPreguntas = true;
+      try {
+        const { data: pregs } = await this.supabase
+          .from('academic_preguntaactividad').select('id, texto, tipo, orden').eq('actividad_id', this.actividadId).order('orden');
+
+        for (const p of pregs || []) {
+          const tipo = (p.tipo || 'opcion_multiple') as TipoPregunta;
+          let opciones: { id: number; texto: string }[] = [];
+          if (tipo !== 'respuesta_corta') {
+            // Nunca se pide es_correcta aquí — el alumno no debe recibirla.
+            const { data: ops } = await this.supabase
+              .from('academic_opcionrespuesta').select('id, texto').eq('pregunta_id', p.id);
+            opciones = ops || [];
+          }
+          this.preguntasAlumno.push({ id: p.id, tipo, texto: p.texto, opciones });
+        }
+
+        if (this.entregaPropia?.id) {
+          const { data: resp } = await this.supabase
+            .from('academic_respuestaalumno').select('pregunta_id, opcion_id, texto').eq('entrega_id', this.entregaPropia.id);
+          (resp || []).forEach((r: any) => {
+            if (r.opcion_id) this.respuestasSeleccionadas[r.pregunta_id] = r.opcion_id;
+            else if (r.texto) this.respuestasTextoPorPregunta[r.pregunta_id] = r.texto;
+          });
+        }
+      } finally { this.cargandoPreguntas = false; }
     }
   }
 
@@ -324,12 +485,21 @@ export class DetalleActividadPage implements OnInit {
     e.target.value = '';
   }
 
+  respuestaPreguntaListaParaEnviar(): boolean {
+    if (!this.esPreguntas) return true;
+    return this.preguntasAlumno.every(p => {
+      if (p.tipo === 'respuesta_corta') return !!this.respuestasTextoPorPregunta[p.id]?.trim();
+      return !!this.respuestasSeleccionadas[p.id];
+    });
+  }
+
   async enviarEntrega() {
     if (!this.actividad || !this.alumnoIdObjetivo) return;
     const tipo = this.actividad.tipo;
 
     if (tipo === 'ABIERTA' && !this.respuestaTexto.trim()) { this.errorEntrega = 'Escribe tu respuesta.'; return; }
     if (tipo === 'ARCHIVO' && !this.archivoEntregaSeleccionado && !this.entregaPropia?.archivo) { this.errorEntrega = 'Selecciona un archivo.'; return; }
+    if (this.esPreguntas && !this.respuestaPreguntaListaParaEnviar()) { this.errorEntrega = 'Responde todas las preguntas.'; return; }
 
     this.errorEntrega = '';
     this.subiendoEntrega = true;
@@ -384,6 +554,24 @@ export class DetalleActividadPage implements OnInit {
         }
       }
 
+      // ── Opción múltiple / V-F / respuesta corta: una fila por pregunta ──
+      if (this.esPreguntas && entregaId) {
+        await this.supabase.from('academic_respuestaalumno').delete().eq('entrega_id', entregaId);
+        const filas = this.preguntasAlumno.map(p => {
+          if (p.tipo === 'respuesta_corta') {
+            return {
+              entrega_id: entregaId, pregunta_id: p.id, opcion_id: null,
+              texto: (this.respuestasTextoPorPregunta[p.id] || '').trim(),
+            };
+          }
+          const opcionId = this.respuestasSeleccionadas[p.id];
+          const opcionTexto = p.opciones.find(o => o.id === opcionId)?.texto || '';
+          return { entrega_id: entregaId, pregunta_id: p.id, opcion_id: opcionId, texto: opcionTexto };
+        });
+        const { error: errResp } = await this.supabase.from('academic_respuestaalumno').insert(filas);
+        if (errResp) throw errResp;
+      }
+
       this.entregaPropia = {
         id: entregaId!,
         archivo: archivoUrl,
@@ -392,7 +580,12 @@ export class DetalleActividadPage implements OnInit {
         feedback: this.entregaPropia?.feedback || '',
         entregada_en: ahoraIso,
       };
+      // Recarga el desglose de solo-mis-respuestas (sin correctas) tras guardar.
 
+if (this.esPreguntas) {
+  await this.cargarEntregaDe(this.alumnoIdObjetivo);
+  await this.cargarFormularioPreguntas();
+}
       this.toast('Actividad entregada con éxito.', 'success');
       this.mostrarFormEntrega = false;
     } catch (e: any) {
@@ -520,10 +713,10 @@ export class DetalleActividadPage implements OnInit {
   //  HELPERS
   // ══════════════════════════════════════════════════════════
 
-  esVencida(): boolean {
-    if (!this.actividad) return false;
-    return new Date(this.actividad.fecha_entrega) < new Date();
-  }
+esVencida(): boolean {
+  if (!this.actividad) return false;
+  return new Date(this.actividad.fecha_entrega) < new Date();
+}
 
   // una vez calificada, ya no se puede reemplazar la entrega
   tareaBloqueada(): boolean {
@@ -570,14 +763,14 @@ export class DetalleActividadPage implements OnInit {
 
   getTipoIcon(tipo: string): string {
     return {
-      ABIERTA: 'create-outline', MULTIPLE: 'list-outline',
+      ABIERTA: 'create-outline', MULTIPLE: 'list-outline', MIXTA: 'apps-outline',
       ARCHIVO: 'cloud-upload-outline', INTERACTIVA: 'game-controller-outline',
     }[tipo] || 'clipboard-outline';
   }
 
   getTipoLabel(tipo: string): string {
     return {
-      ABIERTA: 'Pregunta abierta', MULTIPLE: 'Opción múltiple',
+      ABIERTA: 'Pregunta abierta', MULTIPLE: 'Opción múltiple', MIXTA: 'Varios tipos',
       ARCHIVO: 'Subir archivo', INTERACTIVA: 'Ejercicio interactivo',
     }[tipo] || tipo;
   }
@@ -593,4 +786,36 @@ export class DetalleActividadPage implements OnInit {
     const t = await this.toastCtrl.create({ message: msg, duration: 2500, color, position: 'bottom' });
     await t.present();
   }
+  private async cargarFormularioPreguntas() {
+  this.cargandoPreguntas = true;
+  this.preguntasAlumno = [];
+  this.respuestasSeleccionadas = {};
+  this.respuestasTextoPorPregunta = {};
+  try {
+    const { data: pregs } = await this.supabase
+      .from('academic_preguntaactividad').select('id, texto, tipo, orden').eq('actividad_id', this.actividadId).order('orden');
+
+    for (const p of pregs || []) {
+      const tipo = (p.tipo || 'opcion_multiple') as TipoPregunta;
+      let opciones: { id: number; texto: string }[] = [];
+      if (tipo !== 'respuesta_corta') {
+        const { data: ops } = await this.supabase
+          .from('academic_opcionrespuesta').select('id, texto').eq('pregunta_id', p.id);
+        opciones = ops || [];
+      }
+      this.preguntasAlumno.push({ id: p.id, tipo, texto: p.texto, opciones });
+    }
+
+    if (this.entregaPropia?.id) {
+      const { data: resp } = await this.supabase
+        .from('academic_respuestaalumno').select('pregunta_id, opcion_id, texto').eq('entrega_id', this.entregaPropia.id);
+      (resp || []).forEach((r: any) => {
+        if (r.opcion_id) this.respuestasSeleccionadas[r.pregunta_id] = r.opcion_id;
+        else if (r.texto) this.respuestasTextoPorPregunta[r.pregunta_id] = r.texto;
+      });
+    }
+  } finally {
+    this.cargandoPreguntas = false;
+  }
+}
 }

@@ -126,9 +126,9 @@
             <ng-container *ngIf="editable">
               <div class="pregunta-card" *ngFor="let p of act.preguntas; let i = index">
                 <div class="pregunta-header">
-                  <span class="pregunta-num">{{ i + 1 }}</span>
-                  <span class="pregunta-tipo-tag">{{ etiquetaTipoPregunta(p.tipo) }}</span>
-                </div>
+  <span class="pregunta-num">{{ i + 1 }}</span>
+  <span class="pregunta-tipo-tag">{{ etiquetaTipoPregunta(p.tipo) }}</span>
+</div>
                 <p class="pregunta-texto">{{ p.pregunta }}</p>
 
                 <div class="pregunta-opciones" *ngIf="p.tipo === 'opcion_multiple'">
@@ -158,27 +158,25 @@
                  ══════════════════════════════════════════════════ -->
             <ng-container *ngIf="!editable">
               <div class="pregunta-card pregunta-card-alumno"
-                   *ngFor="let p of act.preguntas; let i = index"
-                   [class.pregunta-enviada]="actividadesEnviadas[b.id!]">
+     *ngFor="let p of act.preguntas; let i = index; trackBy: trackPregunta"
+     [class.pregunta-enviada]="actividadesEnviadas[b.id!]">
                 <div class="pregunta-header">
-                  <span class="pregunta-num">{{ i + 1 }}</span>
-                  <span class="pregunta-tipo-tag">{{ etiquetaTipoPregunta(p.tipo) }}</span>
-                  <ion-icon *ngIf="actividadesEnviadas[b.id!] && p.tipo !== 'respuesta_corta'"
-                    class="pregunta-resultado-icon"
-                    [class.correcta]="(p.tipo === 'opcion_multiple' && getRespuestaOpcion(b.id!, p.id) === p.respuestaCorrecta) || (p.tipo === 'verdadero_falso' && getRespuestaVF(b.id!, p.id) === p.respuestaCorrecta)"
-                    [class.incorrecta]="(p.tipo === 'opcion_multiple' && getRespuestaOpcion(b.id!, p.id) !== p.respuestaCorrecta) || (p.tipo === 'verdadero_falso' && getRespuestaVF(b.id!, p.id) !== p.respuestaCorrecta)"
-                    [name]="((p.tipo === 'opcion_multiple' && getRespuestaOpcion(b.id!, p.id) === p.respuestaCorrecta) || (p.tipo === 'verdadero_falso' && getRespuestaVF(b.id!, p.id) === p.respuestaCorrecta)) ? 'checkmark-circle' : 'close-circle'">
-                  </ion-icon>
-                </div>
+  <span class="pregunta-num">{{ i + 1 }}</span>
+  <span class="pregunta-tipo-tag">{{ etiquetaTipoPregunta(p.tipo) }}</span>
+  <ion-icon *ngIf="actividadesEnviadas[b.id!] && p.tipo !== 'respuesta_corta'"
+    class="pregunta-resultado-icon"
+    [class.correcta]="(p.tipo === 'opcion_multiple' && getRespuestaOpcion(b.id!, p.id) === p.respuestaCorrecta) || (p.tipo === 'verdadero_falso' && getRespuestaVF(b.id!, p.id) === p.respuestaCorrecta)"
+    [class.incorrecta]="(p.tipo === 'opcion_multiple' && getRespuestaOpcion(b.id!, p.id) !== p.respuestaCorrecta) || (p.tipo === 'verdadero_falso' && getRespuestaVF(b.id!, p.id) !== p.respuestaCorrecta)"
+    [name]="((p.tipo === 'opcion_multiple' && getRespuestaOpcion(b.id!, p.id) === p.respuestaCorrecta) || (p.tipo === 'verdadero_falso' && getRespuestaVF(b.id!, p.id) === p.respuestaCorrecta)) ? 'checkmark-circle' : 'close-circle'">
+  </ion-icon>
+</div>
                 <p class="pregunta-texto">{{ p.pregunta }}</p>
 
                 <!-- Opción múltiple: radios seleccionables -->
                 <div class="pregunta-opciones pregunta-opciones-alumno" *ngIf="p.tipo === 'opcion_multiple'">
                   <label class="opcion-item opcion-item-alumno"
-                    *ngFor="let op of p.opciones; let oi = index"
-                    [class.seleccionada]="getRespuestaOpcion(b.id!, p.id) === oi"
-                    [class.correcta-marcada]="actividadesEnviadas[b.id!] && oi === p.respuestaCorrecta"
-                    [class.incorrecta-marcada]="actividadesEnviadas[b.id!] && getRespuestaOpcion(b.id!, p.id) === oi && oi !== p.respuestaCorrecta">
+  *ngFor="let op of p.opciones; let oi = index; trackBy: trackByIndex"
+  [class.seleccionada]="getRespuestaOpcion(b.id!, p.id) === oi">
                     <input type="radio" [name]="'resp_' + b.id + '_' + p.id"
                       [checked]="getRespuestaOpcion(b.id!, p.id) === oi"
                       [disabled]="actividadesEnviadas[b.id!]"
@@ -191,9 +189,7 @@
                 <!-- Verdadero / Falso: radios seleccionables -->
                 <div class="pregunta-opciones pregunta-opciones-alumno" *ngIf="p.tipo === 'verdadero_falso'">
                   <label class="opcion-item opcion-item-alumno"
-                    [class.seleccionada]="getRespuestaVF(b.id!, p.id) === true"
-                    [class.correcta-marcada]="actividadesEnviadas[b.id!] && p.respuestaCorrecta === true"
-                    [class.incorrecta-marcada]="actividadesEnviadas[b.id!] && getRespuestaVF(b.id!, p.id) === true && p.respuestaCorrecta !== true">
+  [class.seleccionada]="getRespuestaVF(b.id!, p.id) === true">
                     <input type="radio" [name]="'resp_' + b.id + '_' + p.id"
                       [checked]="getRespuestaVF(b.id!, p.id) === true"
                       [disabled]="actividadesEnviadas[b.id!]"
@@ -201,9 +197,7 @@
                     <span class="opcion-letra">V</span> Verdadero
                   </label>
                   <label class="opcion-item opcion-item-alumno"
-                    [class.seleccionada]="getRespuestaVF(b.id!, p.id) === false"
-                    [class.correcta-marcada]="actividadesEnviadas[b.id!] && p.respuestaCorrecta === false"
-                    [class.incorrecta-marcada]="actividadesEnviadas[b.id!] && getRespuestaVF(b.id!, p.id) === false && p.respuestaCorrecta !== false">
+  [class.seleccionada]="getRespuestaVF(b.id!, p.id) === false">
                     <input type="radio" [name]="'resp_' + b.id + '_' + p.id"
                       [checked]="getRespuestaVF(b.id!, p.id) === false"
                       [disabled]="actividadesEnviadas[b.id!]"
@@ -221,25 +215,29 @@
                 </div>
               </div>
 
-              <!-- Botón de envío / resumen de resultado -->
-              <div class="actividad-envio" *ngIf="!actividadesEnviadas[b.id!] && !sesionFinalizada">
-                <button type="button" class="btn-enviar-actividad"
-                  [disabled]="!actividadListaParaEnviar(b) || enviandoActividad[b.id!]"
-                  (click)="enviarActividad(b)">
-                  <ion-spinner *ngIf="enviandoActividad[b.id!]" name="crescent"></ion-spinner>
-                  <ion-icon *ngIf="!enviandoActividad[b.id!]" name="checkmark-done-outline"></ion-icon>
-                  {{ enviandoActividad[b.id!] ? 'Enviando...' : 'Enviar respuestas' }}
-                </button>
-                <p class="actividad-envio-hint" *ngIf="!actividadListaParaEnviar(b) && !enviandoActividad[b.id!]">
-                  Responde todas las preguntas para poder enviar.
-                </p>
-              </div>
+             <!-- Botón de envío / resumen de resultado -->
+<div class="actividad-envio" *ngIf="!actividadesEnviadas[b.id!] && !sesionFinalizada && !actividadVencida(b)">
+  <button type="button" class="btn-enviar-actividad"
+    [disabled]="!actividadListaParaEnviar(b) || enviandoActividad[b.id!]"
+    (click)="enviarActividad(b)">
+    <ion-spinner *ngIf="enviandoActividad[b.id!]" name="crescent"></ion-spinner>
+    <ion-icon *ngIf="!enviandoActividad[b.id!]" name="checkmark-done-outline"></ion-icon>
+    {{ enviandoActividad[b.id!] ? 'Enviando...' : 'Enviar respuestas' }}
+  </button>
+  <p class="actividad-envio-hint" *ngIf="!actividadListaParaEnviar(b) && !enviandoActividad[b.id!]">
+    Responde todas las preguntas para poder enviar.
+  </p>
+  <p class="actividad-tiempo-restante" *ngIf="b.publicado_en">
+    <ion-icon name="time-outline"></ion-icon> {{ tiempoRestanteActividad(b) }}
+  </p>
+</div>
 
-              <!-- Clase ya terminada y esta actividad quedó sin responder -->
-              <div class="actividad-cerrada" *ngIf="!actividadesEnviadas[b.id!] && sesionFinalizada">
-                <ion-icon name="lock-closed-outline"></ion-icon>
-                <span>Esta clase ya finalizó — no puedes enviar esta actividad.</span>
-              </div>
+<!-- Clase finalizada o tiempo agotado -->
+<div class="actividad-cerrada" *ngIf="!actividadesEnviadas[b.id!] && (sesionFinalizada || actividadVencida(b))">
+  <ion-icon name="lock-closed-outline"></ion-icon>
+  <span *ngIf="sesionFinalizada">Esta clase ya finalizó — no puedes enviar esta actividad.</span>
+  <span *ngIf="!sesionFinalizada && actividadVencida(b)">Se acabó el tiempo (24 horas) para responder esta actividad.</span>
+</div>
 
               <div class="actividad-resultado" *ngIf="actividadesEnviadas[b.id!] && resultadosActividad[b.id!] as res">
                 <ion-icon name="ribbon-outline"></ion-icon>

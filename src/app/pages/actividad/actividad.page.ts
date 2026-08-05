@@ -897,6 +897,11 @@ async eliminarActividad(act: ActividadItem) {
               const { error: e2 } = await this.supabase
                 .from('academic_respuestaalumno').delete().in('pregunta_id', preguntaIds);
               if (e2) throw e2;
+
+              // Borrar las opciones antes que las preguntas (FK)
+              const { error: eOp } = await this.supabase
+                .from('academic_opcionrespuesta').delete().in('pregunta_id', preguntaIds);
+              if (eOp) throw eOp;
             }
 
             // 3) Borrar entregas y preguntas
