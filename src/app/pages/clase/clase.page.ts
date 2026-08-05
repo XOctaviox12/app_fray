@@ -23,6 +23,17 @@ export const ESTADO_SESION_ACTIVA = 'ACTIVA';
 export const ESTADO_SESION_FINALIZADA = 'FINALIZADA';
 export const ESTADO_SESION_BORRADOR = 'BORRADOR';
 
+// Días que una clase FINALIZADA sigue siendo visible (modo lectura) para el
+// alumno antes de que el job de limpieza la elimine definitivamente.
+export const DIAS_VISIBILIDAD_FINALIZADA = 3;
+
+// Sección de clases finalizadas agrupadas por materia — para el listado
+// que ve el alumno cuando no hay clase en vivo.
+export interface SeccionMateriaFinalizada {
+  asignatura_id: number;
+  asignatura_nombre: string;
+  sesiones: SesionClase[];
+}
 export interface SesionClase {
   id?: number;
   docente_id: number;
@@ -32,6 +43,8 @@ export interface SesionClase {
   estado: string;
   fecha: string;
   creada_en?: string;
+  finalizada_en?: string | null;
+  asignatura_nombre?: string;
 }
 
 // Borrador con nombres resueltos para mostrar en la lista, sin tener que
@@ -135,6 +148,7 @@ export class ClasePage implements OnInit, OnDestroy {
   grupoSeleccionado:      number | null = null;
   asignaturaSeleccionada: number | null = null;
   tituloSesion = '';
+  materiasFinalizadasSecciones: SeccionMateriaFinalizada[] = [];
 
   // ── Reutilizar clase anterior ──
   cargandoReutilizar = false;
@@ -224,26 +238,37 @@ constructor(
     return this.sesionActiva?.estado === ESTADO_SESION_BORRADOR;
   }
 
+  // Clase ya terminada pero todavía dentro de la ventana de gracia — se
+  // muestra en modo lectura (sin poder enviar actividades).
+  get sesionFinalizada(): boolean {
+    return this.sesionActiva?.estado === ESTADO_SESION_FINALIZADA;
+  }
+
   // `esRefresh = true` (pull-to-refresh) evita el flash de pantalla completa:
   // el ion-refresher ya muestra su propio spinner, así que aquí no volvemos
   // a tapar todo el contenido con el overlay de "Conectando...".
-  async inicializar(esRefresh = false) {
-    if (!esRefresh) this.cargando = true;
-    this.error = null;
-    try {
-      if (this.esDocente) {
-        await this.cargarGruposDocente();
-        await this.buscarSesionActivaDocente();
-        await this.cargarBorradores();
-        await this.cargarPlanes();
-      } else {
-        await this.buscarSesionActivaAlumno();
-      }
-    } finally {
-      this.cargando = false;
-    }
-  }
+async inicializar(esRefresh = false) {
+  if (!esRefresh) this.cargando = true;
+  this.error = null;
+  try {
+    // Best-effort: no bloquea la carga si falla. Corre para ambos roles para
+    // que las sesiones finalizadas viejas se borren de verdad de la BD y no
+    // solo se oculten en pantalla.
+    this.limpiarSesionesFinalizadasAntiguas().catch(e =>
+      console.error('Error limpiando sesiones finalizadas antiguas:', e?.message));
 
+    if (this.esDocente) {
+      await this.cargarGruposDocente();
+      await this.buscarSesionActivaDocente();
+      await this.cargarBorradores();
+      await this.cargarPlanes();
+    } else {
+      await this.buscarSesionActivaAlumno();
+    }
+  } finally {
+    this.cargando = false;
+  }
+}
   cambiarSegmento(event: any) {
     this.segmento = event.detail.value;
     if (this.segmento === 'planes') this.volverALista();
@@ -349,43 +374,125 @@ constructor(
     }
   }
 
-  async buscarSesionActivaAlumno() {
-    const alumnoId = this.sesion.usuario?.id;
+  // Una clase FINALIZADA sigue siendo "vigente" (visible en modo lectura)
+  // mientras estemos dentro de DIAS_VISIBILIDAD_FINALIZADA desde que se
+  // terminó. Si no trae finalizada_en (dato viejo, previo a este cambio),
+  // no la ocultamos de golpe.
+private dentroDeVentanaFinalizada(s: SesionClase): boolean {
+  if (s.estado !== ESTADO_SESION_FINALIZADA) return false;
+  const referencia = s.finalizada_en || s.creada_en;
+  if (!referencia) return true; // sin ninguna fecha, no la ocultamos de golpe
+  const limite = new Date(referencia).getTime() + DIAS_VISIBILIDAD_FINALIZADA * 24 * 60 * 60 * 1000;
+  return Date.now() < limite;
+}
 
-    const { data: usu } = await this.sesion.supabase
-      .from('users_user')
-      .select('alumno_grupo_id')
-      .eq('id', alumnoId)
-      .single();
+async buscarSesionActivaAlumno() {
+  const alumnoId = this.sesion.usuario?.id;
 
-    const grupoId = (usu as any)?.alumno_grupo_id;
-    if (!grupoId) {
-      this.error = 'No tienes grupo asignado.';
-      this.desuscribir();
-      this.sesionActiva = null;
-      this.bloques = [];
-      return;
-    }
+  const { data: usu } = await this.sesion.supabase
+    .from('users_user')
+    .select('alumno_grupo_id')
+    .eq('id', alumnoId)
+    .single();
 
-    const { data } = await this.sesion.supabase
-      .from('academic_sesionclase')
-      .select('*')
-      .eq('grupo_id', grupoId)
-      .eq('estado', ESTADO_SESION_ACTIVA)
-      .order('creada_en', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (data) {
-      this.sesionActiva = data;
-      await this.cargarBloques();
-      this.suscribirRealtime();
-    } else {
-      this.desuscribir();
-      this.sesionActiva = null;
-      this.bloques = [];
-    }
+  const grupoId = (usu as any)?.alumno_grupo_id;
+  if (!grupoId) {
+    this.error = 'No tienes grupo asignado.';
+    this.desuscribir();
+    this.sesionActiva = null;
+    this.bloques = [];
+    this.materiasFinalizadasSecciones = [];
+    return;
   }
+
+  // Solo buscamos la sesión EN VIVO aquí. Las finalizadas ya no se
+  // auto-seleccionan: se listan aparte, agrupadas por materia.
+  const { data } = await this.sesion.supabase
+    .from('academic_sesionclase')
+    .select('*')
+    .eq('grupo_id', grupoId)
+    .eq('estado', ESTADO_SESION_ACTIVA)
+    .order('creada_en', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (data) {
+    this.sesionActiva = data;
+    this.materiasFinalizadasSecciones = [];
+    await this.cargarBloques();
+    this.suscribirRealtime();
+  } else {
+    this.desuscribir();
+    this.sesionActiva = null;
+    this.bloques = [];
+    await this.cargarClasesFinalizadasAlumno(grupoId);
+  }
+}
+
+// Trae las clases FINALIZADAS del grupo del alumno que siguen dentro de la
+// ventana de gracia (DIAS_VISIBILIDAD_FINALIZADA) y las agrupa por materia
+// para pintarlas como tarjetas seccionadas.
+private async cargarClasesFinalizadasAlumno(grupoId: number) {
+  const { data, error } = await this.sesion.supabase
+    .from('academic_sesionclase')
+    .select('*')
+    .eq('grupo_id', grupoId)
+    .eq('estado', ESTADO_SESION_FINALIZADA)
+    .order('creada_en', { ascending: false });
+
+  if (error) {
+    console.error('Error cargando clases finalizadas:', error.message);
+    this.materiasFinalizadasSecciones = [];
+    return;
+  }
+
+  const vigentes: SesionClase[] = (data || []).filter((s: any) => this.dentroDeVentanaFinalizada(s));
+  if (!vigentes.length) { this.materiasFinalizadasSecciones = []; return; }
+
+  const asigIds = [...new Set(vigentes.map(s => s.asignatura_id))];
+  let asigMap: Record<number, string> = {};
+  if (asigIds.length) {
+    const { data: asigs } = await this.sesion.supabase
+      .from('academic_asignatura')
+      .select('id, nombre')
+      .in('id', asigIds);
+    (asigs || []).forEach((a: any) => { asigMap[a.id] = a.nombre; });
+  }
+
+  vigentes.forEach(s => { s.asignatura_nombre = asigMap[s.asignatura_id] || 'Materia'; });
+
+  const secciones: Record<number, SeccionMateriaFinalizada> = {};
+  vigentes.forEach(s => {
+    if (!secciones[s.asignatura_id]) {
+      secciones[s.asignatura_id] = {
+        asignatura_id: s.asignatura_id,
+        asignatura_nombre: s.asignatura_nombre!,
+        sesiones: [],
+      };
+    }
+    secciones[s.asignatura_id].sesiones.push(s);
+  });
+
+  this.materiasFinalizadasSecciones = Object.values(secciones)
+    .sort((a, b) => a.asignatura_nombre.localeCompare(b.asignatura_nombre));
+}
+
+// Abre el detalle de solo lectura de una clase finalizada al tocar su tarjeta.
+async abrirClaseFinalizada(s: SesionClase) {
+  this.desuscribir();
+  this.sesionActiva = { ...s };
+  this.bloques = [];
+  await this.cargarBloques();
+  this.suscribirRealtime();
+}
+
+// Regresa del detalle de una clase finalizada al listado por materias
+// (ya cacheado, no vuelve a consultar Supabase).
+volverAListaFinalizadas() {
+  this.desuscribir();
+  this.sesionActiva = null;
+  this.bloques = [];
+}
 
   async iniciarSesion() {
     if (!this.grupoSeleccionado || !this.asignaturaSeleccionada || !this.tituloSesion.trim()) return;
@@ -419,7 +526,7 @@ constructor(
     if (!this.sesionActiva?.id) return;
     await this.sesion.supabase
       .from('academic_sesionclase')
-      .update({ estado: ESTADO_SESION_FINALIZADA })
+      .update({ estado: ESTADO_SESION_FINALIZADA, finalizada_en: new Date().toISOString() })
       .eq('id', this.sesionActiva.id);
 
     this.desuscribir();
@@ -430,6 +537,60 @@ constructor(
     this.asignaturaSeleccionada = null;
     this.misAsignaturas = [];
   }
+
+  // ─────────────────────────────────────────────
+  // LIMPIEZA — borra sesiones FINALIZADAS más allá de la ventana de gracia
+  // (y sus bloques/respuestas). Se dispara "en silencio" al inicializar la
+  // vista del docente; si falla, no interrumpe el resto de la pantalla.
+  // ─────────────────────────────────────────────
+  private async limpiarSesionesFinalizadasAntiguas() {
+  const limite = new Date(Date.now() - DIAS_VISIBILIDAD_FINALIZADA * 24 * 60 * 60 * 1000).toISOString();
+
+  // Dos grupos: las que sí tienen finalizada_en vencido, y las viejas que se
+  // finalizaron antes de que existiera esa columna (finalizada_en = null) —
+  // para esas usamos creada_en como referencia, si no nunca se borrarían.
+  const { data: porFinalizada, error: e1 } = await this.sesion.supabase
+    .from('academic_sesionclase')
+    .select('id')
+    .eq('estado', ESTADO_SESION_FINALIZADA)
+    .lt('finalizada_en', limite);
+
+  const { data: porCreadaSinFinalizar, error: e2 } = await this.sesion.supabase
+    .from('academic_sesionclase')
+    .select('id')
+    .eq('estado', ESTADO_SESION_FINALIZADA)
+    .is('finalizada_en', null)
+    .lt('creada_en', limite);
+
+  if (e1 || e2) return;
+
+  const sesionIds = [...new Set([...(porFinalizada || []), ...(porCreadaSinFinalizar || [])].map((s: any) => s.id))];
+  if (!sesionIds.length) return;
+
+  const { data: bloquesAntiguos } = await this.sesion.supabase
+    .from('academic_bloqueclase')
+    .select('id')
+    .in('sesion_id', sesionIds);
+
+  const bloqueIds = (bloquesAntiguos || []).map((b: any) => b.id);
+
+  if (bloqueIds.length) {
+    await this.sesion.supabase
+      .from('academic_respuestaactividad')
+      .delete()
+      .in('bloque_id', bloqueIds);
+
+    await this.sesion.supabase
+      .from('academic_bloqueclase')
+      .delete()
+      .in('sesion_id', sesionIds);
+  }
+
+  await this.sesion.supabase
+    .from('academic_sesionclase')
+    .delete()
+    .in('id', sesionIds);
+}
 
   // ─────────────────────────────────────────────
   // BORRADORES (guardar la configuración de una clase para iniciarla después)
@@ -522,7 +683,7 @@ constructor(
   // texto/pdf/video/imagen/link/actividad + lista de bloques) para que el
   // docente pueda preparar el contenido con calma. El estado sigue siendo
   // BORRADOR, así que los alumnos no ven nada todavía — su consulta solo
-  // trae sesiones con estado = ACTIVA.
+  // trae sesiones con estado = ACTIVA o FINALIZADA reciente.
   async abrirBorrador(b: SesionBorrador) {
     if (!b.id || this.sesionActiva) return;
 
@@ -749,8 +910,10 @@ constructor(
   }
 
   // Exige que todas las preguntas tengan respuesta antes de habilitar "Enviar".
+  // Además, si la clase ya terminó (modo lectura) no se puede enviar nada.
   actividadListaParaEnviar(bloque: BloqueClase): boolean {
     if (!bloque.id || this.actividadesEnviadas[bloque.id]) return false;
+    if (this.sesionFinalizada) return false;
     const act = this.parsearActividad(bloque.contenido);
     if (!act.preguntas.length) return false;
 
@@ -764,6 +927,7 @@ constructor(
     const alumnoId = this.sesion.usuario?.id;
     if (!alumnoId || !bloque.id) return;
     if (this.actividadesEnviadas[bloque.id]) return;
+    if (this.sesionFinalizada) return;
     if (!this.actividadListaParaEnviar(bloque)) return;
 
     this.enviandoActividad[bloque.id] = true;
@@ -1119,11 +1283,26 @@ constructor(
         table: 'academic_sesionclase',
         filter: `id=eq.${this.sesionActiva!.id}`,
       }, (payload: any) => {
-        if (payload.new?.estado !== ESTADO_SESION_ACTIVA) {
-          this.sesionActiva = null;
-          this.bloques = [];
-          this.desuscribir();
+        const nuevoEstado = payload.new?.estado;
+
+        if (nuevoEstado === ESTADO_SESION_ACTIVA) return; // sin cambios relevantes
+
+        if (nuevoEstado === ESTADO_SESION_FINALIZADA) {
+          // El docente acaba de terminar la clase: no la ocultamos de
+          // inmediato — se queda visible en modo lectura durante la
+          // ventana de gracia (igual que al recargar la página).
+          this.sesionActiva = {
+            ...this.sesionActiva!,
+            estado: nuevoEstado,
+            finalizada_en: payload.new.finalizada_en,
+          };
+          return;
         }
+
+        // Cualquier otro caso (p. ej. se eliminó): sí la ocultamos.
+        this.sesionActiva = null;
+        this.bloques = [];
+        this.desuscribir();
       })
       .subscribe();
   }

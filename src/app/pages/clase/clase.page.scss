@@ -36,6 +36,11 @@
   --fh-image: var(--fh-secondary);
   --fh-link: var(--fh-tertiary);
 
+  // Estado "clase finalizada" — visible en modo lectura durante la
+  // ventana de gracia (3 días) antes de que se elimine.
+  --fh-finalizada: #5C6B73;
+  --fh-finalizada-soft: rgba(92, 107, 115, 0.1);
+
   --fh-radius-card: 22px;
   --fh-radius-btn: 18px;
   --fh-radius-input: 12px;
@@ -115,6 +120,21 @@
   letter-spacing: 0.4px;
   color: var(--fh-draft);
   background: var(--fh-draft-soft);
+  border-radius: 9999px;
+  padding: 6px 14px;
+
+  ion-icon { font-size: 13px; }
+}
+
+.finalizada-badge-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--fh-finalizada);
+  background: var(--fh-finalizada-soft);
   border-radius: 9999px;
   padding: 6px 14px;
 
@@ -1306,6 +1326,25 @@ select:disabled {
   text-align: center;
 }
 
+// Aviso de solo lectura cuando la clase ya finalizó y una actividad quedó
+// sin responder — mismo lenguaje visual que .actividad-resultado pero en
+// tono "finalizada" (neutro) en vez de éxito.
+.actividad-cerrada {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 12px 14px;
+  background: var(--fh-finalizada-soft);
+  border: 1px solid rgba(92, 107, 115, 0.25);
+  border-radius: 14px;
+  color: var(--fh-finalizada);
+  font-size: 13px;
+  font-weight: 600;
+
+  ion-icon { font-size: 17px; flex-shrink: 0; }
+}
+
 .actividad-resultado {
   display: flex;
   align-items: center;
@@ -1510,12 +1549,35 @@ select:disabled {
   margin-bottom: 8px;
 }
 
+.finalizada-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--fh-finalizada);
+  border-radius: 9999px;
+  padding: 5px 12px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--fh-white);
+  letter-spacing: 1.4px;
+  margin-bottom: 8px;
+
+  ion-icon { font-size: 12px; }
+}
+
 .alumno-titulo {
   margin: 0;
   font-size: 24px;
   font-weight: 700;
   color: var(--fh-primary);
   letter-spacing: -0.01em;
+}
+
+.alumno-finalizada-hint {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--fh-text-2);
+  line-height: 1.4;
 }
 
 // ── Waiting (alumno sin sesión) ────────────
@@ -1758,6 +1820,111 @@ select:disabled {
   max-height: 82vh;
   border-radius: 16px;
   display: block;
+}
+// ── Barra "volver" al ver el detalle de una clase finalizada ──
+.volver-bar {
+  padding: 14px 20px 0;
+}
+
+.btn-volver-finalizadas {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--fh-border);
+  background: var(--fh-white);
+  color: var(--fh-text-2);
+  font-weight: 600;
+  font-size: 12.5px;
+  cursor: pointer;
+
+  ion-icon { font-size: 15px; }
+
+  &:active {
+    border-color: var(--fh-primary);
+    color: var(--fh-primary);
+  }
+}
+
+// ── Clases finalizadas — secciones por materia (vista alumno) ──
+.finalizadas-secciones {
+  margin: 0 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.materia-seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fh-text);
+  margin: 0 0 10px;
+  padding: 0 2px;
+
+  ion-icon { font-size: 16px; color: var(--fh-primary); }
+}
+
+.finalizada-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--fh-white);
+  border: 1px solid #E2E8F0;
+  border-radius: 18px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--fh-shadow-soft);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+
+  &:active {
+    box-shadow: var(--fh-shadow-neu-in);
+    transform: scale(0.98);
+  }
+}
+
+.finalizada-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--fh-finalizada-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon { font-size: 19px; color: var(--fh-finalizada); }
+}
+
+.finalizada-card-info {
+  flex: 1;
+  min-width: 0;
+
+  h4 {
+    margin: 0 0 2px;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--fh-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--fh-text-2);
+  }
+}
+
+.finalizada-card-arrow {
+  font-size: 17px;
+  color: var(--fh-outline);
+  flex-shrink: 0;
 }
 
 // ── Animaciones ────────────────────────────

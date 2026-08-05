@@ -17,6 +17,10 @@
         <ion-icon name="create-outline"></ion-icon>
         BORRADOR
       </div>
+      <div class="finalizada-badge-header" *ngIf="sesionFinalizada">
+        <ion-icon name="checkmark-done-circle-outline"></ion-icon>
+        FINALIZADA
+      </div>
     </ion-buttons>
   </ion-toolbar>
   <div class="header-accent-bar"></div>
@@ -149,6 +153,8 @@
                  ALUMNO (editable=false): preguntas interactivas.
                  Una vez enviada la actividad (actividadesEnviadas[b.id])
                  los controles se bloquean y se muestra el resultado.
+                 Si la clase ya está FINALIZADA (sesionFinalizada), no se
+                 puede enviar aunque falten respuestas.
                  ══════════════════════════════════════════════════ -->
             <ng-container *ngIf="!editable">
               <div class="pregunta-card pregunta-card-alumno"
@@ -216,7 +222,7 @@
               </div>
 
               <!-- Botón de envío / resumen de resultado -->
-              <div class="actividad-envio" *ngIf="!actividadesEnviadas[b.id!]">
+              <div class="actividad-envio" *ngIf="!actividadesEnviadas[b.id!] && !sesionFinalizada">
                 <button type="button" class="btn-enviar-actividad"
                   [disabled]="!actividadListaParaEnviar(b) || enviandoActividad[b.id!]"
                   (click)="enviarActividad(b)">
@@ -227,6 +233,12 @@
                 <p class="actividad-envio-hint" *ngIf="!actividadListaParaEnviar(b) && !enviandoActividad[b.id!]">
                   Responde todas las preguntas para poder enviar.
                 </p>
+              </div>
+
+              <!-- Clase ya terminada y esta actividad quedó sin responder -->
+              <div class="actividad-cerrada" *ngIf="!actividadesEnviadas[b.id!] && sesionFinalizada">
+                <ion-icon name="lock-closed-outline"></ion-icon>
+                <span>Esta clase ya finalizó — no puedes enviar esta actividad.</span>
               </div>
 
               <div class="actividad-resultado" *ngIf="actividadesEnviadas[b.id!] && resultadosActividad[b.id!] as res">
@@ -456,7 +468,8 @@
     </ng-container>
 
     <!-- ============================================================
-         ALUMNO — sin sesión activa: esperando al docente
+         ALUMNO — sin sesión activa: esperando al docente o viendo el
+         listado de clases finalizadas, seccionado por materia
          ============================================================ -->
     <ng-container *ngIf="esAlumno && !sesionActiva">
       <div class="section-hero">
@@ -468,26 +481,61 @@
           <p class="section-sub">Cuando tu maestro inicie la clase, aparecerá aquí automáticamente.</p>
         </div>
       </div>
-      <div class="waiting-card" *ngIf="!error">
+
+      <div class="waiting-card" *ngIf="!error && materiasFinalizadasSecciones.length === 0">
         <div class="pulse-wrap">
           <div class="pulse-ring"></div>
           <ion-icon name="radio-outline" class="pulse-icon"></ion-icon>
         </div>
         <p class="waiting-text">Esperando que el docente inicie la sesión...</p>
       </div>
+
+      <div class="finalizadas-secciones" *ngIf="materiasFinalizadasSecciones.length > 0">
+        <div class="materia-seccion" *ngFor="let sec of materiasFinalizadasSecciones">
+          <h3 class="materia-seccion-titulo">
+            <ion-icon name="book-outline"></ion-icon>
+            {{ sec.asignatura_nombre }}
+          </h3>
+
+          <div class="finalizada-card" *ngFor="let s of sec.sesiones" (click)="abrirClaseFinalizada(s)">
+            <div class="finalizada-card-icon">
+              <ion-icon name="checkmark-done-outline"></ion-icon>
+            </div>
+            <div class="finalizada-card-info">
+              <h4>{{ s.titulo }}</h4>
+              <p>{{ s.fecha }}</p>
+            </div>
+            <ion-icon name="chevron-forward-outline" class="finalizada-card-arrow"></ion-icon>
+          </div>
+        </div>
+      </div>
     </ng-container>
 
     <!-- ============================================================
-         ALUMNO — con sesión activa: solo lectura
+         ALUMNO — con sesión activa o recién finalizada: solo lectura
          ============================================================ -->
     <ng-container *ngIf="esAlumno && sesionActiva">
+      <div class="volver-bar" *ngIf="sesionFinalizada">
+        <button type="button" class="btn-volver-finalizadas" (click)="volverAListaFinalizadas()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Volver a mis clases
+        </button>
+      </div>
+
       <div class="alumno-hero">
         <div class="alumno-hero-left">
-          <span class="live-chip">
+          <span class="live-chip" *ngIf="claseEnVivo">
             <span class="live-dot"></span>
             EN VIVO
           </span>
+          <span class="finalizada-chip" *ngIf="sesionFinalizada">
+            <ion-icon name="checkmark-done-outline"></ion-icon>
+            Clase finalizada
+          </span>
           <h2 class="alumno-titulo">{{ sesionActiva.titulo }}</h2>
+          <p class="alumno-finalizada-hint" *ngIf="sesionFinalizada">
+            Esta clase ya terminó. Puedes revisar el contenido durante los próximos días.
+          </p>
         </div>
       </div>
       <div class="bloques-container">
