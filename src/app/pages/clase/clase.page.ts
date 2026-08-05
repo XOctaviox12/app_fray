@@ -273,6 +273,9 @@ async inicializar(esRefresh = false) {
     this.segmento = event.detail.value;
     if (this.segmento === 'planes') this.volverALista();
   }
+  trackByIndex(index: number): number {
+  return index;
+}
 
   // ═══════════════════════════════════════════════════
   //  DOCENTE — grupos y asignaturas

@@ -655,7 +655,7 @@
           </div>
 
           <div class="preguntas-lista">
-            <div class="pregunta-form-card" *ngFor="let p of preguntasActividad; let i = index">
+            <div class="pregunta-form-card" *ngFor="let p of preguntasActividad; let i = index; trackBy: trackPregunta">
               <div class="pregunta-form-header">
                 <span class="pregunta-tipo-tag">{{ etiquetaTipoPregunta(p.tipo) }}</span>
                 <button type="button" class="quitar-pregunta-btn" (click)="quitarPregunta(i)" aria-label="Quitar pregunta">
@@ -669,7 +669,7 @@
 
               <!-- Opción múltiple -->
               <div class="opciones-editor" *ngIf="p.tipo === 'opcion_multiple'">
-                <div class="opcion-editor-row" *ngFor="let op of p.opciones; let oi = index">
+                <div class="opcion-editor-row" *ngFor="let op of p.opciones; let oi = index; trackBy: trackByIndex">
                   <input type="radio" [name]="'correcta_' + p.id" [checked]="p.respuestaCorrecta === oi"
                     (change)="p.respuestaCorrecta = oi" [attr.aria-label]="'Marcar opción ' + (oi+1) + ' como correcta'" />
                   <input type="text" [(ngModel)]="p.opciones![oi]" [placeholder]="'Opción ' + (oi+1)" />
