@@ -72,10 +72,7 @@ export class TareasHijoPage implements OnInit {
     try {
       // Datos del alumno
       const { data: alumno } = await this.supabase
-        .from('users_user')
-        .select('first_name, last_name, alumno_grupo_id')
-        .eq('id', alumnoId)
-        .single();
+  .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
 
       if (alumno) {
         this.alumnoNombre = `${(alumno as any).first_name} ${(alumno as any).last_name}`.trim();

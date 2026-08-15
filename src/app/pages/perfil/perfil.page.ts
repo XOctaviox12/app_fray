@@ -99,17 +99,17 @@ export class PerfilPage implements OnInit {
       return;
     }
 
-    try {
-      const { error } = await this.sesion.supabase
-        .from('users_user')
-        .update({
-          telefono: tel || null,
-          direccion: this.formEdicion.direccion?.trim() || null,
-          fecha_nacimiento: this.formEdicion.fecha_nacimiento
-            ? this.formEdicion.fecha_nacimiento.substring(0, 10)
-            : null,
-        })
-        .eq('id', this.usuario.id);
+try {
+          const token = this.sesion.usuario?.token;
+          if (!token) return;
+          const { error } = await this.sesion.supabase.rpc('actualizar_perfil_propio', {
+            p_token: token,
+            p_telefono: tel || null,
+            p_direccion: this.formEdicion.direccion?.trim() || null,
+            p_fecha_nacimiento: this.formEdicion.fecha_nacimiento
+              ? this.formEdicion.fecha_nacimiento.substring(0, 10)
+              : null,
+          });
 
       if (error) throw error;
 
@@ -159,12 +159,14 @@ export class PerfilPage implements OnInit {
   this.progresoFoto = 0;
   this.errorGuardado = '';
   try {
-    const subido = await this.cloudinary.subirArchivo(archivo, pct => this.progresoFoto = pct);
+const subido = await this.cloudinary.subirArchivo(archivo, pct => this.progresoFoto = pct);
 
-    const { error } = await this.sesion.supabase
-      .from('users_user')
-      .update({ foto_perfil: subido.url })
-      .eq('id', this.usuario.id);
+        const token = this.sesion.usuario?.token;
+        if (!token) return;
+        const { error } = await this.sesion.supabase.rpc('actualizar_foto_perfil', {
+          p_token: token,
+          p_url: subido.url,
+        });
 
     if (error) throw error;
 

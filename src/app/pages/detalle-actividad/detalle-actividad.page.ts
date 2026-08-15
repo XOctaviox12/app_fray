@@ -11,7 +11,7 @@ import { VisorArchivosService } from '../../services/visor-archivos.service';
 
 // ─── Tipos ──────────────────────────────────────────────────────────────────
 
-export type TipoPregunta = 'opcion_multiple' | 'verdadero_falso' | 'respuesta_corta';
+export type TipoPregunta = 'MULTIPLE' | 'VF' | 'ABIERTA';
 
 export interface RespuestaDetalle {
   pregunta_id: number;
@@ -107,7 +107,7 @@ export class DetalleActividadPage implements OnInit {
   get esDocente(): boolean { return this.sesion.esDocente(); }
   get esTutor():   boolean { return this.sesion.esTutor(); }
 
-  get esPreguntas(): boolean { return this.actividad?.tipo === 'MULTIPLE' || this.actividad?.tipo === 'MIXTA'; }
+  get esPreguntas(): boolean { return this.actividad?.tipo === 'CUESTIONARIO'; }
 
   // ── Docente: roster completo del grupo ────────────────────
   entregasAlumnos: EntregaRow[] = [];
@@ -229,12 +229,14 @@ get mostrarPreguntasAuto(): boolean {
   private async cargarRosterDocente() {
     if (!this.actividad) return;
 
-    const { data: alumnos } = await this.supabase
-      .from('users_user')
-      .select('id, first_name, last_name')
-      .eq('alumno_grupo_id', this.actividad.grupo_id)
-      .eq('rol', 'ALUMNO')
-      .order('first_name');
+if (!this.actividad) return;
+
+        const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+        if (!token) return;
+
+        const { data: alumnos, error: eAlumnos } = await this.supabase
+          .rpc('roster_grupo', { p_token: token, p_grupo_id: this.actividad.grupo_id });
+        if (eAlumnos) console.error('Error roster:', eAlumnos.message);
 
     const { data: entregas } = await this.supabase
       .from('academic_entregaactividad')
@@ -279,9 +281,9 @@ get mostrarPreguntasAuto(): boolean {
 
         const detalle: RespuestaDetalle[] = (pregs || []).map((p: any) => {
           const r = respuestas.find((x: any) => x.pregunta_id === p.id);
-          const tipo = (p.tipo || 'opcion_multiple') as TipoPregunta;
+          const tipo = (p.tipo || 'MULTIPLE') as TipoPregunta;
 
-          if (tipo === 'respuesta_corta') {
+          if (tipo === 'ABIERTA') {
             return { pregunta_id: p.id, pregunta_texto: p.texto, tipo, respuesta_mostrar: r?.texto || '', es_correcta: null };
           }
 
@@ -453,9 +455,10 @@ get mostrarPreguntasAuto(): boolean {
           .from('academic_preguntaactividad').select('id, texto, tipo, orden').eq('actividad_id', this.actividadId).order('orden');
 
         for (const p of pregs || []) {
-          const tipo = (p.tipo || 'opcion_multiple') as TipoPregunta;
+          const tipo = (p.tipo || 'MULTIPLE') as TipoPregunta;
           let opciones: { id: number; texto: string }[] = [];
-          if (tipo !== 'respuesta_corta') {
+          if (tipo !== 'ABIERTA') {
+            // Nunca se pide es_correcta aquí — el alumno no debe recibirla.
             // Nunca se pide es_correcta aquí — el alumno no debe recibirla.
             const { data: ops } = await this.supabase
               .from('academic_opcionrespuesta').select('id, texto').eq('pregunta_id', p.id);
@@ -488,7 +491,7 @@ get mostrarPreguntasAuto(): boolean {
   respuestaPreguntaListaParaEnviar(): boolean {
     if (!this.esPreguntas) return true;
     return this.preguntasAlumno.every(p => {
-      if (p.tipo === 'respuesta_corta') return !!this.respuestasTextoPorPregunta[p.id]?.trim();
+      if (p.tipo === 'ABIERTA') return !!this.respuestasTextoPorPregunta[p.id]?.trim();
       return !!this.respuestasSeleccionadas[p.id];
     });
   }
@@ -558,7 +561,7 @@ get mostrarPreguntasAuto(): boolean {
       if (this.esPreguntas && entregaId) {
         await this.supabase.from('academic_respuestaalumno').delete().eq('entrega_id', entregaId);
         const filas = this.preguntasAlumno.map(p => {
-          if (p.tipo === 'respuesta_corta') {
+         if (p.tipo === 'ABIERTA') {
             return {
               entrega_id: entregaId, pregunta_id: p.id, opcion_id: null,
               texto: (this.respuestasTextoPorPregunta[p.id] || '').trim(),
@@ -595,10 +598,10 @@ if (this.esPreguntas) {
     }
   }
 
-  esTardia(): boolean {
-    if (!this.actividad || !this.entregaPropia) return false;
-    return new Date(this.entregaPropia.entregada_en) > new Date(this.actividad.fecha_entrega);
-  }
+esTardia(): boolean {
+  if (!this.actividad || !this.entregaPropia) return false;
+  return this.entregaPropia.entregada_en.slice(0, 10) > this.actividad.fecha_entrega.slice(0, 10);
+}
 
   // ══════════════════════════════════════════════════════════
   //  COMENTARIOS (docente, alumno y tutor)
@@ -614,15 +617,17 @@ if (this.esPreguntas) {
       if (error) throw error;
 
       const autorIds = [...new Set((data || []).map((c: any) => c.autor_id))];
-      let autores = new Map<number, { nombre: string; rol: string }>();
-      if (autorIds.length) {
-        const { data: usuarios, error: eU } = await this.supabase
-          .from('users_user').select('id, first_name, last_name, rol').in('id', autorIds);
-        if (eU) throw eU;
-        (usuarios || []).forEach((u: any) => {
-          autores.set(u.id, { nombre: `${u.first_name} ${u.last_name}`.trim(), rol: u.rol });
-        });
-      }
+let autores = new Map<number, { nombre: string; rol: string }>();
+          if (autorIds.length) {
+            const tokenN = this.sesion.usuario?.token || this.sesion.tutor?.token;
+            const { data: usuarios, error: eU } = tokenN
+              ? await this.supabase.rpc('nombres_usuarios', { p_token: tokenN, p_ids: autorIds })
+              : { data: [] as any[], error: null };
+            if (eU) throw eU;
+            (usuarios || []).forEach((u: any) => {
+              autores.set(u.id, { nombre: `${u.first_name} ${u.last_name}`.trim(), rol: u.rol });
+            });
+          }
 
       this.comentarios = (data || []).map((c: any) => ({
         ...c,
@@ -715,7 +720,13 @@ if (this.esPreguntas) {
 
 esVencida(): boolean {
   if (!this.actividad) return false;
-  return new Date(this.actividad.fecha_entrega) < new Date();
+  const hoy = new Date();
+  const y = hoy.getFullYear();
+  const m = String(hoy.getMonth() + 1).padStart(2, '0');
+  const d = String(hoy.getDate()).padStart(2, '0');
+  const hoyStr = `${y}-${m}-${d}`;
+  const fechaStr = this.actividad.fecha_entrega.slice(0, 10);
+  return fechaStr < hoyStr;
 }
 
   // una vez calificada, ya no se puede reemplazar la entrega
@@ -761,16 +772,16 @@ esVencida(): boolean {
     }[ext] || 'document-outline';
   }
 
-  getTipoIcon(tipo: string): string {
+getTipoIcon(tipo: string): string {
     return {
-      ABIERTA: 'create-outline', MULTIPLE: 'list-outline', MIXTA: 'apps-outline',
+      CUESTIONARIO: 'help-circle-outline',
       ARCHIVO: 'cloud-upload-outline', INTERACTIVA: 'game-controller-outline',
     }[tipo] || 'clipboard-outline';
   }
 
   getTipoLabel(tipo: string): string {
     return {
-      ABIERTA: 'Pregunta abierta', MULTIPLE: 'Opción múltiple', MIXTA: 'Varios tipos',
+      CUESTIONARIO: 'Cuestionario',
       ARCHIVO: 'Subir archivo', INTERACTIVA: 'Ejercicio interactivo',
     }[tipo] || tipo;
   }
@@ -796,9 +807,9 @@ esVencida(): boolean {
       .from('academic_preguntaactividad').select('id, texto, tipo, orden').eq('actividad_id', this.actividadId).order('orden');
 
     for (const p of pregs || []) {
-      const tipo = (p.tipo || 'opcion_multiple') as TipoPregunta;
+      const tipo = (p.tipo || 'MULTIPLE') as TipoPregunta;
       let opciones: { id: number; texto: string }[] = [];
-      if (tipo !== 'respuesta_corta') {
+      if (tipo !== 'ABIERTA') {
         const { data: ops } = await this.supabase
           .from('academic_opcionrespuesta').select('id, texto').eq('pregunta_id', p.id);
         opciones = ops || [];

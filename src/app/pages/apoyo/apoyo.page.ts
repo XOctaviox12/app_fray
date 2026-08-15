@@ -89,7 +89,7 @@ async cargarMateriales() {
 
     if (this.sesion.esAlumno()) {
       const { data: usu } = await this.sesion.supabase
-        .from('users_user').select('alumno_grupo_id').eq('id', this.sesion.usuario!.id).single();
+        .rpc('perfil_basico_usuario', { p_user_id: this.sesion.usuario!.id }).single();
       const gId = (usu as any)?.alumno_grupo_id;
       if (gId) grupoIds = [gId];
 
@@ -102,7 +102,7 @@ async cargarMateriales() {
       const alumnoId = (this.sesion.usuario as any)?.alumno_id;
       if (alumnoId) {
         const { data: usu } = await this.sesion.supabase
-          .from('users_user').select('alumno_grupo_id').eq('id', alumnoId).single();
+          .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
         const gId = (usu as any)?.alumno_grupo_id;
         if (gId) grupoIds = [gId];
       }

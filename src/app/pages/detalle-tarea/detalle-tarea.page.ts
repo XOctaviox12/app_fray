@@ -99,7 +99,13 @@ export class DetalleTareaPage implements OnInit {
 
   get esDocente(): boolean { return this.sesion.esDocente(); }
   get esAlumno(): boolean { return this.sesion.esAlumno(); }
-  get fechaMinima(): string { return new Date().toISOString().split('T')[0]; }
+ get fechaMinima(): string {
+  const hoy = new Date();
+  const y = hoy.getFullYear();
+  const m = String(hoy.getMonth() + 1).padStart(2, '0');
+  const d = String(hoy.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
   ngOnInit() {
     this.tareaId = Number(this.route.snapshot.paramMap.get('id'));
@@ -189,11 +195,7 @@ export class DetalleTareaPage implements OnInit {
     if (!this.tarea) return;
     try {
       const { data: alumnos, error: eAl } = await this.sesion.supabase
-        .from('users_user')
-        .select('id, first_name, last_name')
-        .eq('alumno_grupo_id', this.tarea.grupo_id)
-        .eq('rol', 'ALUMNO')
-        .order('first_name');
+        .rpc('alumnos_por_grupos', { p_docente_id: this.sesion.usuario!.id, p_grupo_ids: [this.tarea.grupo_id] });
       if (eAl) throw eAl;
 
       const { data: entregas, error: eEnt } = await this.sesion.supabase
@@ -217,11 +219,11 @@ export class DetalleTareaPage implements OnInit {
             guardando: false,
           } as AlumnoEntregaRow;
         })
-        .sort((a, b) => {
+       .sort((a: AlumnoEntregaRow, b: AlumnoEntregaRow) => {
           if (!!a.entrega === !!b.entrega) return a.alumno_nombre.localeCompare(b.alumno_nombre);
           return a.entrega ? -1 : 1;
         });
-
+        
       this.totalAlumnos = alumnos?.length || 0;
       this.totalEntregas = entregas?.length || 0;
       this.totalCalificadas = (entregas || []).filter((e: any) => e.estado === ESTADO_CALIFICADA).length;
@@ -379,14 +381,16 @@ export class DetalleTareaPage implements OnInit {
 
       const autorIds = [...new Set((data || []).map((c: any) => c.autor_id))];
       let autores = new Map<number, { nombre: string; rol: string }>();
-      if (autorIds.length) {
-        const { data: usuarios, error: eU } = await this.sesion.supabase
-          .from('users_user').select('id, first_name, last_name, rol').in('id', autorIds);
-        if (eU) throw eU;
-        (usuarios || []).forEach((u: any) => {
-          autores.set(u.id, { nombre: `${u.first_name} ${u.last_name}`.trim(), rol: u.rol });
-        });
-      }
+          if (autorIds.length) {
+            const tokenN = this.sesion.usuario?.token || this.sesion.tutor?.token;
+            const { data: usuarios, error: eU } = tokenN
+              ? await this.sesion.supabase.rpc('nombres_usuarios', { p_token: tokenN, p_ids: autorIds })
+              : { data: [] as any[], error: null };
+            if (eU) throw eU;
+            (usuarios || []).forEach((u: any) => {
+              autores.set(u.id, { nombre: `${u.first_name} ${u.last_name}`.trim(), rol: u.rol });
+            });
+          }
 
       this.comentarios = (data || []).map((c: any) => ({
   ...c,

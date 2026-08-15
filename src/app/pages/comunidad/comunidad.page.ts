@@ -109,9 +109,7 @@ export class ComunidadPage implements OnInit {
   private async resolverContexto() {
     if (this.esDocente || this.esAlumno) {
       const { data } = await this.sesion.supabase
-        .from('users_user')
-        .select('plantel_id, alumno_grupo_id')
-        .eq('id', this.sesion.usuario!.id).single();
+        .rpc('perfil_basico_usuario', { p_user_id: this.sesion.usuario!.id }).single();
       this.plantelId     = (data as any)?.plantel_id     || null;
       this.grupoIdPropio = (data as any)?.alumno_grupo_id || null;
 
@@ -127,9 +125,7 @@ export class ComunidadPage implements OnInit {
       }
 
       const { data, error } = await this.sesion.supabase
-        .from('users_user')
-        .select('plantel_id, alumno_grupo_id')
-        .eq('id', alumnoId).single();
+        .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
 
       if (error || !data) {
         this.contextoTutorNoResuelto = true;

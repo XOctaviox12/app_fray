@@ -271,7 +271,8 @@ export class TareasPage implements OnInit {
   // Corregido: la columna real es tarea_id, no actividad_id.
   private async cargarConteoEntregas() {
     if (!this.tareas.length) return;
-    const ids = this.tareas.map(t => t.id);
+  const uid = this.sesion.usuario!.id;
+  const ids = this.tareas.map(t => t.id);
 
     const { data: entregas, error: eEnt } = await this.sesion.supabase
       .from('academic_entregatarea').select('tarea_id')
@@ -280,8 +281,7 @@ export class TareasPage implements OnInit {
 
     const grupoIds = [...new Set(this.tareas.map(t => t.grupo_id))];
     const { data: alumnos, error: eAl } = await this.sesion.supabase
-      .from('users_user').select('id, alumno_grupo_id')
-      .in('alumno_grupo_id', grupoIds).eq('rol', 'ALUMNO');
+      .rpc('alumnos_por_grupos', { p_docente_id: uid, p_grupo_ids: grupoIds });
     if (eAl) throw eAl;
 
     const entregasPorTarea = new Map<number, number>();
@@ -323,11 +323,7 @@ export class TareasPage implements OnInit {
     tarea.cargandoEntregas = true;
     try {
       const { data: alumnos, error: eAl } = await this.sesion.supabase
-        .from('users_user')
-        .select('id, first_name, last_name')
-        .eq('alumno_grupo_id', tarea.grupo_id)
-        .eq('rol', 'ALUMNO')
-        .order('first_name');
+  .rpc('alumnos_por_grupos', { p_docente_id: this.sesion.usuario!.id, p_grupo_ids: [tarea.grupo_id] });
       if (eAl) throw eAl;
 
       const { data: entregas, error: eEnt } = await this.sesion.supabase
@@ -351,7 +347,7 @@ export class TareasPage implements OnInit {
             guardando: false,
           } as AlumnoEntregaRow;
         })
-        .sort((a, b) => {
+        .sort((a: AlumnoEntregaRow, b: AlumnoEntregaRow) => {
           if (!!a.entrega === !!b.entrega) return a.alumno_nombre.localeCompare(b.alumno_nombre);
           return a.entrega ? -1 : 1;
         });
@@ -620,10 +616,8 @@ async cargarTareasAlumno() {
     // Antes: const grupoId = this.sesion.usuario?.alumno_grupo_id;
     // Ahora: se consulta fresco, igual que en inicio.page
     const { data: usu, error: eU } = await this.sesion.supabase
-      .from('users_user')
-      .select('alumno_grupo_id')
-      .eq('id', uid)
-      .single();
+  .rpc('perfil_basico_usuario', { p_user_id: uid })
+  .single();
     if (eU) throw eU;
 
     const grupoId = (usu as any)?.alumno_grupo_id;

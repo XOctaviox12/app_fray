@@ -180,17 +180,15 @@ export class AppComponent implements OnInit, OnDestroy {
       const combos = new Set((relAG || []).map((r: any) => `${r.asignatura_id}-${r.grupo_id}`));
       if (combos.size === 0) return;
 
-      const hoy = new Date().toISOString().split('T')[0];
-      const { data: asistHoy } = await this.sesion.supabase
-        .from('academic_asistencia')
-        .select('grupo_id, asignatura_id')
-        .in('grupo_id', grupoIds)
-        .in('asignatura_id', materiaIds)
-        .eq('fecha', hoy);
+const hoy = new Date().toISOString().split('T')[0];
+          const token = this.sesion.usuario?.token;
+          const { data: asistHoy } = token
+            ? await this.sesion.supabase.rpc('combos_con_lista', { p_token: token, p_grupo_ids: grupoIds, p_materia_ids: materiaIds, p_fecha: hoy })
+            : { data: [] as any[] };
 
-      const combosConLista = new Set((asistHoy || []).map((a: any) => `${a.asignatura_id}-${a.grupo_id}`));
+          const combosConLista = new Set((asistHoy || []).map((a: any) => `${a.asignatura_id}-${a.grupo_id}`));
 
-      this.hayAsistenciaPendienteHoy = [...combos].some(c => !combosConLista.has(c));
+          this.hayAsistenciaPendienteHoy = [...combos].some(c => !combosConLista.has(c));
     } catch {
       this.hayAsistenciaPendienteHoy = false;
     }

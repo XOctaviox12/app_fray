@@ -56,14 +56,15 @@ export class InicioPage implements OnInit {
     const alumnoId = this.sesion.usuario?.id;
     if (!alumnoId) return;
 
-    const { data: usu, error: eU } = await this.sesion.supabase
-      .from('users_user')
-      .select('alumno_grupo_id')
-      .eq('id', alumnoId)
-      .single();
-    if (eU) { console.error('Error usuario alumno:', eU.message); return; }
+const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+        if (!token) return;
 
-    const grupoId = (usu as any)?.alumno_grupo_id;
+        const { data: usu, error: eU } = await this.sesion.supabase
+          .rpc('perfil_basico_usuario', { p_token: token, p_user_id: alumnoId })
+          .single<{ alumno_grupo_id: number }>();
+        if (eU) { console.error('Error usuario alumno:', eU.message); return; }
+
+        const grupoId = usu?.alumno_grupo_id;
     if (!grupoId) return;
 
     const { count: materias, error: eM } = await this.sesion.supabase
@@ -149,15 +150,16 @@ export class InicioPage implements OnInit {
     const alumnoId = this.sesion.tutor?.alumno_id;
     if (!alumnoId) return;
 
-    const { data: alumno, error: eAl } = await this.sesion.supabase
-      .from('users_user')
-      .select('first_name, last_name, alumno_grupo_id')
-      .eq('id', alumnoId)
-      .single();
-    if (eAl) { console.error('Error alumno tutor:', eAl.message); return; }
+const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+        if (!token) return;
 
-    if (alumno) {
-      this.nombreHijo = `${(alumno as any).first_name} ${(alumno as any).last_name}`.trim();
+        const { data: alumno, error: eAl } = await this.sesion.supabase
+          .rpc('perfil_basico_usuario', { p_token: token, p_user_id: alumnoId })
+          .single<{ first_name: string; last_name: string; alumno_grupo_id: number }>();
+        if (eAl) { console.error('Error alumno tutor:', eAl.message); return; }
+
+        if (alumno) {
+          this.nombreHijo = `${alumno.first_name} ${alumno.last_name}`.trim();
 
       const grupoId = (alumno as any).alumno_grupo_id;
       if (grupoId) {
@@ -170,14 +172,11 @@ export class InicioPage implements OnInit {
       }
     }
 
-    const { count: boletas, error: eB } = await this.sesion.supabase
-      .from('academic_boletaparcial')
-      .select('*', { count: 'exact', head: true })
-      .eq('alumno_id', alumnoId)
-      .eq('publicada', true);
+    const { data: boletas } = token
+          ? await this.sesion.supabase.rpc('boletas_alumno_publicadas', { p_token: token, p_alumno_id: alumnoId })
+          : { data: [] as any[] };
 
-    if (eB) console.error('Error boletas tutor:', eB.message);
-    this.actividadesHoy = boletas || 0;
+        this.actividadesHoy = boletas?.length || 0;
   }
 
   establecerFechaActual() {

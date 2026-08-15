@@ -148,11 +148,8 @@ export class DetallePage implements OnInit {
 
     if (this.esAlumno) {
       const { data: usu } = await this.sesion.supabase
-        .from('users_user')
-        .select('alumno_grupo_id')
-        .eq('id', userId)
-        .single();
-      return (usu as any)?.alumno_grupo_id === this.grupoId;
+  .rpc('perfil_basico_usuario', { p_user_id: userId }).single();
+return (usu as any)?.alumno_grupo_id === this.grupoId;
     }
 
     if (this.esTutor) {
@@ -160,11 +157,8 @@ export class DetallePage implements OnInit {
       if (!alumnoId) return false;
 
       const { data: alumno } = await this.sesion.supabase
-        .from('users_user')
-        .select('alumno_grupo_id')
-        .eq('id', alumnoId)
-        .single();
-      return (alumno as any)?.alumno_grupo_id === this.grupoId;
+  .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
+return (alumno as any)?.alumno_grupo_id === this.grupoId;
     }
 
     return false;
@@ -190,13 +184,11 @@ export class DetallePage implements OnInit {
     this.asignatura = data || null;
   }
 
-  private async cargarAlumnos() {
-    const { data, error } = await this.sesion.supabase
-      .from('users_user')
-      .select('id, first_name, last_name, foto_perfil')
-      .eq('alumno_grupo_id', this.grupoId)
-      .eq('rol', 'ALUMNO')
-      .order('last_name');
+private async cargarAlumnos() {
+    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+    const { data, error } = token
+      ? await this.sesion.supabase.rpc('roster_grupo', { p_token: token, p_grupo_id: this.grupoId })
+      : { data: [] as any[], error: null };
     if (error) throw error;
 
     this.alumnos = (data || []).map((u: any, i: number) => ({
@@ -216,19 +208,13 @@ export class DetallePage implements OnInit {
   }
 
   private async cargarAsistencia() {
-    let query = this.sesion.supabase
-      .from('academic_asistencia')
-      .select('estado')
-      .eq('grupo_id', this.grupoId);
-
-    // Si hay asignatura, filtrar solo esa materia
-    if (this.asignaturaId) {
-      query = query.eq('asignatura_id', this.asignaturaId);
-    }
-
-    const { data, error } = await query;
-    if (error) throw error;
-    if (!data?.length) return;
+    const token = this.sesion.usuario?.token;
+        if (!token) return;
+        const { data } = await this.sesion.supabase.rpc('resumen_asistencia_grupo', {
+          p_token: token,
+          p_grupo_id: this.grupoId,
+          p_materia_id: this.asignaturaId || null,
+        });
 
     const total     = data.length;
     const presentes = data.filter((r: any) => r.estado === 'P').length;
@@ -267,18 +253,23 @@ export class DetallePage implements OnInit {
   }
 
   private async cargarPromedio() {
-    if (!this.asignaturaId) return;
+   if (!this.asignaturaId) return;
 
-    const { data } = await this.sesion.supabase
-      .from('academic_calificacion')
-      .select('nota')
-      .eq('grupo_id', this.grupoId)
-      .eq('asignatura_id', this.asignaturaId);
+        const token = this.sesion.usuario?.token;
+        if (!token) return;
 
-    if (!data?.length) return;
-    const sum = data.reduce((s: number, r: any) => s + parseFloat(r.nota), 0);
-    this.promedioNota = parseFloat((sum / data.length).toFixed(2));
-    this.totalCalificadas = data.length;
+        const { data, error } = await this.sesion.supabase
+          .rpc('obtener_promedio_calificaciones', {
+            p_token: token,
+            p_grupo_id: this.grupoId,
+            p_asignatura_id: this.asignaturaId,
+          })
+          .single<{ promedio: number; total: number }>();
+
+        if (error || !data) { console.error('Error obteniendo promedio:', error?.message); return; }
+
+        this.promedioNota = data.promedio ?? 0;
+        this.totalCalificadas = data.total ?? 0;
   }
 
   doRefresh(event: any) {

@@ -133,10 +133,7 @@ export class AulaPage implements OnInit {
 
   private async cargarGrupoAlumno() {
     const { data: usu } = await this.sesion.supabase
-      .from('users_user')
-      .select('alumno_grupo_id')
-      .eq('id', this.sesion.usuario!.id)
-      .single();
+  .rpc('perfil_basico_usuario', { p_user_id: this.sesion.usuario!.id }).single();
     const grupoId = (usu as any)?.alumno_grupo_id;
     if (!grupoId) { this.grupoAlumno = null; return; }
 
@@ -153,10 +150,7 @@ export class AulaPage implements OnInit {
     if (!alumnoId) return;
 
     const { data: alumno } = await this.sesion.supabase
-      .from('users_user')
-      .select('first_name, last_name, alumno_grupo_id')
-      .eq('id', alumnoId)
-      .single();
+  .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
     if (!alumno) return;
 
     this.nombreHijo = `${(alumno as any).first_name} ${(alumno as any).last_name}`.trim();

@@ -162,32 +162,62 @@
         </button>
       </div>
     </div>
-<!-- Preguntas de opción múltiple -->
-<div class="input-group" *ngIf="newAct.tipo === 'MULTIPLE'">
-  <label class="input-label">Preguntas</label>
 
-  <div class="pregunta-card" *ngFor="let p of preguntasForm; let pi = index">
-    <div class="pregunta-header">
-      <input type="text" [(ngModel)]="p.texto" placeholder="Escribe la pregunta..." class="pregunta-texto-input" />
-      <input type="number" [(ngModel)]="p.puntos" min="0" step="0.5" class="pregunta-puntos-input" title="Puntos" />
-      <ion-icon name="trash-outline" class="pregunta-quitar" (click)="quitarPregunta(pi)"></ion-icon>
+    <!-- Preguntas del cuestionario (mezcla opción múltiple, V/F y respuesta corta) -->
+    <div class="input-group" *ngIf="newAct.tipo === 'CUESTIONARIO'">
+      <label class="input-label">Preguntas</label>
+
+      <div class="pregunta-card" *ngFor="let p of preguntasForm; let pi = index">
+        <div class="pregunta-header">
+          <span class="pregunta-tipo-tag">{{ etiquetaTipoPregunta(p.tipo) }}</span>
+          <input type="text" [(ngModel)]="p.texto" placeholder="Escribe la pregunta..." class="pregunta-texto-input" />
+          <input type="number" [(ngModel)]="p.puntos" min="0" step="0.5" class="pregunta-puntos-input" title="Puntos" />
+          <ion-icon name="trash-outline" class="pregunta-quitar" (click)="quitarPregunta(pi)"></ion-icon>
+        </div>
+
+        <!-- Opción múltiple -->
+        <ng-container *ngIf="p.tipo === 'MULTIPLE'">
+          <div class="opcion-row" *ngFor="let o of p.opciones; let oi = index">
+            <input type="radio" [checked]="o.es_correcta" (change)="marcarCorrecta(pi, oi)" [name]="'correcta-' + pi" />
+            <input type="text" [(ngModel)]="o.texto" placeholder="Opción {{ oi + 1 }}" class="opcion-texto-input" />
+            <ion-icon name="close-outline" class="opcion-quitar" (click)="quitarOpcion(pi, oi)"></ion-icon>
+          </div>
+          <button class="btn-agregar-opcion" (click)="agregarOpcion(pi)">
+            <ion-icon name="add-outline"></ion-icon> Agregar opción
+          </button>
+        </ng-container>
+
+        <!-- Verdadero / Falso -->
+        <div class="vf-row" *ngIf="p.tipo === 'VF'">
+          <label>
+            <input type="radio" [checked]="p.opciones[0]?.es_correcta" (change)="marcarCorrecta(pi, 0)" [name]="'correcta-' + pi" />
+            Verdadero
+          </label>
+          <label>
+            <input type="radio" [checked]="p.opciones[1]?.es_correcta" (change)="marcarCorrecta(pi, 1)" [name]="'correcta-' + pi" />
+            Falso
+          </label>
+        </div>
+
+        <!-- Respuesta corta -->
+        <p class="abierta-hint" *ngIf="p.tipo === 'ABIERTA'">
+          <ion-icon name="chatbubble-outline"></ion-icon>
+          El alumno responderá con texto libre (no se autocalifica).
+        </p>
+      </div>
+
+      <div class="agregar-pregunta-row">
+        <button class="btn-agregar-pregunta" (click)="agregarPregunta('MULTIPLE')">
+          <ion-icon name="list-outline"></ion-icon> Opción múltiple
+        </button>
+        <button class="btn-agregar-pregunta" (click)="agregarPregunta('VF')">
+          <ion-icon name="checkmark-done-outline"></ion-icon> Verdadero / Falso
+        </button>
+        <button class="btn-agregar-pregunta" (click)="agregarPregunta('ABIERTA')">
+          <ion-icon name="chatbubble-outline"></ion-icon> Respuesta corta
+        </button>
+      </div>
     </div>
-
-    <div class="opcion-row" *ngFor="let o of p.opciones; let oi = index">
-      <input type="radio" [checked]="o.es_correcta" (change)="marcarCorrecta(pi, oi)" [name]="'correcta-' + pi" />
-      <input type="text" [(ngModel)]="o.texto" placeholder="Opción {{ oi + 1 }}" class="opcion-texto-input" />
-      <ion-icon name="close-outline" class="opcion-quitar" (click)="quitarOpcion(pi, oi)"></ion-icon>
-    </div>
-
-    <button class="btn-agregar-opcion" (click)="agregarOpcion(pi)">
-      <ion-icon name="add-outline"></ion-icon> Agregar opción
-    </button>
-  </div>
-
-  <button class="btn-agregar-pregunta" (click)="agregarPregunta()">
-    <ion-icon name="add-circle-outline"></ion-icon> Agregar pregunta
-  </button>
-</div>
 
     <!-- URL interactiva -->
     <div class="input-group" *ngIf="newAct.tipo === 'INTERACTIVA'">
@@ -260,7 +290,7 @@
     </div>
 
     <!-- Archivo adjunto -->
-    <div class="input-group" *ngIf="newAct.tipo === 'ARCHIVO' || newAct.tipo === 'ABIERTA'">
+    <div class="input-group" *ngIf="newAct.tipo === 'ARCHIVO'">
       <label class="input-label">Archivo adjunto (opcional)</label>
 
       <div class="files-list" *ngIf="archivosExistentes.length > 0">
@@ -533,13 +563,13 @@
           <!-- ALUMNO: entregar -->
           <ng-container *ngIf="esAlumno">
             <button class="btn-entregar"
-              *ngIf="!a.entrega && (a.tipo === 'ABIERTA' || a.tipo === 'ARCHIVO')"
+              *ngIf="!a.entrega && (a.tipo === 'ARCHIVO' || a.tipo === 'CUESTIONARIO')"
               (click)="$event.stopPropagation(); abrirEntrega(a)">
               <ion-icon name="cloud-upload-outline"></ion-icon>
               Entregar
             </button>
             <button class="btn-entregar editar"
-              *ngIf="a.entrega && a.entrega.calificacion == null && (a.tipo === 'ABIERTA' || a.tipo === 'ARCHIVO')"
+              *ngIf="a.entrega && a.entrega.calificacion == null && (a.tipo === 'ARCHIVO' || a.tipo === 'CUESTIONARIO')"
               (click)="$event.stopPropagation(); abrirEntrega(a)">
               <ion-icon name="create-outline"></ion-icon>
               Editar entrega
@@ -595,16 +625,6 @@
       <p class="modal-act-titulo text-truncate" [title]="actividadEntregando.titulo">{{ actividadEntregando.titulo }}</p>
       <p class="modal-act-asig text-truncate" [title]="actividadEntregando.asignatura">{{ actividadEntregando.asignatura }}</p>
 
-      <!-- Respuesta de texto (ABIERTA) -->
-      <div class="input-group" *ngIf="actividadEntregando.tipo === 'ABIERTA'">
-        <label class="input-label">Tu respuesta</label>
-        <div class="input-wrap textarea-wrap">
-          <ion-icon name="create-outline" class="field-icon"></ion-icon>
-          <textarea [(ngModel)]="respuestaTexto" rows="5"
-            placeholder="Escribe aquí tu respuesta..."></textarea>
-        </div>
-      </div>
-
       <!-- Subir archivo (ARCHIVO) -->
       <div class="input-group" *ngIf="actividadEntregando.tipo === 'ARCHIVO'">
         <label class="input-label">Archivo de entrega</label>
@@ -632,23 +652,32 @@
         </div>
       </div>
 
-<!-- Opción múltiple -->
-<div class="input-group" *ngIf="actividadEntregando.tipo === 'MULTIPLE'">
-  <div *ngIf="cargandoPreguntas" class="entregas-loading">
-    <ion-spinner name="crescent"></ion-spinner>
-  </div>
-  <div class="pregunta-alumno-card" *ngFor="let p of preguntasAlumno">
-    <p class="pregunta-alumno-texto text-clamp-3" [title]="p.texto">{{ p.texto }}</p>
-    <label class="opcion-alumno-row" *ngFor="let o of p.opciones">
-      <input type="radio" [name]="'preg-' + p.id" [value]="o.id"
-        [checked]="respuestasSeleccionadas[p.id] === o.id"
-        (change)="respuestasSeleccionadas[p.id] = o.id" />
-      <span class="text-truncate" [title]="o.texto">{{ o.texto }}</span>
-    </label>
-  </div>
-</div>
+      <!-- Cuestionario (opción múltiple, V/F, respuesta corta mezcladas) -->
+      <div class="input-group" *ngIf="actividadEntregando.tipo === 'CUESTIONARIO'">
+        <div *ngIf="cargandoPreguntas" class="entregas-loading">
+          <ion-spinner name="crescent"></ion-spinner>
+        </div>
+        <div class="pregunta-alumno-card" *ngFor="let p of preguntasAlumno">
+          <p class="pregunta-alumno-texto text-clamp-3" [title]="p.texto">{{ p.texto }}</p>
 
-    <div class="modal-footer" *ngIf="actividadEntregando?.tipo === 'ABIERTA' || actividadEntregando?.tipo === 'ARCHIVO' || actividadEntregando?.tipo === 'MULTIPLE'">
+          <ng-container *ngIf="p.tipo === 'MULTIPLE' || p.tipo === 'VF'">
+            <label class="opcion-alumno-row" *ngFor="let o of p.opciones">
+              <input type="radio" [name]="'preg-' + p.id" [value]="o.id"
+                [checked]="respuestasSeleccionadas[p.id] === o.id"
+                (change)="respuestasSeleccionadas[p.id] = o.id" />
+              <span class="text-truncate" [title]="o.texto">{{ o.texto }}</span>
+            </label>
+          </ng-container>
+
+          <div class="input-wrap textarea-wrap" *ngIf="p.tipo === 'ABIERTA'">
+            <textarea rows="3" [(ngModel)]="respuestasAbiertas[p.id]"
+              placeholder="Escribe tu respuesta..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer" *ngIf="actividadEntregando?.tipo === 'ARCHIVO' || actividadEntregando?.tipo === 'CUESTIONARIO'">
       <button class="btn-cancel" (click)="cerrarEntrega()">
         <ion-icon name="close-outline"></ion-icon>
         Cancelar

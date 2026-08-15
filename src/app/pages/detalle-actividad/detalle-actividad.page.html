@@ -114,21 +114,21 @@
           <div class="pregunta-form-item" *ngFor="let p of preguntasAlumno; let i = index" [ngSwitch]="p.tipo">
             <label class="input-label">{{ i + 1 }}. {{ p.texto }}</label>
 
-            <div class="opciones-respuesta" *ngSwitchCase="'opcion_multiple'">
+            <div class="opciones-respuesta" *ngSwitchCase="'MULTIPLE'">
               <label class="opcion-radio" *ngFor="let o of p.opciones">
                 <input type="radio" [name]="'preg-' + p.id" [value]="o.id" [(ngModel)]="respuestasSeleccionadas[p.id]" />
                 <span class="text-wrap-anywhere">{{ o.texto }}</span>
               </label>
             </div>
 
-            <div class="opciones-respuesta" *ngSwitchCase="'verdadero_falso'">
+            <div class="opciones-respuesta" *ngSwitchCase="'VF'">
               <label class="opcion-radio" *ngFor="let o of p.opciones">
                 <input type="radio" [name]="'preg-' + p.id" [value]="o.id" [(ngModel)]="respuestasSeleccionadas[p.id]" />
                 <span class="text-wrap-anywhere">{{ o.texto }}</span>
               </label>
             </div>
 
-            <textarea *ngSwitchCase="'respuesta_corta'" rows="2"
+            <textarea *ngSwitchCase="'ABIERTA'" rows="2"
               [(ngModel)]="respuestasTextoPorPregunta[p.id]" placeholder="Escribe tu respuesta..."></textarea>
           </div>
 

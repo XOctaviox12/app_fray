@@ -397,11 +397,8 @@ private dentroDeVentanaFinalizada(s: SesionClase): boolean {
 async buscarSesionActivaAlumno() {
   const alumnoId = this.sesion.usuario?.id;
 
-  const { data: usu } = await this.sesion.supabase
-    .from('users_user')
-    .select('alumno_grupo_id')
-    .eq('id', alumnoId)
-    .single();
+ const { data: usu } = await this.sesion.supabase
+  .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
 
   const grupoId = (usu as any)?.alumno_grupo_id;
   if (!grupoId) {

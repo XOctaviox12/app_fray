@@ -102,7 +102,7 @@ export class MateriasPage implements OnInit {
     if (!alumnoId) return;
 
     const { data: usu } = await this.supabase
-      .from('users_user').select('alumno_grupo_id').eq('id', alumnoId).single();
+      .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
     const grupoId = (usu as any)?.alumno_grupo_id;
     if (!grupoId) return;
 
@@ -118,20 +118,20 @@ export class MateriasPage implements OnInit {
     const { data: docenteRel } = await this.supabase
       .from('academic_asignatura_docentes').select('asignatura_id, user_id').in('asignatura_id', asiIds);
     const docenteIds = [...new Set((docenteRel || []).map((d: any) => d.user_id))];
-    let docenteNombres: Record<number, string> = {};
-    if (docenteIds.length) {
-      const { data: users } = await this.supabase
-        .from('users_user').select('id, first_name, last_name').in('id', docenteIds);
-      (users || []).forEach((u: any) => {
-        docenteNombres[u.id] = `${u.first_name} ${u.last_name}`.trim();
-      });
-    }
-
-    const { data: boletas } = await this.supabase
-      .from('academic_boletaparcial')
-      .select('asignatura_id, calificacion_final, parcial')
-      .eq('alumno_id', alumnoId).eq('publicada', true)
-      .order('parcial', { ascending: false });
+let docenteNombres: Record<number, string> = {};
+        if (docenteIds.length) {
+          const tokenN = this.sesion.usuario?.token || this.sesion.tutor?.token;
+          const { data: users } = tokenN
+            ? await this.supabase.rpc('nombres_usuarios', { p_token: tokenN, p_ids: docenteIds })
+            : { data: [] as any[] };
+          (users || []).forEach((u: any) => {
+            docenteNombres[u.id] = `${u.first_name} ${u.last_name}`.trim();
+          });
+        }
+const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+  const { data: boletas } = token
+          ? await this.supabase.rpc('boletas_alumno_publicadas', { p_token: token, p_alumno_id: alumnoId })
+          : { data: [] as any[] };
 
     const { data: tareas } = await this.supabase
       .from('academic_tarea').select('id, asignatura_id')
@@ -200,12 +200,12 @@ export class MateriasPage implements OnInit {
 
     // Alumnos de TODOS los grupos donde da clase el docente (una sola consulta,
     // luego se filtra en memoria por materia y se cuenta lo único para el resumen)
-    let alumnosPorGrupo: Record<number, number> = {};
+   let alumnosPorGrupo: Record<number, number> = {};
     let alumnosUnicosSet = new Set<number>();
     if (grupoIdsDocente.length) {
-      const { data: alumnos } = await this.supabase
-        .from('users_user').select('id, alumno_grupo_id')
-        .in('alumno_grupo_id', grupoIdsDocente).eq('rol', 'ALUMNO');
+      const { data: alumnos, error: eAlumnos } = await this.supabase
+        .rpc('alumnos_por_grupos', { p_docente_id: docenteId, p_grupo_ids: grupoIdsDocente });
+      if (eAlumnos) console.error('Error roster alumnos:', eAlumnos.message);
       (alumnos || []).forEach((a: any) => {
         alumnosPorGrupo[a.alumno_grupo_id] = (alumnosPorGrupo[a.alumno_grupo_id] || 0) + 1;
         alumnosUnicosSet.add(a.id);
@@ -247,7 +247,7 @@ export class MateriasPage implements OnInit {
     if (!alumnoId) return;
 
     const { data: alumno } = await this.supabase
-      .from('users_user').select('first_name, last_name, alumno_grupo_id').eq('id', alumnoId).single();
+      .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
     if (!alumno) return;
 
     this.nombreHijo = `${(alumno as any).first_name} ${(alumno as any).last_name}`.trim();
@@ -262,11 +262,10 @@ export class MateriasPage implements OnInit {
     const { data: asignaturas } = await this.supabase
       .from('academic_asignatura').select('id, nombre').in('id', asiIds).order('nombre');
 
-    const { data: boletas } = await this.supabase
-      .from('academic_boletaparcial')
-      .select('asignatura_id, calificacion_final, parcial')
-      .eq('alumno_id', alumnoId).eq('publicada', true)
-      .order('parcial', { ascending: false });
+const token = this.sesion.tutor?.token;
+        const { data: boletas } = token
+          ? await this.supabase.rpc('boletas_alumno_publicadas', { p_token: token, p_alumno_id: alumnoId })
+          : { data: [] as any[] };
 
     this.materiasTutor = (asignaturas as any[] || []).map(asi => {
       const boleta = (boletas || []).find((b: any) => b.asignatura_id === asi.id);

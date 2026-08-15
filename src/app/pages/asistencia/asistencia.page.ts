@@ -245,10 +245,9 @@ export class AsistenciaPage implements OnInit {
 
       // 5. Cantidad de alumnos por grupo (una sola consulta)
       // TODO(schema): confirmar columna real de FK alumno→grupo (alumno_grupo_id)
-      const { data: alumnosData } = await this.sesion.supabase
-        .from('users_user')
-        .select('id, alumno_grupo_id')
-        .in('alumno_grupo_id', todosGrupoIds);
+      const { data: alumnosData, error: eAlumnosData } = await this.sesion.supabase
+  .rpc('alumnos_por_grupos', { p_docente_id: docenteId, p_grupo_ids: todosGrupoIds });
+if (eAlumnosData) throw eAlumnosData;
 
       const conteoPorGrupo = new Map<number, number>();
       (alumnosData || []).forEach((a: any) => {
@@ -257,16 +256,14 @@ export class AsistenciaPage implements OnInit {
 
       // 6. Qué combinaciones materia+grupo ya tienen lista en la fecha elegida
       const fechaStr = this.toDateStr(this.fechaSeleccionada);
-      const { data: asistFecha } = await this.sesion.supabase
-        .from('academic_asistencia')
-        .select('grupo_id, asignatura_id')
-        .in('grupo_id', todosGrupoIds)
-        .in('asignatura_id', materiaIds)
-        .eq('fecha', fechaStr);
+          const token = this.sesion.usuario?.token;
+          const { data: asistFecha } = token
+            ? await this.sesion.supabase.rpc('combos_con_lista', { p_token: token, p_grupo_ids: todosGrupoIds, p_materia_ids: materiaIds, p_fecha: fechaStr })
+            : { data: [] as any[] };
 
-      const combosConLista = new Set(
-        (asistFecha || []).map((a: any) => `${a.asignatura_id}-${a.grupo_id}`)
-      );
+          const combosConLista = new Set(
+            (asistFecha || []).map((a: any) => `${a.asignatura_id}-${a.grupo_id}`)
+          );
 
       // 7. Ensamblar la estructura final: materias con sus grupos
       this.materias = (materiasData || [])
@@ -465,16 +462,14 @@ export class AsistenciaPage implements OnInit {
       if (e1) throw e1;
 
       // Asistencia registrada para esta materia+grupo+fecha
-      const fechaStr = this.toDateStr(this.fechaSeleccionada);
-      const { data: asist } = await this.sesion.supabase
-        .from('academic_asistencia')
-        .select('alumno_id, estado')
-        .eq('grupo_id', this.grupoId)
-        .eq('asignatura_id', this.materiaId)
-        .eq('fecha', fechaStr);
+     const fechaStr = this.toDateStr(this.fechaSeleccionada);
+          const token = this.sesion.usuario?.token;
+          const { data: asist } = token
+            ? await this.sesion.supabase.rpc('asistencia_del_dia', { p_token: token, p_grupo_id: this.grupoId, p_materia_id: this.materiaId, p_fecha: fechaStr })
+            : { data: [] as any[] };
 
-      const asistMap = new Map((asist || []).map((a: any) => [a.alumno_id, a.estado]));
-      this.yaGuardada = asistMap.size > 0;
+          const asistMap = new Map((asist || []).map((a: any) => [a.alumno_id, a.estado]));
+          this.yaGuardada = asistMap.size > 0;
 
       this.alumnos = (users || []).map((u: any, i: number) => ({
         id:       u.id,
@@ -614,29 +609,27 @@ export class AsistenciaPage implements OnInit {
   private async ejecutarGuardado() {
     this.guardando = true;
 
-    const fechaStr = this.toDateStr(this.fechaSeleccionada);
+const fechaStr = this.toDateStr(this.fechaSeleccionada);
 
-    // NOTA: academic_asistencia NO tiene columna docente_id (confirmado en
-    // Supabase) — solo id, fecha, alumno_id, grupo_id, asignatura_id, estado.
-    // La identidad de un registro es alumno+grupo+materia+fecha.
-    const registros = this.alumnos.map(a => ({
-      alumno_id:     a.id,
-      grupo_id:      this.grupoId,
-      asignatura_id: this.materiaId,
-      fecha:         fechaStr,
-      estado:        a.estado,
-    }));
+        const registros = this.alumnos.map(a => ({
+          alumno_id:     a.id,
+          grupo_id:      this.grupoId,
+          asignatura_id: this.materiaId,
+          fecha:         fechaStr,
+          estado:        a.estado,
+        }));
 
-    const { error } = await this.sesion.supabase
-      .from('academic_asistencia')
-      .upsert(registros, { onConflict: 'alumno_id,grupo_id,asignatura_id,fecha' });
+        const token = this.sesion.usuario?.token;
+        const { error } = token
+          ? await this.sesion.supabase.rpc('guardar_asistencia', { p_token: token, p_grupo_id: this.grupoId, p_materia_id: this.materiaId, p_registros: registros })
+          : { error: { message: 'Sesión no válida' } };
 
-    this.guardando = false;
+        this.guardando = false;
 
-    if (error) {
-      this.mostrarToast(`Error al guardar. Detalle: ${error.message}`, 'danger');
-      console.error(error.message);
-      return;
+        if (error) {
+          this.mostrarToast(`Error al guardar. Detalle: ${error.message}`, 'danger');
+          console.error(error.message);
+          return;
     }
 
     this.alumnos.forEach(a => { a.guardado = true; a.revisado = true; });
@@ -664,16 +657,14 @@ export class AsistenciaPage implements OnInit {
 
     // Traemos TODOS los registros de esta materia+grupo (sin límite de fecha),
     // para que se vea el historial completo desde que se empezó a tomar lista.
-    const { data, error } = await this.sesion.supabase
-      .from('academic_asistencia')
-      .select('fecha, estado')
-      .eq('grupo_id', this.grupoId)
-      .eq('asignatura_id', this.materiaId)
-      .order('fecha', { ascending: false });
+const token = this.sesion.usuario?.token;
+        const { data, error } = token
+          ? await this.sesion.supabase.rpc('historial_asistencia', { p_token: token, p_grupo_id: this.grupoId, p_materia_id: this.materiaId })
+          : { data: [] as any[], error: null };
 
-    if (error) {
-      console.error('Error cargando historial:', error.message);
-      this.errorHistorial = 'No se pudo cargar el historial. Verifica tu conexión.';
+        if (error) {
+          console.error('Error cargando historial:', error.message);
+          this.errorHistorial = 'No se pudo cargar el historial. Verifica tu conexión.';
       this.historial = [];
       this.cargandoHistorial = false;
       return;

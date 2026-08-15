@@ -237,8 +237,9 @@ export class HerramientasPage implements OnInit {
     const alumnoId = this.sesion.usuario?.id;
     if (!alumnoId) return;
 
-    const { data: usu } = await this.supabase
-      .from('users_user').select('alumno_grupo_id').eq('id', alumnoId).single();
+    const { data: usu, error: eU } = await this.supabase
+      .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
+    if (eU) throw eU;
     const grupoId = (usu as any)?.alumno_grupo_id;
     if (!grupoId) return;
 
@@ -257,8 +258,9 @@ export class HerramientasPage implements OnInit {
     const alumnoId = this.sesion.tutor?.alumno_id;
     if (!alumnoId) return;
 
-    const { data: usu } = await this.supabase
-      .from('users_user').select('alumno_grupo_id').eq('id', alumnoId).single();
+    const { data: usu, error: eU } = await this.supabase
+      .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
+    if (eU) throw eU;
     const grupoId = (usu as any)?.alumno_grupo_id;
     if (!grupoId) return;
 
@@ -346,29 +348,27 @@ export class HerramientasPage implements OnInit {
     this.materias = data || [];
   }
 
-  async onMateriaChange() {
-    this.newMaterial.grupoId = null;
-    this.gruposDeMateria = [];
-    if (!this.newMaterial.materiaId) return;
-    this.cargandoOpts = true;
-    try {
-      const uid = this.sesion.usuario?.id;
-      const { data: relGM } = await this.supabase
-        .from('academic_asignatura_grupos').select('grupo_id').eq('asignatura_id', this.newMaterial.materiaId);
-      const idsGM = (relGM || []).map((r: any) => r.grupo_id);
-      if (!idsGM.length) return;
+async onMateriaChange() {
+  this.newMaterial.grupoId = null;
+  this.gruposDeMateria = [];
+  if (!this.newMaterial.materiaId) return;
+  this.cargandoOpts = true;
+  try {
+    const { data: relGM } = await this.supabase
+      .from('academic_asignatura_grupos')
+      .select('grupo_id')
+      .eq('asignatura_id', this.newMaterial.materiaId);
+    const idsGM = (relGM || []).map((r: any) => r.grupo_id);
+    if (!idsGM.length) return;
 
-      const { data: relDG } = await this.supabase
-        .from('academic_grupo_docentes').select('grupo_id').eq('user_id', uid).in('grupo_id', idsGM);
-      const idsFinal = (relDG || []).map((r: any) => r.grupo_id);
-      if (!idsFinal.length) return;
-
-      const { data } = await this.supabase
-        .from('academic_grupo').select('id, nombre, grado').in('id', idsFinal).order('grado');
-      this.gruposDeMateria = data || [];
-    } finally { this.cargandoOpts = false; }
-  }
-
+    const { data } = await this.supabase
+      .from('academic_grupo')
+      .select('id, nombre, grado')
+      .in('id', idsGM)
+      .order('grado');
+    this.gruposDeMateria = data || [];
+  } finally { this.cargandoOpts = false; }
+}
   // ══════════════════════════════════════════════════════════
   //  FORMULARIO — ABRIR / CERRAR
   // ══════════════════════════════════════════════════════════

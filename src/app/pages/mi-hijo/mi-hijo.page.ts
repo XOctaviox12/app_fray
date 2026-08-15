@@ -93,24 +93,17 @@ export class MiHijoPage implements OnInit {
     this.cargando = false;
   }
 
-  async cargarAlumno(alumnoId: number): Promise<number | null> {
+async cargarAlumno(alumnoId: number): Promise<number | null> {
+    const token = this.sesion.tutor?.token;
+    if (!token) throw new Error('Sesión no válida');
+
     const { data, error } = await this.sesion.supabase
-      .from('users_user')
-      .select(`
-        id, first_name, last_name, username, email,
-        alumno_grupo:academic_grupo (
-          id, nombre, grado,
-          carrera:academic_carrera ( nombre ),
-          plantel:campuses_plantel ( nombre ),
-          periodo:academic_periodo ( nombre )
-        )
-      `)
-      .eq('id', alumnoId)
-      .single();
+      .rpc('obtener_alumno_completo_tutor', { p_token: token, p_alumno_id: alumnoId })
+      .single<any>();
 
     if (error || !data) throw new Error(error?.message || 'Alumno no encontrado');
 
-    const g = (data as any).alumno_grupo;
+    const g = data.alumno_grupo;
     this.alumno = {
       id: data.id,
       nombre: `${data.first_name} ${data.last_name}`.trim(),
@@ -126,19 +119,13 @@ export class MiHijoPage implements OnInit {
     return g?.id || null;
   }
 
-  async cargarMaterias(alumnoId: number, grupoId: number) {
-    // 1. Asignaturas del grupo
+async cargarMaterias(alumnoId: number, grupoId: number) {
+    const token = this.sesion.tutor?.token;
+    if (!token) { this.materias = []; return; }
+
+    // 1. Asignaturas del grupo + docentes
     const { data: asigData } = await this.sesion.supabase
-      .from('academic_asignatura_grupos')
-      .select(`
-        asignatura:academic_asignatura (
-          id, nombre, clave,
-          docentes:academic_asignatura_docentes (
-            user:users_user ( first_name, last_name )
-          )
-        )
-      `)
-      .eq('grupo_id', grupoId);
+      .rpc('obtener_materias_grupo_tutor', { p_token: token, p_grupo_id: grupoId, p_alumno_id: alumnoId });
 
     if (!asigData) {
       this.materias = [];
@@ -147,22 +134,14 @@ export class MiHijoPage implements OnInit {
 
     // 2. Boletas parciales del alumno
     const { data: boletasData } = await this.sesion.supabase
-      .from('academic_boletaparcial')
-      .select('asignatura_id, parcial, calificacion_final, nota_tareas, nota_actividades, nota_asistencia, nota_examen, nota_proyecto, publicada, publicada_en')
-      .eq('alumno_id', alumnoId)
-      .eq('publicada', true)
-      .order('parcial');
+      .rpc('obtener_boletas_alumno_tutor', { p_token: token, p_alumno_id: alumnoId });
 
     // 3. Asistencias del alumno en este grupo
     const { data: asistData } = await this.sesion.supabase
-      .from('academic_asistencia')
-      .select('asignatura_id, estado')
-      .eq('alumno_id', alumnoId)
-      .eq('grupo_id', grupoId);
+      .rpc('obtener_asistencias_alumno_tutor', { p_token: token, p_alumno_id: alumnoId, p_grupo_id: grupoId });
 
     // Mapear todo por asignatura
-    this.materias = (asigData as any[]).map((item: any) => {
-      const asig = item.asignatura;
+    this.materias = (asigData as any[]).map((asig: any) => {
       const asigId = asig.id;
 
       const docenteNombre = asig.docentes?.length
@@ -207,8 +186,6 @@ export class MiHijoPage implements OnInit {
       } as MateriaResumen;
     });
 
-    // Si la pestaña seleccionada quedó fuera de rango (p. ej. tras un
-    // refresh que redujo el número de materias), la regresamos a la 0.
     if (this.materiaActiva >= this.materias.length) {
       this.materiaActiva = 0;
     }
