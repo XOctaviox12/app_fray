@@ -246,7 +246,7 @@
                     <span class="comentario-rol" *ngIf="c.autor_rol === 'DOCENTE'">· Docente</span>
                   </span>
                   <div class="comentario-acciones" *ngIf="esMiComentario(c) && !c.editando">
-                    <ion-icon name="create-outline" (click)="activarEdicion(c)"></ion-icon>
+                    <ion-icon name="create-outline" (click)="toggleEditarComentario(c)"></ion-icon>
                     <ion-icon name="trash-outline" (click)="eliminarComentario(c)"></ion-icon>
                   </div>
                 </div>
@@ -256,7 +256,7 @@
                 <div class="comentario-edit-form" *ngIf="c.editando">
                   <textarea rows="2" [(ngModel)]="c.textoEdit"></textarea>
                   <div class="comentario-edit-actions">
-                    <button class="btn-cancel" (click)="cancelarEdicionComentario(c)">Cancelar</button>
+                    <button class="btn-cancel" (click)="toggleEditarComentario(c)">Cancelar</button>
                     <button class="btn-save" (click)="guardarEdicionComentario(c)">Guardar</button>
                   </div>
                 </div>
@@ -269,8 +269,8 @@
           </div>
 
           <div class="comentario-nuevo-form">
-            <input type="text" [(ngModel)]="nuevoComentario" placeholder="Escribe un comentario..." (keyup.enter)="enviarComentario()" />
-            <button [disabled]="enviandoComentario || !nuevoComentario.trim()" (click)="enviarComentario()">
+            <input type="text" [(ngModel)]="nuevoComentario" placeholder="Escribe un comentario..." (keyup.enter)="agregarComentario()" />
+            <button [disabled]="enviandoComentario || !nuevoComentario.trim()" (click)="agregarComentario()">
               <ion-spinner *ngIf="enviandoComentario" name="crescent"></ion-spinner>
               <ion-icon *ngIf="!enviandoComentario" name="send-outline"></ion-icon>
             </button>

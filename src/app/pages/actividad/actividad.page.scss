@@ -839,13 +839,19 @@
   grid-template-columns: 1fr;
   gap: 16px;
   align-items: stretch;
-  grid-auto-rows: minmax(300px, auto);
+  // Nota: quitamos "grid-auto-rows: minmax(300px, auto)" de aquí.
+  // Con *ngFor dentro de un <ng-container>, tanto las cards como el
+  // encabezado de semana (.week-section-header) son hijos DIRECTOS
+  // de este grid — así que un alto mínimo fijo por fila también se
+  // le aplicaba al encabezado (fila vacía enorme) y estiraba las
+  // cards con poco contenido (hueco antes del footer). Con
+  // "align-items: stretch" y filas "auto", las cards de una misma
+  // fila igual quedan parejas, pero según su contenido real.
 
   @media (min-width: 768px) {
     padding: 4px 28px 120px;
     grid-template-columns: repeat(2, 1fr);
     gap: 18px;
-    grid-auto-rows: minmax(360px, auto);
   }
 
   @media (min-width: 1180px) {
@@ -1760,4 +1766,37 @@
 @keyframes fadeSlideIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Encabezado de sección de semana — hijo directo del grid de
+// .activities-container (por el <ng-container>), así que necesita
+// "grid-column: 1 / -1" para ocupar todo el ancho en 2-3 columnas ──
+.week-section-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 4px 6px;
+  margin-top: 8px;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.week-section-label {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ion-color-medium, #6b7280);
+}
+
+.week-section-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ion-color-medium, #6b7280);
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 999px;
+  padding: 2px 8px;
 }

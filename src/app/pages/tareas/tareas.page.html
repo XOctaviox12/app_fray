@@ -360,7 +360,7 @@
                     <label>Retroalimentación</label>
                     <textarea rows="2" [(ngModel)]="row.feedbackEdit" placeholder="Comentario para el alumno (opcional)"></textarea>
                   </div>
-                  <button class="btn-guardar-calif" [disabled]="row.guardando" (click)="guardarCalificacion(row)">
+                  <button class="btn-guardar-calif" [disabled]="row.guardando" (click)="guardarCalificacion(tarea, row)">
                     <ion-spinner *ngIf="row.guardando" name="crescent"></ion-spinner>
                     <ion-icon *ngIf="!row.guardando" name="checkmark-outline"></ion-icon>
                     {{ row.guardando ? 'Guardando...' : 'Guardar calificación' }}

@@ -1,16 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { SesionService } from '../../../services/sesion.service';
 
 interface MetricaAsistencia {
-  total: number; presentes: number; ausentes: number;
-  retardos: number; porcentaje: number;
+  total: number;
+  presentes: number;
+  ausentes: number;
+  retardos: number;
+  porcentaje: number;
 }
 
 interface AlumnoGrupo {
   id: number;
-  numero: number; // posición fija en la lista (orden alfabético)
+  numero: number;
   nombre: string;
   apellido: string;
   foto: string | null;
@@ -25,10 +28,10 @@ interface AlumnoGrupo {
 export class DetallePage implements OnInit {
 
   grupoId!: number;
-  asignaturaId: number | null = null;  // si viene, filtra por materia
+  asignaturaId: number | null = null;
 
   grupo: any       = null;
-  asignatura: any  = null;  // datos de la materia seleccionada
+  asignatura: any  = null;
 
   cargando = false;
   error: string | null = null;
@@ -104,27 +107,20 @@ export class DetallePage implements OnInit {
     }
   }
 
-  // ══════════════════════════════════════════════════════
-  //  VALIDACIÓN DE ACCESO
-  //  Evita que un alumno o tutor pueda ver el detalle de
-  //  un grupo ajeno cambiando el :id en la URL, y que un
-  //  docente vea grupos/materias que no le corresponden.
-  // ══════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════════
+  // VALIDACIÓN DE ACCESO
+  // ═══════════════════════════════════════════════════════════════════════════════════
   private async validarAcceso(): Promise<boolean> {
     const userId = this.sesion.usuario?.id;
     if (!userId || !this.grupoId) return false;
 
     if (this.esDocente) {
+      const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
       const { data: relGrupo } = await this.sesion.supabase
-        .from('academic_grupo_docentes')
-        .select('grupo_id')
-        .eq('user_id', userId)
-        .eq('grupo_id', this.grupoId)
-        .maybeSingle();
+        .rpc('validar_acceso_docente_aula', { p_token: token, p_docente_id: userId, p_grupo_id: this.grupoId, p_asignatura_id: this.asignaturaId || null });
       if (!relGrupo) return false;
 
-      // Si viene una materia específica, confirmar que el docente
-      // la imparte y que se da precisamente en ese grupo.
+      // Si viene materia específica, confirmar que el docente la imparte
       if (this.asignaturaId) {
         const { data: relAsigDocente } = await this.sesion.supabase
           .from('academic_asignatura_docentes')
@@ -147,44 +143,49 @@ export class DetallePage implements OnInit {
     }
 
     if (this.esAlumno) {
+      const token = this.sesion.usuario?.token;
       const { data: usu } = await this.sesion.supabase
-  .rpc('perfil_basico_usuario', { p_user_id: userId }).single();
-return (usu as any)?.alumno_grupo_id === this.grupoId;
+        .rpc('perfil_basico_usuario', { p_token: token, p_user_id: userId }).single();
+      return (usu as any)?.alumno_grupo_id === this.grupoId;
     }
 
     if (this.esTutor) {
       const alumnoId = this.sesion.tutor?.alumno_id;
       if (!alumnoId) return false;
 
+      const token = this.sesion.tutor?.token;
       const { data: alumno } = await this.sesion.supabase
-  .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
-return (alumno as any)?.alumno_grupo_id === this.grupoId;
+        .rpc('perfil_basico_usuario', { p_token: token, p_user_id: alumnoId }).single();
+      return (alumno as any)?.alumno_grupo_id === this.grupoId;
     }
 
     return false;
   }
 
-  private async cargarGrupo() {
-    const { data, error } = await this.sesion.supabase
-      .from('academic_grupo')
-      .select('id, nombre, grado, aula, capacidad_maxima, plantel_id')
-      .eq('id', this.grupoId)
-      .single();
-    if (error) throw error;
-    this.grupo = data;
-  }
+private async cargarGrupo() {
+  const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+  if (!token) return;
 
-  private async cargarAsignatura() {
-    if (!this.asignaturaId) return;
-    const { data } = await this.sesion.supabase
-      .from('academic_asignatura')
-      .select('id, nombre, clave')
-      .eq('id', this.asignaturaId)
-      .single();
-    this.asignatura = data || null;
-  }
+  const { data, error } = await this.sesion.supabase
+    .rpc('leer_grupo_por_id', { p_token: token, p_grupo_id: this.grupoId })
+    .single();
+  if (error) throw error;
+  this.grupo = data;
+}
 
-private async cargarAlumnos() {
+private async cargarAsignatura() {
+  if (!this.asignaturaId) return;
+  const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+  if (!token) return;
+
+  const { data, error } = await this.sesion.supabase
+    .rpc('nombres_asignaturas', { p_token: token, p_ids: [this.asignaturaId] });
+
+  if (error) { console.error('Error obteniendo asignatura:', error.message); return; }
+  this.asignatura = (data && data[0]) || null;
+}
+
+  private async cargarAlumnos() {
     const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
     const { data, error } = token
       ? await this.sesion.supabase.rpc('roster_grupo', { p_token: token, p_grupo_id: this.grupoId })
@@ -209,12 +210,18 @@ private async cargarAlumnos() {
 
   private async cargarAsistencia() {
     const token = this.sesion.usuario?.token;
-        if (!token) return;
-        const { data } = await this.sesion.supabase.rpc('resumen_asistencia_grupo', {
-          p_token: token,
-          p_grupo_id: this.grupoId,
-          p_materia_id: this.asignaturaId || null,
-        });
+    if (!token) return;
+
+    const { data } = await this.sesion.supabase.rpc('resumen_asistencia_grupo', {
+      p_token: token,
+      p_grupo_id: this.grupoId,
+      p_materia_id: this.asignaturaId || null,
+    });
+
+    if (!data || data.length === 0) {
+      this.asistencia = { total: 0, presentes: 0, ausentes: 0, retardos: 0, porcentaje: 0 };
+      return;
+    }
 
     const total     = data.length;
     const presentes = data.filter((r: any) => r.estado === 'P').length;
@@ -222,54 +229,67 @@ private async cargarAlumnos() {
     const retardos  = data.filter((r: any) => r.estado === 'R').length;
 
     this.asistencia = {
-      total, presentes, ausentes, retardos,
-      porcentaje: Math.round(((presentes + retardos * 0.5) / total) * 100),
+      total,
+      presentes,
+      ausentes,
+      retardos,
+      porcentaje: total > 0 ? Math.round(((presentes + retardos * 0.5) / total) * 100) : 0,
     };
   }
 
-  private async cargarTareas() {
-    let query = this.sesion.supabase
-      .from('academic_tarea')
-      .select('id')
-      .eq('grupo_id', this.grupoId)
-      .eq('publicada', true);
+ private async cargarTareas() {
+  const token = this.sesion.usuario?.token;
+  if (!token) return;
 
-    if (this.asignaturaId) {
-      query = query.eq('asignatura_id', this.asignaturaId);
-    }
+  const { data: tareas, error: e1 } = await this.sesion.supabase
+    .rpc('leer_tareas_grupo_completo', { p_token: token, p_grupo_id: this.grupoId });
 
-    const { data: tareas, error: e1 } = await query;
-    if (e1) throw e1;
-    this.totalTareas = tareas?.length ?? 0;
-    if (!this.totalTareas) return;
+  if (e1) throw e1;
 
-    const ids = tareas!.map((t: any) => t.id);
-    const { count, error: e2 } = await this.sesion.supabase
-      .from('academic_entregatarea')
-      .select('id', { count: 'exact', head: true })
-      .in('tarea_id', ids);
-    if (e2) throw e2;
-    this.tareasEntregadas = count ?? 0;
+  const todas = tareas || [];
+  const filtradas = this.asignaturaId
+    ? todas.filter((t: any) => t.asignatura_id === this.asignaturaId)
+    : todas;
+
+  this.totalTareas = filtradas.length;
+
+  if (!this.totalTareas) {
+    this.tareasEntregadas = 0;
+    return;
   }
 
+  const ids = filtradas.map((t: any) => t.id);
+
+  const { data: entregas, error: e2 } = await this.sesion.supabase
+    .rpc('contar_entregas_de_tareas', { p_token: token, p_tarea_ids: ids });
+
+  if (e2) throw e2;
+  this.tareasEntregadas = (entregas || []).reduce((sum: number, e: any) => sum + e.total, 0);
+}
+
   private async cargarPromedio() {
-   if (!this.asignaturaId) return;
+    if (!this.asignaturaId) return;
 
-        const token = this.sesion.usuario?.token;
-        if (!token) return;
+    const token = this.sesion.usuario?.token;
+    if (!token) return;
 
-        const { data, error } = await this.sesion.supabase
-          .rpc('obtener_promedio_calificaciones', {
-            p_token: token,
-            p_grupo_id: this.grupoId,
-            p_asignatura_id: this.asignaturaId,
-          })
-          .single<{ promedio: number; total: number }>();
+    const { data, error } = await this.sesion.supabase
+      .rpc('obtener_promedio_calificaciones', {
+        p_token: token,
+        p_grupo_id: this.grupoId,
+        p_asignatura_id: this.asignaturaId,
+      })
+      .single<{ promedio: number; total: number }>();
 
-        if (error || !data) { console.error('Error obteniendo promedio:', error?.message); return; }
+    if (error) {
+      console.error('Error obteniendo promedio:', error?.message);
+      return;
+    }
 
-        this.promedioNota = data.promedio ?? 0;
-        this.totalCalificadas = data.total ?? 0;
+    if (data) {
+      this.promedioNota = data.promedio ?? 0;
+      this.totalCalificadas = data.total ?? 0;
+    }
   }
 
   doRefresh(event: any) {

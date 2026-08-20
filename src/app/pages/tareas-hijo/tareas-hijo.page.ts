@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { SesionService } from '../../services/sesion.service';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { environment } from 'src/environments/environment';
 
 export interface TareaHijo {
   id: number;
@@ -28,7 +26,6 @@ export interface TareaHijo {
 })
 export class TareasHijoPage implements OnInit {
 
-  private supabase: SupabaseClient;
 
   cargando = true;
   error = '';
@@ -46,11 +43,7 @@ export class TareasHijoPage implements OnInit {
   pageSize = 10;
   paginaActual = 1;
 
-  constructor(private sesion: SesionService) {
-    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
-      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
-    });
-  }
+  constructor(private sesion: SesionService) {}
 
   ngOnInit() {
     this.cargarTareas();
@@ -71,8 +64,8 @@ export class TareasHijoPage implements OnInit {
 
     try {
       // Datos del alumno
-      const { data: alumno } = await this.supabase
-  .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
+const { data: alumno } = await this.sesion.supabase
+  .rpc('perfil_basico_usuario', { p_token: this.sesion.tutor?.token, p_user_id: alumnoId }).single();
 
       if (alumno) {
         this.alumnoNombre = `${(alumno as any).first_name} ${(alumno as any).last_name}`.trim();
@@ -85,27 +78,32 @@ export class TareasHijoPage implements OnInit {
       }
 
       // Tareas publicadas del grupo del alumno
-      const { data: tareasData, error: tareasErr } = await this.supabase
-        .from('academic_tarea')
-        .select(`
-          id, titulo, descripcion, fecha_entrega, publicada,
-          asignatura:asignatura_id ( nombre ),
-          docente:docente_id ( first_name, last_name )
-        `)
-        .eq('grupo_id', grupoId)
-        .eq('publicada', true)
-        .order('fecha_entrega', { ascending: true });
+      const { data: tareasData, error: tareasErr } = await this.sesion.supabase
+        .rpc('tareas_del_alumno', {
+          p_token: this.sesion.tutor?.token,
+          p_alumno_id: alumnoId,
+        });
 
       if (tareasErr) throw new Error(tareasErr.message);
 
-      // Entregas del alumno
-      const { data: entregasData } = await this.supabase
-        .from('academic_entregatarea')
-        .select('tarea_id, estado, calificacion, feedback, entregada_en')
-        .eq('alumno_id', alumnoId);
+      // Entregas del alumno (vía RPC segura: valida sesión + que el tutor sea
+      // dueño del alumno antes de devolver nada — reemplaza el .from() directo)
+      const tareaIds = (tareasData || []).map((t: any) => t.id);
+
+      let entregasData: any[] = [];
+      if (tareaIds.length > 0) {
+        const { data, error: entregasErr } = await this.sesion.supabase
+          .rpc('entregas_de_tarea_tutor', {
+            p_token: this.sesion.tutor?.token,
+            p_tarea_ids: tareaIds,
+          });
+
+        if (entregasErr) throw new Error(entregasErr.message);
+        entregasData = data || [];
+      }
 
       const entregasMap: Record<number, any> = {};
-      (entregasData || []).forEach((e: any) => {
+      entregasData.forEach((e: any) => {
         entregasMap[e.tarea_id] = e;
       });
 
@@ -120,8 +118,8 @@ export class TareasHijoPage implements OnInit {
           titulo:      t.titulo,
           descripcion: t.descripcion || '',
           fecha_entrega: t.fecha_entrega,
-          asignatura:  t.asignatura?.nombre || '—',
-          docente:     `${t.docente?.first_name || ''} ${t.docente?.last_name || ''}`.trim(),
+          asignatura:  t.asignatura_nombre || '—',
+          docente:     `${t.docente_first_name || ''} ${t.docente_last_name || ''}`.trim(),
           publicada:   t.publicada,
           vencida,
           entrega: entrega ? {

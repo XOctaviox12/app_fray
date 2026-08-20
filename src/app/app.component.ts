@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, MenuController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
@@ -54,7 +54,7 @@ export class AppComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // La sesion local ya se carga dentro del constructor de SesionService.
+    // La sesión local ya se carga dentro del constructor de SesionService.
     if (this.esDocente) this.chequearAsistenciaPendienteHoy();
 
     this.networkSub = this.networkStatus.online$.subscribe(isOnline => {
@@ -98,7 +98,7 @@ export class AppComponent implements OnInit, OnDestroy {
     return `${urlCruda}${separador}v=${this.avatarCacheBuster}`;
   }
 
-  // ── Helpers de rol para el menú dinámico ───────────────────────────
+  // ── Helpers de rol para el menú dinámico ────────────────────────────
   // La app es solo para alumnos, docentes y tutores — se quitan COORD y
   // DIRECTOR, que antes hacían que esDocente() fuera true para esos
   // roles también.
@@ -147,48 +147,46 @@ export class AppComponent implements OnInit, OnDestroy {
     await alert.present();
   }
 
-  /** Se mantiene este metodo porque login.page.ts lo invoca tal cual. */
+  /** Se mantiene este método porque login.page.ts lo invoca tal cual. */
   async iniciarSesion(username: string, password: string): Promise<boolean> {
     return this.sesion.iniciarSesion(username, password);
   }
 
-  // ══════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
   // Badge "HOY" — revisa si falta tomar asistencia en alguna
   // combinación materia+grupo del docente, para el día de hoy.
-  // ══════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
   private async chequearAsistenciaPendienteHoy() {
     try {
       const uid = this.sesion.usuario?.id;
       if (!uid) return;
 
-      const { data: relGrupos } = await this.sesion.supabase
-        .from('academic_grupo_docentes').select('grupo_id').eq('user_id', uid);
+      const { data: relGrupos, error: errRG } = await this.sesion.supabase
+        .from('users_docentegrupo').select('grupo_id').eq('docente_id', uid).eq('activo', true);
+      if (errRG) { console.error('Error grupos docente:', errRG.message); return; }
       const grupoIds = [...new Set((relGrupos || []).map((r: any) => r.grupo_id))];
       if (!grupoIds.length) return;
 
-      const { data: relMaterias } = await this.sesion.supabase
-        .from('academic_asignatura_docentes').select('asignatura_id').eq('user_id', uid);
+const { data: relMaterias, error: errRM } = await this.sesion.supabase
+  .from('users_docentegrupo').select('asignatura_id').eq('docente_id', uid).eq('activo', true);
+if (errRM) { console.error('Error materias docente:', errRM.message); return; }
       const materiaIds = [...new Set((relMaterias || []).map((r: any) => r.asignatura_id))];
       if (!materiaIds.length) return;
 
-      const { data: relAG } = await this.sesion.supabase
-        .from('academic_asignatura_grupos')
-        .select('asignatura_id, grupo_id')
-        .in('asignatura_id', materiaIds)
-        .in('grupo_id', grupoIds);
+      const { data: relAG } = await this.sesion.supabase.rpc('combos_asignatura_grupo_docente', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_docente_id: uid });
 
       const combos = new Set((relAG || []).map((r: any) => `${r.asignatura_id}-${r.grupo_id}`));
       if (combos.size === 0) return;
 
-const hoy = new Date().toISOString().split('T')[0];
-          const token = this.sesion.usuario?.token;
-          const { data: asistHoy } = token
-            ? await this.sesion.supabase.rpc('combos_con_lista', { p_token: token, p_grupo_ids: grupoIds, p_materia_ids: materiaIds, p_fecha: hoy })
-            : { data: [] as any[] };
+      const hoy = new Date().toISOString().split('T')[0];
+      const token = this.sesion.usuario?.token;
+      const { data: asistHoy } = token
+        ? await this.sesion.supabase.rpc('combos_con_lista', { p_token: token, p_grupo_ids: grupoIds, p_materia_ids: materiaIds, p_fecha: hoy })
+        : { data: [] as any[] };
 
-          const combosConLista = new Set((asistHoy || []).map((a: any) => `${a.asignatura_id}-${a.grupo_id}`));
+      const combosConLista = new Set((asistHoy || []).map((a: any) => `${a.asignatura_id}-${a.grupo_id}`));
 
-          this.hayAsistenciaPendienteHoy = [...combos].some(c => !combosConLista.has(c));
+      this.hayAsistenciaPendienteHoy = [...combos].some(c => !combosConLista.has(c));
     } catch {
       this.hayAsistenciaPendienteHoy = false;
     }

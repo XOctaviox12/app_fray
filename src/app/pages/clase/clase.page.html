@@ -70,8 +70,8 @@
         <div class="bloque-texto" *ngIf="b.tipo === 'texto'" [innerHTML]="linkify(b.contenido)"></div>
 
         <div class="bloque-pdf" *ngIf="b.tipo === 'pdf'">
-          <iframe [src]="b.contenido" width="100%" height="360px" class="pdf-iframe"
-            [title]="b.titulo || 'Documento PDF'"></iframe>
+          <iframe [src]="pdfEmbed(b.contenido)" width="100%" height="360px" class="pdf-iframe"
+  [title]="b.titulo || 'Documento PDF'"></iframe>
           <a [href]="b.contenido" target="_blank" rel="noopener" class="pdf-open-link">
             <ion-icon name="open-outline"></ion-icon> Abrir en nueva pestaña
           </a>

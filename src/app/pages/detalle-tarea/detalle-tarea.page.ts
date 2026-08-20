@@ -99,13 +99,13 @@ export class DetalleTareaPage implements OnInit {
 
   get esDocente(): boolean { return this.sesion.esDocente(); }
   get esAlumno(): boolean { return this.sesion.esAlumno(); }
- get fechaMinima(): string {
-  const hoy = new Date();
-  const y = hoy.getFullYear();
-  const m = String(hoy.getMonth() + 1).padStart(2, '0');
-  const d = String(hoy.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
+  get fechaMinima(): string {
+    const hoy = new Date();
+    const y = hoy.getFullYear();
+    const m = String(hoy.getMonth() + 1).padStart(2, '0');
+    const d = String(hoy.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
 
   ngOnInit() {
     this.tareaId = Number(this.route.snapshot.paramMap.get('id'));
@@ -135,14 +135,9 @@ export class DetalleTareaPage implements OnInit {
     this.cargando = true;
     this.error = null;
     try {
-      const { data, error } = await this.sesion.supabase
-        .from('academic_tarea')
-        .select(`id, titulo, descripcion, fecha_entrega, archivo, publicada, docente_id,
-                 asignatura_id, grupo_id,
-                 academic_asignatura(nombre),
-                 academic_grupo(nombre, grado, aula)`)
-        .eq('id', this.tareaId)
-        .single();
+      const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+      const { data: _tData, error } = await this.sesion.supabase.rpc('leer_tarea_detalle', { p_token: token, p_tarea_id: this.tareaId });
+      const data = _tData && _tData.length ? _tData[0] : null;
       if (error) throw error;
       const t: any = data;
       this.tarea = {
@@ -195,13 +190,11 @@ export class DetalleTareaPage implements OnInit {
     if (!this.tarea) return;
     try {
       const { data: alumnos, error: eAl } = await this.sesion.supabase
-        .rpc('alumnos_por_grupos', { p_docente_id: this.sesion.usuario!.id, p_grupo_ids: [this.tarea.grupo_id] });
+        .rpc('alumnos_por_grupos', { p_token: this.sesion.usuario?.token, p_grupo_ids: [this.tarea.grupo_id] });
       if (eAl) throw eAl;
 
       const { data: entregas, error: eEnt } = await this.sesion.supabase
-        .from('academic_entregatarea')
-        .select('*')
-        .eq('tarea_id', this.tarea.id);
+        .rpc('entregas_de_tarea_docente', { p_token: this.sesion.usuario?.token, p_tarea_id: this.tarea.id });
       if (eEnt) throw eEnt;
 
       const porAlumno = new Map<number, Entrega>();
@@ -219,11 +212,11 @@ export class DetalleTareaPage implements OnInit {
             guardando: false,
           } as AlumnoEntregaRow;
         })
-       .sort((a: AlumnoEntregaRow, b: AlumnoEntregaRow) => {
+        .sort((a: AlumnoEntregaRow, b: AlumnoEntregaRow) => {
           if (!!a.entrega === !!b.entrega) return a.alumno_nombre.localeCompare(b.alumno_nombre);
           return a.entrega ? -1 : 1;
         });
-        
+
       this.totalAlumnos = alumnos?.length || 0;
       this.totalEntregas = entregas?.length || 0;
       this.totalCalificadas = (entregas || []).filter((e: any) => e.estado === ESTADO_CALIFICADA).length;
@@ -240,19 +233,26 @@ export class DetalleTareaPage implements OnInit {
     }
     row.guardando = true;
     try {
-      const { data, error } = await this.sesion.supabase
-        .from('academic_entregatarea')
-        .update({
-          calificacion: row.calificacionEdit,
-          feedback: (row.feedbackEdit || '').trim(),
-          estado: ESTADO_CALIFICADA,
-          calificada_en: new Date().toISOString(),
-        })
-        .eq('id', row.entrega.id)
-        .select().single();
+      const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+      const { error } = await this.sesion.supabase
+        .rpc('calificar_entrega_tarea', {
+          p_token: token,
+          p_entrega_id: row.entrega.id,
+          p_calificacion: row.calificacionEdit,
+          p_feedback: (row.feedbackEdit || '').trim(),
+        });
       if (error) throw error;
-      row.entrega = data;
-      this.totalCalificadas = this.entregasAlumnos.filter(r => this.esCalificada(r.entrega)).length;
+
+      const eraCalificada = this.esCalificada(row.entrega);
+      row.entrega = {
+        ...row.entrega,
+        calificacion: row.calificacionEdit,
+        feedback: (row.feedbackEdit || '').trim(),
+        estado: ESTADO_CALIFICADA,
+        calificada_en: new Date().toISOString(),
+      };
+      if (!eraCalificada) this.totalCalificadas++;
+
       this.toast('Calificación guardada.', 'success');
     } catch (e: any) {
       this.toast(`No se pudo guardar: ${e.message}`, 'danger');
@@ -265,16 +265,12 @@ export class DetalleTareaPage implements OnInit {
   // ALUMNO: MI ENTREGA
   // ─────────────────────────────────────────────
   async cargarMiEntrega() {
+    if (!this.tarea) return;
     try {
-      const uid = this.sesion.usuario!.id;
-      const { data, error } = await this.sesion.supabase
-        .from('academic_entregatarea')
-        .select('*')
-        .eq('tarea_id', this.tareaId)
-        .eq('alumno_id', uid)
-        .maybeSingle();
+      const { data: entregas, error } = await this.sesion.supabase
+        .rpc('entregas_propias_de_tareas', { p_token: this.sesion.usuario?.token, p_tarea_ids: [this.tarea.id] });
       if (error) throw error;
-      this.entregaPropia = data || null;
+      this.entregaPropia = entregas && entregas.length ? entregas[0] : null;
     } catch (e: any) {
       this.toast(`No se pudo cargar tu entrega: ${e.message}`, 'danger');
     }
@@ -293,18 +289,30 @@ export class DetalleTareaPage implements OnInit {
     const input = ev.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
-    if (file.size / 1048576 > MAX_MB) { this.errorEntrega = `Supera ${MAX_MB}MB.`; input.value = ''; return; }
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    if (EXT_BAN.includes(ext)) { this.errorEntrega = 'Tipo de archivo no permitido.'; input.value = ''; return; }
+    const err = this.validar(file);
+    if (err) { this.errorEntrega = err; input.value = ''; return; }
     this.archivoEntregaSeleccionado = file;
     this.errorEntrega = '';
   }
 
+  private validar(file: File): string | null {
+    if (file.size / 1048576 > MAX_MB) return `Supera ${MAX_MB}MB.`;
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    if (EXT_BAN.includes(ext)) return 'Tipo de archivo no permitido.';
+    return null;
+  }
+
+  esTardia(): boolean {
+    if (!this.entregaPropia || !this.tarea) return false;
+    return this.entregaPropia.entregada_en.slice(0, 10) > this.tarea.fecha_entrega;
+  }
+
   async enviarEntrega() {
+    if (!this.tarea) return;
     if (this.tareaBloqueada()) {
       this.errorEntrega = this.esCalificada(this.entregaPropia)
         ? 'Esta tarea ya fue calificada, no puedes modificar tu entrega.'
-        : 'La fecha de entrega ya venció.';
+        : 'La fecha de entrega ya venció, no puedes entregar ni modificar.';
       this.mostrarFormEntrega = false;
       return;
     }
@@ -326,32 +334,16 @@ export class DetalleTareaPage implements OnInit {
         archivoUrl = subido.url;
       }
 
-      const uid = this.sesion.usuario!.id;
       const comentario = (this.comentarioEntrega || '').trim();
-      const ahora = new Date().toISOString();
-
-      if (this.entregaPropia) {
-        const { data, error } = await this.sesion.supabase
-          .from('academic_entregatarea')
-          .update({
-            archivo: archivoUrl, comentario, estado: ESTADO_ENTREGADA, entregada_en: ahora,
-            calificacion: null, feedback: '', calificada_en: null,
-          })
-          .eq('id', this.entregaPropia.id)
-          .select().single();
-        if (error) throw error;
-        this.entregaPropia = data;
-      } else {
-        const { data, error } = await this.sesion.supabase
-          .from('academic_entregatarea')
-          .insert({
-            tarea_id: this.tareaId, alumno_id: uid, archivo: archivoUrl,
-            comentario, estado: ESTADO_ENTREGADA, entregada_en: ahora, feedback: '',
-          })
-          .select().single();
-        if (error) throw error;
-        this.entregaPropia = data;
-      }
+      const { data, error } = await this.sesion.supabase
+        .rpc('guardar_entrega_tarea', {
+          p_token: this.sesion.usuario?.token,
+          p_tarea_id: this.tarea.id,
+          p_archivo: archivoUrl,
+          p_comentario: comentario,
+        });
+      if (error) throw error;
+      this.entregaPropia = data;
 
       this.mostrarFormEntrega = false;
       this.toast('Tarea entregada.', 'success');
@@ -362,91 +354,68 @@ export class DetalleTareaPage implements OnInit {
     }
   }
 
-  esTardia(): boolean {
-    if (!this.entregaPropia || !this.tarea) return false;
-    return this.entregaPropia.entregada_en.slice(0, 10) > this.tarea.fecha_entrega;
-  }
-
   // ─────────────────────────────────────────────
-  // COMENTARIOS (docente y alumno)
+  // COMENTARIOS (ambos roles)
   // ─────────────────────────────────────────────
   async cargarComentarios() {
+    if (!this.tarea) return;
     try {
+      const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+      // NOTA: la RPC real se llama 'comentarios_tarea' (no 'leer_comentarios_tarea').
+      // Además esta función NO devuelve autor_nombre/autor_rol, así que los
+      // completamos con valores por defecto para no romper el template hasta
+      // que exista una RPC que resuelva esos nombres.
       const { data, error } = await this.sesion.supabase
-        .from('academic_comentariotarea')
-        .select('*')
-        .eq('tarea_id', this.tareaId)
-        .order('creado_en', { ascending: true });
+        .rpc('comentarios_tarea', { p_token: token, p_tarea_id: this.tarea.id });
       if (error) throw error;
-
-      const autorIds = [...new Set((data || []).map((c: any) => c.autor_id))];
-      let autores = new Map<number, { nombre: string; rol: string }>();
-          if (autorIds.length) {
-            const tokenN = this.sesion.usuario?.token || this.sesion.tutor?.token;
-            const { data: usuarios, error: eU } = tokenN
-              ? await this.sesion.supabase.rpc('nombres_usuarios', { p_token: tokenN, p_ids: autorIds })
-              : { data: [] as any[], error: null };
-            if (eU) throw eU;
-            (usuarios || []).forEach((u: any) => {
-              autores.set(u.id, { nombre: `${u.first_name} ${u.last_name}`.trim(), rol: u.rol });
-            });
-          }
-
       this.comentarios = (data || []).map((c: any) => ({
-  ...c,
-  autor_nombre: autores.get(c.autor_id)?.nombre || 'Usuario',
-  autor_rol: autores.get(c.autor_id)?.rol || '',
-}));
+        ...c,
+        autor_nombre: c.autor_nombre ?? '',
+        autor_rol: c.autor_rol ?? '',
+      }));
     } catch (e: any) {
       this.toast(`No se pudieron cargar los comentarios: ${e.message}`, 'danger');
     }
   }
 
-  async enviarComentario() {
+  async agregarComentario() {
     const texto = this.nuevoComentario.trim();
-    if (!texto) return;
+    if (!texto || !this.tarea) return;
     this.enviandoComentario = true;
     try {
-      const uid = this.sesion.usuario!.id;
-      const { error } = await this.sesion.supabase
-        .from('academic_comentariotarea')
-        .insert({ tarea_id: this.tareaId, autor_id: uid, texto,creado_en: new Date().toISOString() });
+      const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+      const { data, error } = await this.sesion.supabase
+        .rpc('crear_comentario_tarea', { p_token: token, p_tarea_id: this.tarea.id, p_texto: texto });
       if (error) throw error;
+      if (data) this.comentarios.push(data);
       this.nuevoComentario = '';
-      await this.cargarComentarios();
     } catch (e: any) {
-      this.toast(`No se pudo comentar: ${e.message}`, 'danger');
+      this.toast(`No se pudo enviar el comentario: ${e.message}`, 'danger');
     } finally {
       this.enviandoComentario = false;
     }
   }
 
+  toggleEditarComentario(c: Comentario) {
+    c.editando = !c.editando;
+    if (c.editando) c.textoEdit = c.texto;
+  }
+
   esMiComentario(c: Comentario): boolean {
-    return c.autor_id === this.sesion.usuario?.id;
-  }
-
-  activarEdicion(c: Comentario) {
-    c.editando = true;
-    c.textoEdit = c.texto;
-  }
-
-  cancelarEdicionComentario(c: Comentario) {
-    c.editando = false;
+    const miId = this.sesion.usuario?.id ?? this.sesion.tutor?.id;
+    return !!miId && c.autor_id === miId;
   }
 
   async guardarEdicionComentario(c: Comentario) {
-    const nuevo = (c.textoEdit || '').trim();
-    if (!nuevo) { this.toast('El comentario no puede quedar vacío.', 'warning'); return; }
+    const texto = (c.textoEdit || '').trim();
+    if (!texto) return;
     try {
+      const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
       const { error } = await this.sesion.supabase
-        .from('academic_comentariotarea')
-        .update({ texto: nuevo })
-        .eq('id', c.id)
-        .eq('autor_id', this.sesion.usuario?.id);
+        .rpc('editar_comentario_tarea', { p_token: token, p_comentario_id: c.id, p_texto: texto });
       if (error) throw error;
-      c.texto = nuevo;
+      c.texto = texto;
       c.editando = false;
-      this.toast('Comentario actualizado.', 'success');
     } catch (e: any) {
       this.toast(`No se pudo editar: ${e.message}`, 'danger');
     }
@@ -460,11 +429,8 @@ export class DetalleTareaPage implements OnInit {
         text: 'Eliminar', role: 'destructive',
         handler: async () => {
           try {
-            const { error } = await this.sesion.supabase
-              .from('academic_comentariotarea')
-              .delete()
-              .eq('id', c.id)
-              .eq('autor_id', this.sesion.usuario?.id);
+            const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+            const { error } = await this.sesion.supabase.rpc('eliminar_comentario_tarea', { p_token: token, p_comentario_id: c.id });
             if (error) throw error;
             this.comentarios = this.comentarios.filter(x => x.id !== c.id);
             this.toast('Comentario eliminado.', 'success');
@@ -495,18 +461,11 @@ export class DetalleTareaPage implements OnInit {
     await t.present();
   }
 
-  // Abre un archivo normalizando su URL primero, igual que herramientas.page.ts.
   abrirArchivo(url: string) {
     const normalizada = this.urlArchivo(url);
     if (normalizada) this.visorArchivos.abrir(normalizada);
   }
 
-  // Normaliza el valor guardado en "archivo" para poder abrirlo/mostrarlo.
-  // 1) Si ya trae "http" en algún punto, corta todo lo anterior (limpia prefijos corruptos,
-  //    ej. "raw/upload/https://...").
-  // 2) Si no trae "http" para nada (ruta relativa "pura" de Cloudinary, ej.
-  //    "image/upload/v.../archivo.pdf"), reconstruye la URL completa usando el
-  //    cloud_name de environment.
   urlArchivo(raw: string | null | undefined): string {
     if (!raw) return '';
     const idx = raw.indexOf('http');

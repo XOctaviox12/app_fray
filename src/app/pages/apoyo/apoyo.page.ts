@@ -83,47 +83,48 @@ export class ApoyoPage implements OnInit {
   // ═══════════════════════════════════════════════════════════
 
 async cargarMateriales() {
-  this.cargando = true; this.error = '';
+  this.cargando = true;
+  this.error = '';
   try {
     let grupoIds: number[] = [];
 
-    if (this.sesion.esAlumno()) {
-      const { data: usu } = await this.sesion.supabase
-        .rpc('perfil_basico_usuario', { p_user_id: this.sesion.usuario!.id }).single();
-      const gId = (usu as any)?.alumno_grupo_id;
-      if (gId) grupoIds = [gId];
+    // Bloque alumno — agregar p_token:
+if (this.sesion.esAlumno()) {
+  const { data: usu } = await this.sesion.supabase
+    .rpc('perfil_basico_usuario', { p_token: this.sesion.usuario?.token, p_user_id: this.sesion.usuario!.id }).single();
+  const gId = (usu as any)?.alumno_grupo_id;
+  if (gId) grupoIds = [gId];
 
-    } else if (this.esDocente) {
-      const { data: rel } = await this.sesion.supabase
-        .from('academic_grupo_docentes').select('grupo_id').eq('user_id', this.sesion.usuario!.id);
-      grupoIds = (rel||[]).map((r:any) => r.grupo_id);
+// Bloque docente — migrar tabla:
+} else if (this.esDocente) {
+  const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+    const { data: rel, error: errRel } = await this.sesion.supabase.rpc('grupos_y_materias_del_docente', { p_token: token });
+    if (errRel) console.error('Error grupos docente:', errRel.message);
+    grupoIds = Array.from(new Set((rel||[]).map((r:any) => r.grupo_id)));
 
-    } else if (this.sesion.esTutor()) {
-      const alumnoId = (this.sesion.usuario as any)?.alumno_id;
-      if (alumnoId) {
-        const { data: usu } = await this.sesion.supabase
-          .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
-        const gId = (usu as any)?.alumno_grupo_id;
-        if (gId) grupoIds = [gId];
-      }
-    }
+// Bloque tutor — agregar p_token:
+} else if (this.sesion.esTutor()) {
+  const alumnoId = (this.sesion.usuario as any)?.alumno_id;
+  if (alumnoId) {
+    const { data: usu } = await this.sesion.supabase
+      .rpc('perfil_basico_usuario', { p_token: this.sesion.tutor?.token, p_user_id: alumnoId }).single();
+    const gId = (usu as any)?.alumno_grupo_id;
+    if (gId) grupoIds = [gId];
+  }
+}
 
     if (!grupoIds.length) { this.materiales = []; this.construirGrupos(); return; }
 
-    const { data, error } = await this.sesion.supabase
-      .from('academic_materialapoyo')
-      .select('id, titulo, descripcion, tipo, archivo, url_externa, activo, creado_en, asignatura_id, grupo_id, orden')
-      .in('grupo_id', grupoIds)
-      .eq('activo', true)
-      .order('orden', { ascending: true });
+    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+    const { data, error } = await this.sesion.supabase.rpc('leer_material_apoyo_grupos', { p_token: token, p_grupo_ids: grupoIds });
     if (error) throw error;
 
     // Nombres de asignaturas
     const asiIds = [...new Set((data||[]).map((m:any) => m.asignatura_id).filter(Boolean))];
     let asiNombres: Record<number,string> = {};
     if (asiIds.length) {
-      const { data: asis } = await this.sesion.supabase
-        .from('academic_asignatura').select('id, nombre').in('id', asiIds);
+      const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+      const { data: asis } = await this.sesion.supabase.rpc('nombres_asignaturas', { p_token: token, p_ids: asiIds });
       (asis||[]).forEach((a:any) => { asiNombres[a.id] = a.nombre; });
     }
 
@@ -185,28 +186,22 @@ async cargarMateriales() {
   // DOCENTE: SUBIR MATERIAL
   // ═══════════════════════════════════════════════════════════
 
-  async cargarOpcionesDocente() {
-    const uid = this.sesion.usuario?.id;
-    if (!uid) return;
+async cargarOpcionesDocente() {
+  const uid = this.sesion.usuario?.id;
+  if (!uid) return;
 
-    const { data: relG } = await this.sesion.supabase
-      .from('academic_grupo_docentes').select('grupo_id').eq('user_id', uid);
-    const grupoIds = (relG||[]).map((r:any) => r.grupo_id);
-    if (grupoIds.length) {
-      const { data } = await this.sesion.supabase
-        .from('academic_grupo').select('id, nombre, grado').in('id', grupoIds).order('grado');
-      this.misGruposOpts = data||[];
-    }
-
-    const { data: relA } = await this.sesion.supabase
-      .from('academic_asignatura_docentes').select('asignatura_id').eq('user_id', uid);
-    const asiIds = (relA||[]).map((r:any) => r.asignatura_id);
-    if (asiIds.length) {
-      const { data } = await this.sesion.supabase
-        .from('academic_asignatura').select('id, nombre').in('id', asiIds).order('nombre');
-      this.misMateriasOpts = data||[];
-    }
+  const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+  const { data: rawG, error: errG } = await this.sesion.supabase.rpc('grupos_y_materias_del_docente', { p_token: token });
+  if (errG) { console.error('Error grupos docente:', errG.message); return; }
+  if (rawG) {
+    const uniqueGroups = new Map();
+    rawG.forEach((g:any) => uniqueGroups.set(g.grupo_id, {id: g.grupo_id, nombre: g.grupo_nombre, grado: g.grupo_grado}));
+    this.misGruposOpts = Array.from(uniqueGroups.values()).sort((a:any, b:any) => a.grado - b.grado);
   }
+
+  const { data: rawA } = await this.sesion.supabase.rpc('materias_del_docente', { p_token: token });
+  if (rawA) { this.misMateriasOpts = rawA; }
+}
 
   async onArchivoSeleccionado(e: any) {
     const file: File = e.target.files[0]; if (!file) return;
@@ -242,16 +237,18 @@ async publicarMaterial() {
       this.subiendoArchivo = false;
     }
 
-    const { error } = await this.sesion.supabase.from('academic_materialapoyo').insert({
-      titulo:        f.nombre.trim(),
-      descripcion:   f.descripcion.trim()||null,
-      tipo:          f.tipo,
-      archivo:       archivoUrl || null,
-      url_externa:   urlExterna || null,
-      asignatura_id: f.materiaId,
-      grupo_id:      f.grupoId,
-      docente_id:    this.sesion.usuario?.id,
-      activo:        true,
+    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+    const { error } = await this.sesion.supabase.rpc('insertar_material_apoyo_json', {
+      p_token: token,
+      p_payload: {
+        titulo: f.nombre.trim(),
+        descripcion: f.descripcion.trim()||null,
+        tipo: f.tipo,
+        archivo: archivoUrl || null,
+        url_externa: urlExterna || null,
+        asignatura_id: f.materiaId,
+        grupo_id: f.grupoId
+      }
     });
     if (error) throw error;
 
@@ -268,7 +265,8 @@ async eliminarMaterial(m: MaterialApoyo, ev: Event) {
     header: 'Eliminar material', message: `¿Eliminar "${m.nombre}"?`,
     buttons: [{ text: 'Cancelar', role:'cancel' }, { text:'Eliminar', role:'destructive',
       handler: async () => {
-        await this.sesion.supabase.from('academic_materialapoyo').delete().eq('id', m.id);
+        const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+        await this.sesion.supabase.rpc('eliminar_material_apoyo', { p_token: token, p_material_id: m.id });
         this.materiales = this.materiales.filter(x => x.id !== m.id);
         this.construirGrupos();
         this.toast('Eliminado.', 'success');
@@ -293,11 +291,11 @@ async eliminarMaterial(m: MaterialApoyo, ev: Event) {
     return tipo === 'VIDEO' ? 'play-circle-outline' : 'download-outline';
   }
 
-formatSize(bytes: number|null): string {
-  if (!bytes) return '';
-  const k=1024, s=['B','KB','MB']; const i=Math.floor(Math.log(bytes)/Math.log(k));
-  return (bytes/Math.pow(k,i)).toFixed(1)+' '+s[i];
-}
+  formatSize(bytes: number|null): string {
+    if (!bytes) return '';
+    const k=1024, s=['B','KB','MB']; const i=Math.floor(Math.log(bytes)/Math.log(k));
+    return (bytes/Math.pow(k,i)).toFixed(1)+' '+s[i];
+  }
 
   doRefresh(ev: any) { this.cargarMateriales().then(() => ev.target.complete()); }
 

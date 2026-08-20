@@ -5,10 +5,8 @@ import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { SesionService } from '../../services/sesion.service';
 import { CloudinaryService, ArchivoSubido } from '../../services/cloudinary.service';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { environment } from 'src/environments/environment';
 
-// ─── Tipos ──────────────────────────────────────────────────────────────────
+// ─── Tipos ─────────────────────────────────────────────────────────────
 
 export interface EntregaItem {
   id: number;
@@ -99,7 +97,7 @@ const ETIQUETAS_PREGUNTA: Record<TipoPregunta, string> = {
 const MAX_MB  = 20;
 const EXT_BAN = ['exe','bat','sh','cmd','msi'];
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────
 
 @Component({
   standalone: true,
@@ -110,15 +108,15 @@ const EXT_BAN = ['exe','bat','sh','cmd','msi'];
 })
 export class ActividadPage implements OnInit {
 
-  private supabase: SupabaseClient;
+
 
   cargando = true;
   error    = '';
 
-  // ── Cuestionario — editor docente ──────────────────────
+  // ── Cuestionario — editor docente ────────────────────────────
   preguntasForm: PreguntaForm[] = [];
 
-  // ── Cuestionario — responder alumno ────────────────────
+  // ── Cuestionario — responder alumno ──────────────────────────
   preguntasAlumno: PreguntaAlumno[] = [];
   respuestasSeleccionadas: Record<number, number> = {}; // pregunta_id -> opcion_id (MULTIPLE/VF)
   respuestasAbiertas: Record<number, string> = {};       // pregunta_id -> texto (ABIERTA)
@@ -126,29 +124,29 @@ export class ActividadPage implements OnInit {
 
   actividades: ActividadItem[] = [];
 
-  // ── Filtros separados por rol ─────────────────────────────
+  // ── Filtros separados por rol ────────────────────────────────
   filtroAlumno:  FiltroAlumno  = 'TODAS';
   filtroDocente: FiltroDocente = 'TODAS';
   filtroTutor:   FiltroTutor   = 'TODAS';
 
-  // ── Panel de entregas (docente) ───────────────────────────
+  // ── Panel de entregas (docente) ──────────────────────────────
   actividadExpandida: ActividadItem | null = null;
   cargandoEntregas = false;
 
-  // ── Panel calificación (docente) ──────────────────────────
+  // ── Panel calificación (docente) ─────────────────────────────
   entregaCalificando: EntregaItem | null = null;
   notaNueva    = '';
   feedbackNuevo = '';
   guardandoCal = false;
 
-  // ── Panel entrega alumno ──────────────────────────────────
+  // ── Panel entrega alumno ─────────────────────────────────────
   actividadEntregando: ActividadItem | null = null;
   archivoEntrega: File | null = null;
   subiendoEntrega = false;
   progresoEntrega = 0;
   guardandoEntrega = false;
 
-  // ── Formulario docente ────────────────────────────────────
+  // ── Formulario docente ───────────────────────────────────────
   showForm   = false;
   editingId: number | null = null;
   guardando  = false;
@@ -183,22 +181,18 @@ export class ActividadPage implements OnInit {
     private cloudinary: CloudinaryService,
     private alertCtrl:  AlertController,
     private toastCtrl:  ToastController,
-  ) {
-    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
-      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
-    });
-  }
+  ) {}
 
   ngOnInit() {
     if (this.esDocente) this.cargarMaterias();
     this.cargarActividades();
   }
 
-  // ══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════
   //  PREGUNTAS — editor docente
   //  Se pueden combinar libremente MULTIPLE, VF y ABIERTA dentro
   //  de una misma actividad CUESTIONARIO, igual que en Django.
-  // ══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════
 
   agregarPregunta(tipo: TipoPregunta) {
     let opciones: OpcionForm[] = [];
@@ -231,20 +225,21 @@ export class ActividadPage implements OnInit {
 
   // Carga preguntas/opciones existentes al editar una actividad CUESTIONARIO
   private async cargarPreguntasParaEditar(actividadId: number) {
-    const { data: pregs } = await this.supabase
-      .from('academic_preguntaactividad')
-      .select('id, texto, puntos, orden, tipo')
-      .eq('actividad_id', actividadId)
-      .order('orden');
+    // Antes: "p_actividad_id:" se mandaba vacío — nunca cargaba las
+    // preguntas de la actividad que se estaba editando.
+    const { data: pregs } = await this.sesion.supabase.rpc('leer_preguntas_actividad', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_actividad_id: actividadId });
 
     this.preguntasForm = [];
     for (const p of pregs || []) {
       let opciones: OpcionForm[] = [];
       if (p.tipo === 'MULTIPLE' || p.tipo === 'VF') {
-        const { data: ops } = await this.supabase
-          .from('academic_opcionrespuesta')
-          .select('id, texto, es_correcta')
-          .eq('pregunta_id', p.id);
+        // academic_opcionrespuesta ya no es legible directo (RLS) — se usa la RPC
+        // opciones_docente, que valida que el que llama sea el docente dueño.
+        const token = this.sesion.usuario?.token;
+        const { data: ops, error: errOps } = token
+          ? await this.sesion.supabase.rpc('opciones_docente', { p_token: token, p_pregunta_id: p.id })
+          : { data: [] as any[], error: null };
+        if (errOps) console.error('Error opciones_docente:', errOps.message);
         opciones = (ops || []).map((o: any) => ({ id: o.id, texto: o.texto, es_correcta: o.es_correcta }));
       }
       this.preguntasForm.push({
@@ -257,34 +252,59 @@ export class ActividadPage implements OnInit {
   // Cada pregunta conserva su propio 'tipo' (MULTIPLE/VF/ABIERTA), permitiendo mezclarlas
   // dentro de la misma actividad — igual que la vista crear_actividad() en Django.
   private async guardarPreguntasOpciones(actividadId: number) {
-    const { data: viejas } = await this.supabase
-      .from('academic_preguntaactividad').select('id').eq('actividad_id', actividadId);
+    // Antes: "const { data:  }" — variable destructurada sin nombre (no
+    // compila) y "p_actividad_id:" vacío. Se corrige a "viejas" +
+    // actividadId, que es lo que usa la línea siguiente.
+    const { data: viejas } = await this.sesion.supabase.rpc('leer_preguntas_actividad', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_actividad_id: actividadId });
     const idsViejas = (viejas || []).map((p: any) => p.id);
 
     if (idsViejas.length) {
-      await this.supabase.from('academic_respuestaalumno').delete().in('pregunta_id', idsViejas);
-      await this.supabase.from('academic_opcionrespuesta').delete().in('pregunta_id', idsViejas);
-      await this.supabase.from('academic_preguntaactividad').delete().eq('actividad_id', actividadId);
+      const tokenDoc = this.sesion.usuario?.token;
+      await this.sesion.supabase.rpc('limpiar_respuestas_por_preguntas', { p_token: tokenDoc, p_pregunta_ids: idsViejas });
+      // academic_opcionrespuesta ya no acepta DELETE directo (RLS) — se limpia vía
+      // guardar_opciones_pregunta con un arreglo vacío (borra sin volver a insertar).
+      if (tokenDoc) {
+        for (const idViejo of idsViejas) {
+          const { error: errClear } = await this.sesion.supabase.rpc('guardar_opciones_pregunta', {
+            p_token: tokenDoc, p_pregunta_id: idViejo, p_opciones: [],
+          });
+          if (errClear) console.error('Error limpiando opciones de', idViejo, errClear.message);
+        }
+      }
+      // Antes: "p_actividad_id:" vacío — nunca borraba las preguntas
+      // viejas antes de recrearlas.
+      await this.sesion.supabase.rpc('eliminar_preguntas_por_actividad', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_actividad_id: actividadId });
     }
 
     for (let i = 0; i < this.preguntasForm.length; i++) {
       const p = this.preguntasForm[i];
       if (!p.texto.trim()) continue;
 
-      const { data: pregInsertada, error: errP } = await this.supabase
-        .from('academic_preguntaactividad')
-        .insert({ texto: p.texto.trim(), tipo: p.tipo, orden: i, puntos: p.puntos, actividad_id: actividadId })
-        .select('id').single();
+      // Antes: "p_actividad_id: ," — coma sin valor, no compila.
+      const { data: _pregData, error: errP } = await this.sesion.supabase.rpc('agregar_pregunta_actividad', {
+          p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token),
+          p_actividad_id: actividadId,
+          p_texto: p.texto.trim(),
+          p_tipo: p.tipo,
+          p_orden: i,
+          p_puntos: p.puntos || 0
+        });
+        const pregInsertada = _pregData ? _pregData[0] : null;
       if (errP) throw errP;
 
       if (p.tipo === 'MULTIPLE' || p.tipo === 'VF') {
         const opcionesValidas = p.opciones.filter(o => o.texto.trim());
         if (opcionesValidas.length) {
-          const { error: errO } = await this.supabase.from('academic_opcionrespuesta').insert(
-            opcionesValidas.map(o => ({
-              texto: o.texto.trim(), es_correcta: o.es_correcta, pregunta_id: (pregInsertada as any).id,
-            }))
-          );
+          // academic_opcionrespuesta ya no acepta INSERT directo (RLS) — se usa
+          // guardar_opciones_pregunta, que valida que el que llama sea el docente dueño.
+          const tokenDoc = this.sesion.usuario?.token;
+          const { error: errO } = tokenDoc
+            ? await this.sesion.supabase.rpc('guardar_opciones_pregunta', {
+                p_token: tokenDoc,
+                p_pregunta_id: (pregInsertada as any).id,
+                p_opciones: opcionesValidas.map(o => ({ texto: o.texto.trim(), es_correcta: o.es_correcta })),
+              })
+            : { error: { message: 'Sin token de docente' } as any };
           if (errO) throw errO;
         }
       }
@@ -292,9 +312,9 @@ export class ActividadPage implements OnInit {
     }
   }
 
-  // ══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════
   //  CARGA PRINCIPAL
-  // ══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════
 
   async cargarActividades() {
     this.cargando = true; this.error = '';
@@ -306,50 +326,51 @@ export class ActividadPage implements OnInit {
     this.cargando = false;
   }
 
-  // ── Alumno ────────────────────────────────────────────────
+  // ── Alumno ────────────────────────────────────────────────────
   async cargarParaAlumno() {
     const alumnoId = this.sesion.usuario?.id;
     if (!alumnoId) return;
 
     const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
     if (!token) return;
-    const { data: usu } = await this.supabase
+    const { data: usu } = await this.sesion.supabase
       .rpc('perfil_basico_usuario', { p_token: token, p_user_id: alumnoId })
       .single<{ alumno_grupo_id: number }>();
     const grupoId = usu?.alumno_grupo_id;
     if (!grupoId) return;
 
-    const { data: acts, error } = await this.supabase
-      .from('academic_actividad')
-      .select('id, titulo, instrucciones, tipo, fecha_entrega, valor_total, url_interactiva, asignatura_id, grupo_id')
-      .eq('grupo_id', grupoId).eq('publicada', true)
-      .order('fecha_entrega', { ascending: true });
+    // Antes: "p_grupo_id:" vacío — nunca traía las actividades del grupo.
+    const { data: acts, error } = await this.sesion.supabase
+      .rpc('leer_actividades_grupo', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_grupo_id: grupoId });
     if (error) throw error;
 
     const asiIds = [...new Set((acts || []).map((a: any) => a.asignatura_id))];
     let asiMap: Record<number, string> = {};
     if (asiIds.length) {
-      const { data: asis } = await this.supabase.from('academic_asignatura').select('id, nombre').in('id', asiIds);
+      const { data: asis } = await this.sesion.supabase.from('academic_asignatura').select('id, nombre').in('id', asiIds);
       (asis || []).forEach((a: any) => { asiMap[a.id] = a.nombre; });
     }
 
-    const { data: entregas } = await this.supabase
-      .from('academic_entregaactividad')
-      .select('id, actividad_id, calificacion, feedback, entregada_en, archivo')
-      .eq('alumno_id', alumnoId);
+    // Entregas propias del alumno (vía RPC segura: valida sesión y solo
+    // devuelve entregas del propio alumno — reemplaza el .from() directo)
+    const actIds = (acts || []).map((a: any) => a.id);
+    let entregas: any[] = [];
+    if (actIds.length) {
+      const { data, error: errEnt } = await this.sesion.supabase
+        .rpc('entregas_propias_de_actividades', { p_token: token, p_actividad_ids: actIds });
+      if (errEnt) throw errEnt;
+      entregas = data || [];
+    }
     const entMap: Record<number, any> = {};
-    (entregas || []).forEach((e: any) => { entMap[e.actividad_id] = e; });
+    entregas.forEach((e: any) => { entMap[e.actividad_id] = e; });
 
     // Respuestas de texto del alumno (resumen: primera respuesta abierta de cada entrega)
-    const actIds = (acts || []).map((a: any) => a.id);
     let respMap: Record<number, string> = {};
     if (actIds.length) {
       const entregaIds = Object.values(entMap).map((e: any) => e?.id).filter(Boolean);
       if (entregaIds.length) {
-        const { data: resps } = await this.supabase
-          .from('academic_respuestaalumno')
-          .select('entrega_id, texto')
-          .in('entrega_id', entregaIds);
+        const { data: resps } = await this.sesion.supabase
+          .rpc('respuestas_de_entregas_multi', { p_token: this.sesion.usuario?.token, p_entrega_ids: entregaIds });
         // Mapear entrega_id → actividad_id → texto
         const entIdToActId: Record<number, number> = {};
         Object.entries(entMap).forEach(([actId, ent]: any) => {
@@ -385,16 +406,14 @@ export class ActividadPage implements OnInit {
     });
   }
 
-  // ── Docente ───────────────────────────────────────────────
+  // ── Docente ───────────────────────────────────────────────────
   async cargarParaDocente() {
     const docenteId = this.sesion.usuario?.id;
     if (!docenteId) return;
 
-    const { data: acts, error } = await this.supabase
-      .from('academic_actividad')
-      .select('id, titulo, instrucciones, tipo, fecha_entrega, valor_total, url_interactiva, publicada, asignatura_id, grupo_id')
-      .eq('docente_id', docenteId)
-      .order('fecha_entrega', { ascending: false });
+    // Antes: "p_docente_id:" vacío — nunca traía las actividades del docente.
+    const { data: acts, error } = await this.sesion.supabase
+      .rpc('leer_actividades_docente', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_docente_id: docenteId });
     if (error) throw error;
 
     const asiIds = [...new Set((acts || []).map((a: any) => a.asignatura_id))];
@@ -403,11 +422,11 @@ export class ActividadPage implements OnInit {
     let gruMap: Record<number, string> = {};
 
     if (asiIds.length) {
-      const { data: asis } = await this.supabase.from('academic_asignatura').select('id, nombre').in('id', asiIds);
+      const { data: asis } = await this.sesion.supabase.from('academic_asignatura').select('id, nombre').in('id', asiIds);
       (asis || []).forEach((a: any) => { asiMap[a.id] = a.nombre; });
     }
     if (gruIds.length) {
-      const { data: grus } = await this.supabase.from('academic_grupo').select('id, nombre, grado').in('id', gruIds);
+      const { data: grus } = await this.sesion.supabase.from('academic_grupo').select('id, nombre, grado').in('id', gruIds);
       (grus || []).forEach((g: any) => { gruMap[g.id] = `${g.grado}° ${g.nombre}`; });
     }
 
@@ -417,14 +436,18 @@ export class ActividadPage implements OnInit {
 
     if ((acts || []).length) {
       const ids = (acts || []).map((a: any) => a.id);
-      const { data: ents } = await this.supabase
-        .from('academic_entregaactividad').select('actividad_id').in('actividad_id', ids);
-      (ents || []).forEach((e: any) => { conteoEnt[e.actividad_id] = (conteoEnt[e.actividad_id] || 0) + 1; });
+      // Conteo de entregas por actividad (vía RPC segura: solo cuenta
+      // actividades donde el que llama es el docente dueño — reemplaza el
+      // .from() directo)
+      const { data: conteos, error: errConteos } = await this.sesion.supabase
+        .rpc('contar_entregas_de_actividades', { p_token: this.sesion.usuario?.token, p_actividad_ids: ids });
+      if (errConteos) console.error('Error contar_entregas_de_actividades:', errConteos.message);
+      (conteos || []).forEach((c: any) => { conteoEnt[c.actividad_id] = c.total; });
 
       if (gruIds.length) {
         const token2 = this.sesion.usuario?.token || this.sesion.tutor?.token;
         const { data: alumnos } = token2
-          ? await this.supabase.rpc('alumnos_por_grupos', { p_token: token2, p_grupo_ids: gruIds })
+          ? await this.sesion.supabase.rpc('alumnos_por_grupos', { p_token: token2, p_grupo_ids: gruIds })
           : { data: [] as any[] };
         (alumnos || []).forEach((a: any) => {
           alumnosPorGrupo[a.alumno_grupo_id] = (alumnosPorGrupo[a.alumno_grupo_id] || 0) + 1;
@@ -448,39 +471,43 @@ export class ActividadPage implements OnInit {
     }));
   }
 
-  // ── Tutor ─────────────────────────────────────────────────
+  // ── Tutor ─────────────────────────────────────────────────────
   async cargarParaTutor() {
     const alumnoId = this.sesion.tutor?.alumno_id;
     if (!alumnoId) return;
 
     const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
     if (!token) return;
-    const { data: usu } = await this.supabase
+    const { data: usu } = await this.sesion.supabase
       .rpc('perfil_basico_usuario', { p_token: token, p_user_id: alumnoId })
       .single<{ alumno_grupo_id: number; first_name: string; last_name: string }>();
     const grupoId = usu?.alumno_grupo_id;
     if (!grupoId) return;
 
-    const { data: acts, error } = await this.supabase
-      .from('academic_actividad')
-      .select('id, titulo, instrucciones, tipo, fecha_entrega, valor_total, url_interactiva, asignatura_id, grupo_id')
-      .eq('grupo_id', grupoId).eq('publicada', true)
-      .order('fecha_entrega', { ascending: true });
+    // Antes: "p_grupo_id:" vacío — nunca traía las actividades del grupo.
+    const { data: acts, error } = await this.sesion.supabase
+      .rpc('leer_actividades_grupo', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_grupo_id: grupoId });
     if (error) throw error;
 
     const asiIds = [...new Set((acts || []).map((a: any) => a.asignatura_id))];
     let asiMap: Record<number, string> = {};
     if (asiIds.length) {
-      const { data: asis } = await this.supabase.from('academic_asignatura').select('id, nombre').in('id', asiIds);
+      const { data: asis } = await this.sesion.supabase.from('academic_asignatura').select('id, nombre').in('id', asiIds);
       (asis || []).forEach((a: any) => { asiMap[a.id] = a.nombre; });
     }
 
-    const { data: entregas } = await this.supabase
-      .from('academic_entregaactividad')
-      .select('actividad_id, calificacion, feedback, entregada_en, archivo')
-      .eq('alumno_id', alumnoId);
+    // Entregas del alumno vía sesión de tutor (RPC segura: valida que el
+    // tutor sea dueño del alumno — reemplaza el .from() directo)
+    const actIds = (acts || []).map((a: any) => a.id);
+    let entregas: any[] = [];
+    if (actIds.length) {
+      const { data, error: errEnt } = await this.sesion.supabase
+        .rpc('entregas_de_actividad_tutor', { p_token: this.sesion.tutor?.token, p_actividad_ids: actIds });
+      if (errEnt) throw errEnt;
+      entregas = data || [];
+    }
     const entMap: Record<number, any> = {};
-    (entregas || []).forEach((e: any) => { entMap[e.actividad_id] = e; });
+    entregas.forEach((e: any) => { entMap[e.actividad_id] = e; });
 
     const ahora = new Date();
     this.actividades = (acts || []).map((a: any) => {
@@ -502,11 +529,11 @@ export class ActividadPage implements OnInit {
     });
   }
 
-  // ══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════
   //  ENTREGAR ACTIVIDAD (alumno)
   //  Solo ARCHIVO y CUESTIONARIO requieren entrega — INTERACTIVA
   //  se resuelve fuera de la app (enlace externo), igual que en Django.
-  // ══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════
 
   async abrirEntrega(act: ActividadItem) {
     this.actividadEntregando = act;
@@ -519,16 +546,15 @@ export class ActividadPage implements OnInit {
     if (act.tipo === 'CUESTIONARIO') {
       this.cargandoPreguntas = true;
       try {
-        const { data: pregs } = await this.supabase
-          .from('academic_preguntaactividad')
-          .select('id, texto, orden, tipo')
-          .eq('actividad_id', act.id).order('orden');
+        // Antes: "p_actividad_id:" vacío — nunca traía las preguntas.
+        const { data: pregs } = await this.sesion.supabase.rpc('leer_preguntas_actividad', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_actividad_id: act.id });
 
         for (const p of pregs || []) {
           let opciones: { id: number; texto: string }[] = [];
           if (p.tipo === 'MULTIPLE' || p.tipo === 'VF') {
-            const { data: ops } = await this.supabase
-              .from('academic_opcionrespuesta').select('id, texto').eq('pregunta_id', p.id);
+            // El alumno lee opciones vía la vista pública — nunca ve es_correcta.
+            const { data: ops } = await this.sesion.supabase
+              .from('academic_opcionrespuesta_publica').select('id, texto').eq('pregunta_id', p.id);
             opciones = ops || [];
           }
           this.preguntasAlumno.push({ id: p.id, tipo: p.tipo, texto: p.texto, opciones });
@@ -536,10 +562,8 @@ export class ActividadPage implements OnInit {
 
         // Cargar selección previa si ya había entregado
         if (act.entrega?.id) {
-          const { data: resp } = await this.supabase
-            .from('academic_respuestaalumno')
-            .select('pregunta_id, opcion_id, texto')
-            .eq('entrega_id', act.entrega.id);
+         const { data: resp } = await this.sesion.supabase
+  .rpc('respuestas_de_entrega', { p_token: this.sesion.usuario?.token, p_entrega_id: act.entrega.id });
           (resp || []).forEach((r: any) => {
             if (r.opcion_id) this.respuestasSeleccionadas[r.pregunta_id] = r.opcion_id;
             else if (r.texto) this.respuestasAbiertas[r.pregunta_id] = r.texto;
@@ -565,7 +589,6 @@ export class ActividadPage implements OnInit {
   async guardarEntrega() {
     const act = this.actividadEntregando;
     if (!act) return;
-    const alumnoId = this.sesion.usuario?.id;
 
     if (act.tipo === 'ARCHIVO' && !this.archivoEntrega && !act.entrega?.archivo_url)
       { this.toast('Selecciona un archivo para entregar.', 'warning'); return; }
@@ -589,41 +612,34 @@ export class ActividadPage implements OnInit {
         this.subiendoEntrega = false;
       }
 
+      // Crear/actualizar la entrega vía RPC segura (upsert atómico: valida
+      // sesión y que sea el propio alumno — reemplaza el update/insert directo)
+      const { data: entregaId, error: errEntrega } = await this.sesion.supabase
+        .rpc('guardar_entrega_actividad', {
+          p_token: this.sesion.usuario?.token,
+          p_actividad_id: act.id,
+          p_archivo: archivoUrl,
+        });
+      if (errEntrega) throw errEntrega;
+
       const ahoraIso = new Date().toISOString();
-      const payload: any = {
-        actividad_id: act.id, alumno_id: alumnoId,
-        archivo: archivoUrl,
-        feedback: act.entrega?.feedback || '',
-        entregada_en: ahoraIso,
-      };
-
-      let entregaId = act.entrega?.id;
-
-      if (entregaId) {
-        const { error: errUpd } = await this.supabase.from('academic_entregaactividad').update(payload).eq('id', entregaId);
-        if (errUpd) throw errUpd;
-      } else {
-        const { data, error: errIns } = await this.supabase.from('academic_entregaactividad').insert(payload).select('id').single();
-        if (errIns) throw errIns;
-        entregaId = (data as any)?.id;
-      }
 
       // ── Cuestionario: guardar la respuesta de cada pregunta, sea MULTIPLE, VF o ABIERTA,
       //    combinadas dentro de la misma entrega — igual que hace Django. ──
-      let respuestaResumen = '';
+     let respuestaResumen = '';
       if (act.tipo === 'CUESTIONARIO' && entregaId) {
-        await this.supabase.from('academic_respuestaalumno').delete().eq('entrega_id', entregaId);
         const filas = this.preguntasAlumno.map(p => {
           if (p.tipo === 'MULTIPLE' || p.tipo === 'VF') {
             const opcionId = this.respuestasSeleccionadas[p.id];
             const opcionTexto = p.opciones.find(o => o.id === opcionId)?.texto || '';
-            return { entrega_id: entregaId, pregunta_id: p.id, opcion_id: opcionId, texto: opcionTexto };
+            return { pregunta_id: p.id, opcion_id: opcionId, texto: opcionTexto };
           }
           const texto = this.respuestasAbiertas[p.id]?.trim() || '';
           if (!respuestaResumen) respuestaResumen = texto; // solo para el resumen mostrado al docente
-          return { entrega_id: entregaId, pregunta_id: p.id, opcion_id: null, texto };
+          return { pregunta_id: p.id, opcion_id: null, texto };
         });
-        const { error: errResp } = await this.supabase.from('academic_respuestaalumno').insert(filas);
+        const { error: errResp } = await this.sesion.supabase
+          .rpc('guardar_respuestas_actividad', { p_token: this.sesion.usuario?.token, p_entrega_id: entregaId, p_respuestas: filas });
         if (errResp) throw errResp;
       }
 
@@ -645,9 +661,9 @@ export class ActividadPage implements OnInit {
     }
   }
 
-  // ══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════
   //  VER ENTREGAS (docente)
-  // ══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════
 
   async verEntregas(act: ActividadItem) {
     if (this.actividadExpandida?.id === act.id) {
@@ -658,12 +674,12 @@ export class ActividadPage implements OnInit {
 
     this.cargandoEntregas = true;
     try {
-      const { data: ents, error } = await this.supabase
-        .from('academic_entregaactividad')
-        .select('id, alumno_id, calificacion, feedback, entregada_en, archivo')
-        .eq('actividad_id', act.id)
-        .order('entregada_en', { ascending: false });
+      // Roster de entregas vía RPC segura: valida que el que llama sea el
+      // docente dueño de la actividad — reemplaza el .from() directo
+      const { data: ents, error } = await this.sesion.supabase
+        .rpc('entregas_de_actividad_docente', { p_token: this.sesion.usuario?.token, p_actividad_id: act.id });
       if (error) throw error;
+      (ents || []).sort((a: any, b: any) => new Date(b.entregada_en).getTime() - new Date(a.entregada_en).getTime());
 
       // Nombres de alumnos
       const alumnoIds = (ents || []).map((e: any) => e.alumno_id);
@@ -671,7 +687,7 @@ export class ActividadPage implements OnInit {
       if (alumnoIds.length) {
         const token3 = this.sesion.usuario?.token || this.sesion.tutor?.token;
         const { data: users } = token3
-          ? await this.supabase.rpc('nombres_usuarios', { p_token: token3, p_ids: alumnoIds })
+          ? await this.sesion.supabase.rpc('nombres_usuarios', { p_token: token3, p_ids: alumnoIds })
           : { data: [] as any[] };
         (users || []).forEach((u: any) => { nombreMap[u.id] = `${u.first_name} ${u.last_name}`.trim(); });
       }
@@ -680,8 +696,8 @@ export class ActividadPage implements OnInit {
       const entIds = (ents || []).map((e: any) => e.id);
       let textoMap: Record<number, string> = {};
       if (entIds.length) {
-        const { data: resps } = await this.supabase
-          .from('academic_respuestaalumno').select('entrega_id, texto').in('entrega_id', entIds);
+        const { data: resps } = await this.sesion.supabase
+          .rpc('respuestas_de_entregas_multi', { p_token: this.sesion.usuario?.token, p_entrega_ids: entIds });
         (resps || []).forEach((r: any) => { if (!textoMap[r.entrega_id]) textoMap[r.entrega_id] = r.texto; });
       }
 
@@ -704,9 +720,9 @@ export class ActividadPage implements OnInit {
     } finally { this.cargandoEntregas = false; }
   }
 
-  // ══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════
   //  CALIFICAR (docente)
-  // ══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════
 
   abrirCalificacion(ent: EntregaItem) {
     this.entregaCalificando = ent;
@@ -729,10 +745,15 @@ export class ActividadPage implements OnInit {
 
     this.guardandoCal = true;
     try {
-      const { error } = await this.supabase
-        .from('academic_entregaactividad')
-        .update({ calificacion: nota, feedback: this.feedbackNuevo.trim() })
-        .eq('id', ent.id);
+      // Calificar vía RPC segura: valida que el que llama sea el docente
+      // dueño de la actividad — reemplaza el .from().update() directo
+      const { error } = await this.sesion.supabase
+        .rpc('calificar_entrega_actividad', {
+          p_token: this.sesion.usuario?.token,
+          p_entrega_id: ent.id,
+          p_calificacion: nota,
+          p_feedback: this.feedbackNuevo.trim(),
+        });
       if (error) throw error;
 
       ent.calificacion = nota;
@@ -752,9 +773,9 @@ export class ActividadPage implements OnInit {
     } finally { this.guardandoCal = false; }
   }
 
-  // ══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════
   //  FILTROS POR ROL
-  // ══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════
 
   get actividadesFiltradas(): ActividadItem[] {
     if (this.esAlumno) {
@@ -776,6 +797,54 @@ export class ActividadPage implements OnInit {
     }
     return this.actividades;
   }
+    // ── Agrupación por semana (más recientes arriba) ────────────
+  get actividadesAgrupadas(): { label: string; items: ActividadItem[] }[] {
+    const ordenadas = [...this.actividadesFiltradas].sort((a, b) =>
+      new Date(b.fecha_entrega).getTime() - new Date(a.fecha_entrega).getTime()
+    );
+
+    const grupos = new Map<string, ActividadItem[]>();
+    for (const act of ordenadas) {
+      const key = this.claveSemana(act.fecha_entrega);
+      if (!grupos.has(key)) grupos.set(key, []);
+      grupos.get(key)!.push(act);
+    }
+
+    return Array.from(grupos.values()).map(items => ({
+      label: this.etiquetaSemana(items[0].fecha_entrega),
+      items,
+    }));
+  }
+
+  private inicioSemana(d: Date): Date {
+    const date = new Date(d);
+    const dia = date.getDay(); // 0 = domingo
+    const diff = dia === 0 ? -6 : 1 - dia; // retrocede hasta el lunes
+    date.setDate(date.getDate() + diff);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  private claveSemana(fechaStr: string): string {
+    return this.inicioSemana(new Date(fechaStr)).toISOString().slice(0, 10);
+  }
+
+  private etiquetaSemana(fechaStr: string): string {
+    const lunes = this.inicioSemana(new Date(fechaStr));
+    const domingo = new Date(lunes);
+    domingo.setDate(lunes.getDate() + 6);
+
+    const hoyLunes = this.inicioSemana(new Date());
+    const diffSemanas = Math.round((hoyLunes.getTime() - lunes.getTime()) / (7 * 24 * 60 * 60 * 1000));
+
+    if (diffSemanas === 0)  return 'Esta semana';
+    if (diffSemanas === 1)  return 'Semana pasada';
+    if (diffSemanas === -1) return 'Próxima semana';
+    if (diffSemanas > 1)    return `Hace ${diffSemanas} semanas`;
+
+    const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
+    return `${lunes.toLocaleDateString('es-MX', opts)} – ${domingo.toLocaleDateString('es-MX', opts)}`;
+  }
 
   // Stats alumno y tutor
   get totalPendientes():  number { return this.actividades.filter(a => !a.entrega && !a.vencida).length; }
@@ -793,19 +862,19 @@ export class ActividadPage implements OnInit {
   }
   get progressOffset(): number { return 2 * Math.PI * 50 * (1 - this.completionPercent / 100); }
 
-  // ══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════
   //  FORMULARIO CREAR/EDITAR (docente)
-  // ══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════
 
   async cargarMaterias() {
     const uid = this.sesion.usuario?.id; if (!uid) return;
     this.cargandoOpts = true;
     try {
-      const { data: rel } = await this.supabase
+      const { data: rel } = await this.sesion.supabase
         .from('academic_asignatura_docentes').select('asignatura_id').eq('user_id', uid);
       const ids = [...new Set((rel || []).map((r: any) => r.asignatura_id))];
       if (!ids.length) return;
-      const { data } = await this.supabase.from('academic_asignatura').select('id, nombre').in('id', ids).order('nombre');
+      const { data } = await this.sesion.supabase.from('academic_asignatura').select('id, nombre').in('id', ids).order('nombre');
       this.materias = data || [];
     } finally { this.cargandoOpts = false; }
   }
@@ -817,15 +886,16 @@ export class ActividadPage implements OnInit {
     this.cargandoOpts = true; this.errorOpts = null;
     try {
       const uid = this.sesion.usuario?.id;
-      const { data: relGM } = await this.supabase
+      const { data: relGM } = await this.sesion.supabase
         .from('academic_asignatura_grupos').select('grupo_id').eq('asignatura_id', this.newAct.materiaId);
       const idsGM = (relGM || []).map((r: any) => r.grupo_id);
       if (!idsGM.length) return;
-      const { data: relDG } = await this.supabase
-        .from('academic_grupo_docentes').select('grupo_id').eq('user_id', uid).in('grupo_id', idsGM);
-      const idsFinal = (relDG || []).map((r: any) => r.grupo_id);
+      const { data: relDG, error: errDG } = await this.sesion.supabase
+  .from('users_docentegrupo').select('grupo_id').eq('docente_id', uid).eq('activo', true).in('grupo_id', idsGM);
+if (errDG) { console.error('Error grupos docente:', errDG.message); return; }
+const idsFinal = (relDG || []).map((r: any) => r.grupo_id);
       if (!idsFinal.length) return;
-      const { data } = await this.supabase
+      const { data } = await this.sesion.supabase
         .from('academic_grupo').select('id, nombre, grado, aula').in('id', idsFinal).order('grado').order('nombre');
       this.gruposDeMateria = data || [];
       if (preservarGrupo && this.gruposDeMateria.some(g => g.id === preservarGrupo))
@@ -905,7 +975,8 @@ export class ActividadPage implements OnInit {
       let actividadIdFinal: number;
 
       if (this.editingId) {
-        const { data, error } = await this.supabase.from('academic_actividad').update(payload).eq('id', this.editingId).select().single();
+        // Antes: "p_actividad_id: , p_payload:  " — ambos vacíos, no compila.
+        const { data, error } = await this.sesion.supabase.rpc('actualizar_actividad_json', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_actividad_id: this.editingId, p_payload: payload });
         if (error) throw error;
         actividadIdFinal = this.editingId;
         const idx = this.actividades.findIndex(a => a.id === this.editingId);
@@ -916,7 +987,8 @@ export class ActividadPage implements OnInit {
         }
         this.toast('Actividad actualizada.', 'success');
       } else {
-        const { data, error } = await this.supabase.from('academic_actividad').insert(payload).select().single();
+        // Antes: "p_payload:  " vacío — creaba la actividad sin ningún dato.
+        const { data, error } = await this.sesion.supabase.rpc('insertar_actividad_json', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_payload: payload });
         if (error) throw error;
         actividadIdFinal = data.id;
         const g = this.gruposDeMateria.find(g => g.id === f.grupoId);
@@ -944,44 +1016,54 @@ export class ActividadPage implements OnInit {
           text: 'Eliminar', role: 'destructive',
           handler: async () => {
             try {
-              // 1) IDs de entregas y preguntas de esta actividad
-              const { data: entregas } = await this.supabase
-                .from('academic_entregaactividad').select('id').eq('actividad_id', act.id);
+              const tokenDoc = this.sesion.usuario?.token;
+
+              // 1) IDs de entregas (vía RPC segura, valida docente dueño) y
+              //    preguntas de esta actividad
+              const { data: entregas } = await this.sesion.supabase
+                .rpc('entregas_de_actividad_docente', { p_token: tokenDoc, p_actividad_id: act.id });
               const entregaIds = (entregas || []).map((e: any) => e.id);
 
-              const { data: preguntas } = await this.supabase
-                .from('academic_preguntaactividad').select('id').eq('actividad_id', act.id);
+              // Antes: "const { data:  }" sin nombre y "p_actividad_id:" vacío.
+              const { data: preguntas } = await this.sesion.supabase.rpc('leer_preguntas_actividad', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_actividad_id: act.id });
               const preguntaIds = (preguntas || []).map((p: any) => p.id);
 
               // 2) Borrar respuestas de alumnos que dependan de esas entregas o preguntas
               if (entregaIds.length) {
-                const { error: e1 } = await this.supabase
-                  .from('academic_respuestaalumno').delete().in('entrega_id', entregaIds);
+                const { error: e1 } = await this.sesion.supabase
+                  .rpc('limpiar_respuestas_por_entregas', { p_token: tokenDoc, p_entrega_ids: entregaIds });
                 if (e1) throw e1;
               }
               if (preguntaIds.length) {
-                const { error: e2 } = await this.supabase
-                  .from('academic_respuestaalumno').delete().in('pregunta_id', preguntaIds);
+                const { error: e2 } = await this.sesion.supabase
+                  .rpc('limpiar_respuestas_por_preguntas', { p_token: tokenDoc, p_pregunta_ids: preguntaIds });
                 if (e2) throw e2;
 
-                // Borrar las opciones antes que las preguntas (FK)
-                const { error: eOp } = await this.supabase
-                  .from('academic_opcionrespuesta').delete().in('pregunta_id', preguntaIds);
-                if (eOp) throw eOp;
+                // Borrar las opciones antes que las preguntas (FK) — ya no acepta DELETE
+                // directo (RLS), se limpia vía guardar_opciones_pregunta con arreglo vacío.
+                if (tokenDoc) {
+                  for (const pid of preguntaIds) {
+                    const { error: errClear } = await this.sesion.supabase.rpc('guardar_opciones_pregunta', {
+                      p_token: tokenDoc, p_pregunta_id: pid, p_opciones: [],
+                    });
+                    if (errClear) console.error('Error limpiando opciones de', pid, errClear.message);
+                  }
+                }
               }
 
-              // 3) Borrar entregas y preguntas
-              const { error: e3 } = await this.supabase
-                .from('academic_entregaactividad').delete().eq('actividad_id', act.id);
+              // 3) Borrar entregas (vía RPC segura) y preguntas
+              const { error: e3 } = await this.sesion.supabase
+                .rpc('borrar_entregas_de_actividad', { p_token: tokenDoc, p_actividad_id: act.id });
               if (e3) throw e3;
 
-              const { error: e4 } = await this.supabase
-                .from('academic_preguntaactividad').delete().eq('actividad_id', act.id);
+              // Antes: "p_actividad_id:" vacío.
+              const { error: e4 } = await this.sesion.supabase.rpc('eliminar_preguntas_por_actividad', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_actividad_id: act.id });
               if (e4) throw e4;
 
               // 4) Ahora sí, borrar la actividad
-              const { error } = await this.supabase
-                .from('academic_actividad').delete().eq('id', act.id);
+              // Antes: "p_actividad_id:" vacío.
+              const { error } = await this.sesion.supabase
+                .rpc('eliminar_actividad_docente', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_actividad_id: act.id });
               if (error) throw error;
 
               this.actividades = this.actividades.filter(a => a.id !== act.id);
@@ -999,13 +1081,14 @@ export class ActividadPage implements OnInit {
 
   async togglePublicada(act: ActividadItem, ev: Event) {
     ev.stopPropagation();
-    const { error } = await this.supabase.from('academic_actividad').update({ publicada: !act.publicada }).eq('id', act.id);
+    // Antes: "p_actividad_id: ," — coma sin valor, no compila.
+    const { error } = await this.sesion.supabase.rpc('toggle_publicar_actividad', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_actividad_id: act.id, p_publicada: !act.publicada });
     if (error) { this.toast('Error.','danger'); return; }
     act.publicada = !act.publicada;
     this.toast(act.publicada ? 'Publicada.' : 'Borrador.','success');
   }
 
-  // ── Archivos ──────────────────────────────
+  // ── Archivos ─────────────────────────────────
   onDragOver(e: DragEvent)  { e.preventDefault(); e.stopPropagation(); this.isDragging = true; }
   onDragLeave(e: DragEvent) { e.preventDefault(); e.stopPropagation(); this.isDragging = false; }
   onDrop(e: DragEvent)      { e.preventDefault(); e.stopPropagation(); this.isDragging = false; if (e.dataTransfer?.files.length) this.subirArchivos(Array.from(e.dataTransfer.files)); }
@@ -1040,7 +1123,7 @@ export class ActividadPage implements OnInit {
       .catch(() => { item.subiendo = false; item.error = true; });
   }
 
-  // ── Helpers UI ────────────────────────────
+  // ── Helpers UI ─────────────────────────────────
   getEstadoClass(a: ActividadItem): string {
     if (!a.entrega) return a.vencida ? 'no-entregada' : 'pendiente';
     return a.entrega.calificacion != null ? 'calificada' : 'entregada';

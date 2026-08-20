@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { SesionService } from '../../services/sesion.service';
 
 @Component({
@@ -51,22 +51,25 @@ export class InicioPage implements OnInit {
     this.cargando = false;
   }
 
-  // ── Alumno ──────────────────────────────────
+  // ── Alumno ──────────────────────────────────────────
   async cargarStatsAlumno() {
     const alumnoId = this.sesion.usuario?.id;
     if (!alumnoId) return;
 
-const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
-        if (!token) return;
+    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+    if (!token) return;
 
-        const { data: usu, error: eU } = await this.sesion.supabase
-          .rpc('perfil_basico_usuario', { p_token: token, p_user_id: alumnoId })
-          .single<{ alumno_grupo_id: number }>();
-        if (eU) { console.error('Error usuario alumno:', eU.message); return; }
+    const { data: usu, error: eU } = await this.sesion.supabase
+      .rpc('perfil_basico_usuario', { p_token: token, p_user_id: alumnoId })
+      .single<{ alumno_grupo_id: number }>();
+    if (eU) { console.error('Error usuario alumno:', eU.message); return; }
 
-        const grupoId = usu?.alumno_grupo_id;
+    const grupoId = usu?.alumno_grupo_id;
     if (!grupoId) return;
 
+    // Materias del grupo del alumno.
+    // ASUNCIÓN: cuento sobre academic_asignatura_grupos (grupo_id, asignatura_id),
+    // igual que se usa en cargarStatsTutor. Ajusta el nombre de tabla si no es el real.
     const { count: materias, error: eM } = await this.sesion.supabase
       .from('academic_asignatura_grupos')
       .select('*', { count: 'exact', head: true })
@@ -91,38 +94,39 @@ const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
     // Actividades del grupo. No se filtra por "hoy" porque no hay una
     // columna de fecha confirmada en academic_actividad; por ahora
     // cuenta el total asignado al grupo.
-    const { count: acts, error: eA } = await this.sesion.supabase
-      .from('academic_actividad')
-      .select('*', { count: 'exact', head: true })
-      .eq('grupo_id', grupoId);
+    const { data: acts, error: eA } = await this.sesion.supabase
+      .rpc('contar_actividades_grupo', { p_token: token, p_grupo_id: grupoId });
     if (eA) console.error('Error actividades alumno:', eA.message);
     this.actividadesHoy = acts || 0;
   }
 
-  // ── Docente ──────────────────────────────────
+  // ── Docente ──────────────────────────────────────────
   // Tablas M2M generadas por Django:
-  //   academic_grupo_docentes     → grupo_id, user_id
+  //   academic_grupo_docentes      → grupo_id, user_id
   //   academic_asignatura_docentes → asignatura_id, user_id
   // Nota: Django usa "user_id" en M2M de AUTH_USER_MODEL, no "docente_id"
   async cargarStatsDocente() {
     const docenteId = this.sesion.usuario?.id;
     if (!docenteId) return;
 
+    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+    if (!token) return;
+
     // Grupos asignados al docente
     const { data: grupos, error: eG } = await this.sesion.supabase
-      .from('academic_grupo_docentes')
-      .select('grupo_id')
-      .eq('user_id', docenteId);
+  .from('users_docentegrupo')
+  .select('grupo_id')
+  .eq('docente_id', docenteId)
+  .eq('activo', true);
+if (eG) console.error('Error grupos docente:', eG.message);
+this.totalGrupos = new Set((grupos || []).map((g: any) => g.grupo_id)).size;
 
-    if (eG) console.error('Error grupos docente:', eG.message);
-    this.totalGrupos = grupos?.length ?? 0;
-
-    // Materias (asignaturas) asignadas al docente
+    // Materias (asignaturas) asignadas al docente.
+    // Nota del comentario original: la M2M usa "user_id", no "docente_id".
     const { data: materias, error: eM } = await this.sesion.supabase
       .from('academic_asignatura_docentes')
       .select('asignatura_id')
       .eq('user_id', docenteId);
-
     if (eM) console.error('Error materias docente:', eM.message);
     this.totalMaterias = materias?.length ?? 0;
 
@@ -131,35 +135,31 @@ const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
       .from('academic_tarea')
       .select('*', { count: 'exact', head: true })
       .eq('docente_id', docenteId);
-
     if (eT) console.error('Error tareas docente:', eT.message);
     this.tareasPendientes = tareas ?? 0;
 
     // Actividades creadas por el docente
-    const { count: acts, error: eA } = await this.sesion.supabase
-      .from('academic_actividad')
-      .select('*', { count: 'exact', head: true })
-      .eq('docente_id', docenteId);
-
+    const { data: acts, error: eA } = await this.sesion.supabase
+      .rpc('contar_actividades_docente', { p_token: token, p_docente_id: docenteId });
     if (eA) console.error('Error actividades docente:', eA.message);
     this.actividadesCreadas = acts ?? 0;
   }
 
-  // ── Tutor ────────────────────────────────────
+  // ── Tutor ──────────────────────────────────────────
   async cargarStatsTutor() {
     const alumnoId = this.sesion.tutor?.alumno_id;
     if (!alumnoId) return;
 
-const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
-        if (!token) return;
+    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+    if (!token) return;
 
-        const { data: alumno, error: eAl } = await this.sesion.supabase
-          .rpc('perfil_basico_usuario', { p_token: token, p_user_id: alumnoId })
-          .single<{ first_name: string; last_name: string; alumno_grupo_id: number }>();
-        if (eAl) { console.error('Error alumno tutor:', eAl.message); return; }
+    const { data: alumno, error: eAl } = await this.sesion.supabase
+      .rpc('perfil_basico_usuario', { p_token: token, p_user_id: alumnoId })
+      .single<{ first_name: string; last_name: string; alumno_grupo_id: number }>();
+    if (eAl) { console.error('Error alumno tutor:', eAl.message); return; }
 
-        if (alumno) {
-          this.nombreHijo = `${alumno.first_name} ${alumno.last_name}`.trim();
+    if (alumno) {
+      this.nombreHijo = `${alumno.first_name} ${alumno.last_name}`.trim();
 
       const grupoId = (alumno as any).alumno_grupo_id;
       if (grupoId) {
@@ -173,10 +173,10 @@ const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
     }
 
     const { data: boletas } = token
-          ? await this.sesion.supabase.rpc('boletas_alumno_publicadas', { p_token: token, p_alumno_id: alumnoId })
-          : { data: [] as any[] };
+      ? await this.sesion.supabase.rpc('boletas_alumno_publicadas', { p_token: token, p_alumno_id: alumnoId })
+      : { data: [] as any[] };
 
-        this.actividadesHoy = boletas?.length || 0;
+    this.actividadesHoy = boletas?.length || 0;
   }
 
   establecerFechaActual() {

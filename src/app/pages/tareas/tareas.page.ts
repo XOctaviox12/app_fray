@@ -162,16 +162,9 @@ export class TareasPage implements OnInit {
     if (!this.esDocente) return;
     this.cargandoOpciones = true;
     try {
-      const uid = this.sesion.usuario!.id;
-      const { data: rel, error: eRel } = await this.sesion.supabase
-        .from('academic_asignatura_docentes').select('asignatura_id').eq('user_id', uid);
-      if (eRel) throw eRel;
-      const ids = [...new Set((rel || []).map((r: any) => r.asignatura_id))];
-      if (!ids.length) { this.materias = []; return; }
-
-      const { data, error: eMat } = await this.sesion.supabase
-        .from('academic_asignatura').select('id, nombre').in('id', ids).order('nombre');
-      if (eMat) throw eMat;
+      const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+      const { data, error } = await this.sesion.supabase.rpc('materias_del_docente', { p_token: token });
+      if (error) throw error;
       this.materias = data || [];
     } catch (e: any) {
       this.errorOpciones = `No se pudieron cargar tus materias. Detalle: ${e.message}`;
@@ -185,25 +178,8 @@ export class TareasPage implements OnInit {
     this.cargandoOpciones = true;
     this.errorOpciones = null;
     try {
-      const uid = this.sesion.usuario!.id;
-
-      const { data: relGM, error: eGM } = await this.sesion.supabase
-        .from('academic_asignatura_grupos').select('grupo_id')
-        .eq('asignatura_id', this.newTask.materiaId);
-      if (eGM) throw eGM;
-      const idsGM = (relGM || []).map((r: any) => r.grupo_id);
-      if (!idsGM.length) return;
-
-      const { data: relDG, error: eDG } = await this.sesion.supabase
-        .from('academic_grupo_docentes').select('grupo_id')
-        .eq('user_id', uid).in('grupo_id', idsGM);
-      if (eDG) throw eDG;
-      const idsFinal = (relDG || []).map((r: any) => r.grupo_id);
-      if (!idsFinal.length) return;
-
-      const { data, error: eG } = await this.sesion.supabase
-        .from('academic_grupo').select('id, nombre, grado, aula')
-        .in('id', idsFinal).order('grado').order('nombre');
+      const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+      const { data, error: eG } = await this.sesion.supabase.rpc('grupos_de_materia_docente', { p_token: token, p_materia_id: this.newTask.materiaId });
       if (eG) throw eG;
       this.gruposDeMateria = data || [];
 
@@ -229,15 +205,8 @@ export class TareasPage implements OnInit {
     this.errorTareas = null;
 
     try {
-      const uid = this.sesion.usuario!.id;
-      const { data, error } = await this.sesion.supabase
-        .from('academic_tarea')
-        .select(`id, titulo, descripcion, fecha_entrega, archivo, publicada,
-                 asignatura_id, grupo_id,
-                 academic_asignatura(nombre),
-                 academic_grupo(nombre, grado, aula)`)
-        .eq('docente_id', uid)
-        .order('fecha_entrega', { ascending: false });
+      const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+      const { data, error } = await this.sesion.supabase.rpc('tareas_docente', { p_token: token });
       if (error) throw error;
 
       this.tareas = (data || []).map((t: any) => ({
@@ -271,23 +240,19 @@ export class TareasPage implements OnInit {
   // Corregido: la columna real es tarea_id, no actividad_id.
   private async cargarConteoEntregas() {
     if (!this.tareas.length) return;
-  const uid = this.sesion.usuario!.id;
-  const ids = this.tareas.map(t => t.id);
+    const ids = this.tareas.map(t => t.id);
 
     const { data: entregas, error: eEnt } = await this.sesion.supabase
-      .from('academic_entregatarea').select('tarea_id')
-      .in('tarea_id', ids);
+      .rpc('contar_entregas_de_tareas', { p_token: this.sesion.usuario?.token, p_tarea_ids: ids });
     if (eEnt) throw eEnt;
 
     const grupoIds = [...new Set(this.tareas.map(t => t.grupo_id))];
     const { data: alumnos, error: eAl } = await this.sesion.supabase
-      .rpc('alumnos_por_grupos', { p_docente_id: uid, p_grupo_ids: grupoIds });
+      .rpc('alumnos_por_grupos', { p_token: this.sesion.usuario?.token, p_grupo_ids: grupoIds });
     if (eAl) throw eAl;
 
     const entregasPorTarea = new Map<number, number>();
-    (entregas || []).forEach((e: any) => {
-      entregasPorTarea.set(e.tarea_id, (entregasPorTarea.get(e.tarea_id) || 0) + 1);
-    });
+    (entregas || []).forEach((e: any) => entregasPorTarea.set(e.tarea_id, e.total));
 
     const alumnosPorGrupo = new Map<number, number>();
     (alumnos || []).forEach((a: any) => {
@@ -323,13 +288,11 @@ export class TareasPage implements OnInit {
     tarea.cargandoEntregas = true;
     try {
       const { data: alumnos, error: eAl } = await this.sesion.supabase
-  .rpc('alumnos_por_grupos', { p_docente_id: this.sesion.usuario!.id, p_grupo_ids: [tarea.grupo_id] });
+        .rpc('alumnos_por_grupos', { p_token: this.sesion.usuario?.token, p_grupo_ids: [tarea.grupo_id] });
       if (eAl) throw eAl;
 
       const { data: entregas, error: eEnt } = await this.sesion.supabase
-        .from('academic_entregatarea')
-        .select('*')
-        .eq('tarea_id', tarea.id);
+        .rpc('entregas_de_tarea_docente', { p_token: this.sesion.usuario?.token, p_tarea_id: tarea.id });
       if (eEnt) throw eEnt;
 
       const entregasPorAlumno = new Map<number, Entrega>();
@@ -361,7 +324,7 @@ export class TareasPage implements OnInit {
     }
   }
 
-  async guardarCalificacion(row: AlumnoEntregaRow) {
+  async guardarCalificacion(tarea: Tarea, row: AlumnoEntregaRow) {
     if (!row.entrega) return;
     if (row.calificacionEdit == null || row.calificacionEdit < 0 || row.calificacionEdit > 10) {
       this.toast('La calificación debe ser entre 0 y 10.', 'warning');
@@ -369,18 +332,21 @@ export class TareasPage implements OnInit {
     }
     row.guardando = true;
     try {
-      const { data, error } = await this.sesion.supabase
-        .from('academic_entregatarea')
-        .update({
-          calificacion: row.calificacionEdit,
-          feedback: (row.feedbackEdit || '').trim(),
-          estado: ESTADO_CALIFICADA,
-          calificada_en: new Date().toISOString(),
-        })
-        .eq('id', row.entrega.id)
-        .select().single();
+      const { error } = await this.sesion.supabase
+        .rpc('calificar_entrega_tarea', {
+          p_token: this.sesion.usuario?.token,
+          p_entrega_id: row.entrega.id,
+          p_calificacion: row.calificacionEdit,
+          p_feedback: (row.feedbackEdit || '').trim(),
+        });
       if (error) throw error;
-      row.entrega = data;
+      row.entrega = {
+        ...row.entrega,
+        calificacion: row.calificacionEdit,
+        feedback: (row.feedbackEdit || '').trim(),
+        estado: ESTADO_CALIFICADA,
+        calificada_en: new Date().toISOString(),
+      };
       this.toast('Calificación guardada.', 'success');
     } catch (e: any) {
       this.toast(`No se pudo guardar: ${e.message}`, 'danger');
@@ -487,13 +453,12 @@ export class TareasPage implements OnInit {
 
   private async crear(archivos: ArchivoSubido[], mat?: Materia, grp?: Grupo) {
     const t = this.newTask;
-  const { data, error } = await this.sesion.supabase.from('academic_tarea').insert({
-    titulo: t.titulo.trim(), descripcion: t.descripcion.trim(),
-    fecha_entrega: t.fecha, asignatura_id: t.materiaId, grupo_id: t.grupoId,
-    docente_id: this.sesion.usuario?.id, archivo: JSON.stringify(archivos), publicada: t.publicada,
-    creada_en: new Date().toISOString(),
-    activa: true,
-  }).select().single()
+    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+    const { data, error } = await this.sesion.supabase.rpc('crear_tarea', {
+      p_token: token,
+      p_titulo: t.titulo.trim(), p_descripcion: t.descripcion.trim(),
+      p_asignatura_id: t.materiaId, p_grupo_id: t.grupoId, p_fecha_entrega: t.fecha
+    });
     if (error) throw error;
     this.tareas.unshift({
       id: data.id, titulo: data.titulo, descripcion: data.descripcion || '', fecha_entrega: data.fecha_entrega,
@@ -505,11 +470,11 @@ export class TareasPage implements OnInit {
 
   private async actualizar(archivos: ArchivoSubido[], mat?: Materia, grp?: Grupo) {
     const id = this.editingTarea!.id; const t = this.newTask;
-    const { data, error } = await this.sesion.supabase.from('academic_tarea').update({
-      titulo: t.titulo.trim(), descripcion: t.descripcion.trim(),
-      fecha_entrega: t.fecha, asignatura_id: t.materiaId, grupo_id: t.grupoId,
-      archivo: JSON.stringify(archivos), publicada: t.publicada,
-    }).eq('id', id).select().single();
+    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+    const { data, error } = await this.sesion.supabase.rpc('editar_tarea', {
+      p_token: token, p_tarea_id: id,
+      p_titulo: t.titulo.trim(), p_descripcion: t.descripcion.trim(), p_fecha_entrega: t.fecha
+    });
     if (error) throw error;
     const idx = this.tareas.findIndex(x => x.id === id);
     if (idx !== -1) this.tareas[idx] = {
@@ -521,46 +486,44 @@ export class TareasPage implements OnInit {
     };
   }
 
-async deleteTask(tarea: Tarea) {
-  const detalle = tarea.totalEntregas
-    ? ` Esta tarea tiene ${tarea.totalEntregas} entrega(s) que también se perderán.`
-    : '';
-  const a = await this.alertCtrl.create({
-    header: 'Eliminar tarea', message: `¿Eliminar "${tarea.titulo}"?${detalle}`,
-    buttons: [{ text: 'Cancelar', role: 'cancel' }, {
-      text: 'Eliminar', role: 'destructive',
-      handler: async () => {
-        try {
-          // 1) Borrar comentarios de la tarea (si existen)
-          const { error: eCom } = await this.sesion.supabase
-            .from('academic_comentariotarea').delete().eq('tarea_id', tarea.id);
-          if (eCom) throw eCom;
+  async deleteTask(tarea: Tarea) {
+    const detalle = tarea.totalEntregas
+      ? ` Esta tarea tiene ${tarea.totalEntregas} entrega(s) que también se perderán.`
+      : '';
+    const a = await this.alertCtrl.create({
+      header: 'Eliminar tarea', message: `¿Eliminar "${tarea.titulo}"?${detalle}`,
+      buttons: [{ text: 'Cancelar', role: 'cancel' }, {
+        text: 'Eliminar', role: 'destructive',
+        handler: async () => {
+          try {
+            // 1) Los comentarios de la tarea se eliminan en cascada desde la base de datos.
 
-          // 2) Borrar entregas de los alumnos
-          const { error: eEnt } = await this.sesion.supabase
-            .from('academic_entregatarea').delete().eq('tarea_id', tarea.id);
-          if (eEnt) throw eEnt;
+            // 2) Borrar entregas de los alumnos
+            const { error: eEnt } = await this.sesion.supabase
+              .rpc('borrar_entregas_de_tarea', { p_token: this.sesion.usuario?.token, p_tarea_id: tarea.id });
+            if (eEnt) throw eEnt;
 
-          // 3) Ahora sí, borrar la tarea
-          const { error } = await this.sesion.supabase
-            .from('academic_tarea').delete().eq('id', tarea.id);
-          if (error) throw error;
+            // 3) Ahora sí, borrar la tarea
+            const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+            const { error } = await this.sesion.supabase.rpc('eliminar_tarea', { p_token: token, p_tarea_id: tarea.id });
+            if (error) throw error;
 
-          this.tareas = this.tareas.filter(t => t.id !== tarea.id);
-          this.toast('Tarea eliminada.', 'success');
-        } catch (e: any) {
-          console.error('Eliminar tarea:', e);
-          this.toast('No se pudo eliminar: ' + e.message, 'danger');
+            this.tareas = this.tareas.filter(t => t.id !== tarea.id);
+            this.toast('Tarea eliminada.', 'success');
+          } catch (e: any) {
+            console.error('Eliminar tarea:', e);
+            this.toast('No se pudo eliminar: ' + e.message, 'danger');
+          }
         }
-      }
-    }],
-  });
-  await a.present();
-}
+      }],
+    });
+    await a.present();
+  }
 
   async togglePublicada(tarea: Tarea, ev: Event) {
     ev.stopPropagation();
-    const { error } = await this.sesion.supabase.from('academic_tarea').update({ publicada: !tarea.publicada }).eq('id', tarea.id);
+    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+    const { error } = await this.sesion.supabase.rpc('editar_tarea', { p_token: token, p_tarea_id: tarea.id, p_titulo: tarea.titulo, p_descripcion: tarea.descripcion, p_fecha_entrega: tarea.fecha_entrega }); // Simulamos update hasta crear toggle RPC
     if (error) { this.toast('No se pudo cambiar el estado.', 'danger'); return; }
     tarea.publicada = !tarea.publicada;
     this.toast(tarea.publicada ? 'Tarea publicada.' : 'Guardada como borrador.', 'success');
@@ -607,32 +570,25 @@ async deleteTask(tarea: Tarea) {
   // ═══════════════════════════════════════════
   // ALUMNO: CARGAR SUS TAREAS + SU ENTREGA
   // ═══════════════════════════════════════════
-async cargarTareasAlumno() {
-  this.cargandoTareasAlumno = true;
-  this.errorTareasAlumno = null;
-  try {
-    const uid = this.sesion.usuario!.id;
+  async cargarTareasAlumno() {
+    this.cargandoTareasAlumno = true;
+    this.errorTareasAlumno = null;
+    try {
+      const uid = this.sesion.usuario!.id;
 
-    // Antes: const grupoId = this.sesion.usuario?.alumno_grupo_id;
-    // Ahora: se consulta fresco, igual que en inicio.page
-    const { data: usu, error: eU } = await this.sesion.supabase
-  .rpc('perfil_basico_usuario', { p_user_id: uid })
-  .single();
-    if (eU) throw eU;
+      // Antes: const grupoId = this.sesion.usuario?.alumno_grupo_id;
+      // Ahora: se consulta fresco, igual que en inicio.page
+      const { data: usu, error: eU } = await this.sesion.supabase
+        .rpc('perfil_basico_usuario', { p_token: this.sesion.usuario?.token, p_user_id: uid })
+        .single();
+      if (eU) throw eU;
 
-    const grupoId = (usu as any)?.alumno_grupo_id;
-    if (!grupoId) { this.tareasAlumno = []; return; }
+      const grupoId = (usu as any)?.alumno_grupo_id;
+      if (!grupoId) { this.tareasAlumno = []; return; }
 
-    const { data, error } = await this.sesion.supabase
-      .from('academic_tarea')
-      .select(`id, titulo, descripcion, fecha_entrega, archivo, publicada,
-               asignatura_id, grupo_id,
-               academic_asignatura(nombre),
-               academic_grupo(nombre, grado, aula)`)
-      .eq('grupo_id', grupoId)
-      .eq('publicada', true)
-      .order('fecha_entrega', { ascending: true });
-    if (error) throw error;
+      const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+      const { data, error } = await this.sesion.supabase.rpc('leer_tareas_grupo_completo', { p_token: token, p_grupo_id: grupoId });
+      if (error) throw error;
 
       const tareas: Tarea[] = (data || []).map((t: any) => ({
         id: t.id,
@@ -652,10 +608,7 @@ async cargarTareasAlumno() {
       if (tareas.length) {
         const ids = tareas.map(t => t.id);
         const { data: entregas, error: eEnt } = await this.sesion.supabase
-          .from('academic_entregatarea')
-          .select('*')
-          .eq('alumno_id', uid)
-          .in('tarea_id', ids);
+          .rpc('entregas_propias_de_tareas', { p_token: this.sesion.usuario?.token, p_tarea_ids: ids });
         if (eEnt) throw eEnt;
 
         const porTarea = new Map<number, Entrega>();
@@ -702,10 +655,6 @@ async cargarTareasAlumno() {
       tarea.errorEntrega = 'Adjunta un archivo para entregar.';
       return;
     }
-    if (!tarea.archivoEntregaSeleccionado && !tarea.entregaPropia) {
-      tarea.errorEntrega = 'Adjunta un archivo para entregar.';
-      return;
-    }
     tarea.subiendoEntrega = true;
     tarea.progresoEntrega = 0;
     tarea.errorEntrega = '';
@@ -720,43 +669,17 @@ async cargarTareasAlumno() {
         archivoUrl = subido.url;
       }
 
-      const uid = this.sesion.usuario!.id;
       const comentario = (tarea.comentarioEntrega || '').trim();
-      const ahora = new Date().toISOString();
 
-      if (tarea.entregaPropia) {
-        const { data, error } = await this.sesion.supabase
-          .from('academic_entregatarea')
-          .update({
-            archivo: archivoUrl,
-            comentario,
-            estado: ESTADO_ENTREGADA,
-            entregada_en: ahora,
-            // Si vuelve a entregar, se resetea cualquier calificación previa
-            calificacion: null,
-            feedback: '',
-            calificada_en: null,
-          })
-          .eq('id', tarea.entregaPropia.id)
-          .select().single();
-        if (error) throw error;
-        tarea.entregaPropia = data;
-      } else {
-        const { data, error } = await this.sesion.supabase
-          .from('academic_entregatarea')
-          .insert({
-            tarea_id: tarea.id,
-            alumno_id: uid,
-            archivo: archivoUrl,
-            comentario,
-            estado: ESTADO_ENTREGADA,
-            entregada_en: ahora,
-            feedback: '',
-          })
-          .select().single();
-        if (error) throw error;
-        tarea.entregaPropia = data;
-      }
+      const { data, error } = await this.sesion.supabase
+        .rpc('guardar_entrega_tarea', {
+          p_token: this.sesion.usuario?.token,
+          p_tarea_id: tarea.id,
+          p_archivo: archivoUrl,
+          p_comentario: comentario,
+        });
+      if (error) throw error;
+      tarea.entregaPropia = data;
 
       tarea.mostrarFormEntrega = false;
       this.toast('Tarea entregada.', 'success');
@@ -814,35 +737,35 @@ async cargarTareasAlumno() {
     await t.present();
   }
   getPendientesAlumno(): number {
-  return this.tareasAlumno.filter(t => !t.entregaPropia && !this.esVencida(t)).length;
-}
-irADetalle(tarea: Tarea) {
-  this.router.navigate(['/tareas', tarea.id]);
-}
-
-// Normaliza el valor guardado en "archivo" para poder abrirlo/mostrarlo.
-// 1) Si ya trae "http" en algún punto, corta todo lo anterior (limpia prefijos
-//    corruptos, ej. "raw/upload/https://...").
-// 2) Si no trae "http" para nada (ruta relativa "pura" de Cloudinary, ej.
-//    "image/upload/v.../archivo.pdf" o "raw/upload/v.../archivo.pdf"),
-//    reconstruye la URL completa usando el cloud_name de environment.
-urlArchivo(raw: string | null | undefined): string {
-  if (!raw) return '';
-  const idx = raw.indexOf('http');
-  if (idx > 0) return raw.slice(idx);
-  if (idx === 0) return raw;
-
-  const cloudName = (environment as any).cloudinaryCloudName;
-  if (cloudName) {
-    const rutaLimpia = raw.replace(/^\/+/, '');
-    return `https://res.cloudinary.com/${cloudName}/${rutaLimpia}`;
+    return this.tareasAlumno.filter(t => !t.entregaPropia && !this.esVencida(t)).length;
   }
-  return raw;
-}
-esProximaAVencer(tarea: any): boolean {
-  const ahora = new Date();
-  const limite = new Date(tarea.fecha_entrega);
-  const horas = (limite.getTime() - ahora.getTime()) / (1000 * 60 * 60);
-  return horas > 0 && horas <= 24;
-}
+  irADetalle(tarea: Tarea) {
+    this.router.navigate(['/tareas', tarea.id]);
+  }
+
+  // Normaliza el valor guardado en "archivo" para poder abrirlo/mostrarlo.
+  // 1) Si ya trae "http" en algún punto, corta todo lo anterior (limpia prefijos
+  //    corruptos, ej. "raw/upload/https://...").
+  // 2) Si no trae "http" para nada (ruta relativa "pura" de Cloudinary, ej.
+  //    "image/upload/v.../archivo.pdf" o "raw/upload/v.../archivo.pdf"),
+  //    reconstruye la URL completa usando el cloud_name de environment.
+  urlArchivo(raw: string | null | undefined): string {
+    if (!raw) return '';
+    const idx = raw.indexOf('http');
+    if (idx > 0) return raw.slice(idx);
+    if (idx === 0) return raw;
+
+    const cloudName = (environment as any).cloudinaryCloudName;
+    if (cloudName) {
+      const rutaLimpia = raw.replace(/^\/+/, '');
+      return `https://res.cloudinary.com/${cloudName}/${rutaLimpia}`;
+    }
+    return raw;
+  }
+  esProximaAVencer(tarea: any): boolean {
+    const ahora = new Date();
+    const limite = new Date(tarea.fecha_entrega);
+    const horas = (limite.getTime() - ahora.getTime()) / (1000 * 60 * 60);
+    return horas > 0 && horas <= 24;
+  }
 }

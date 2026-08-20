@@ -5,9 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { SesionService } from '../../services/sesion.service';
 import { CloudinaryService, ArchivoSubido } from '../../services/cloudinary.service';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { environment } from 'src/environments/environment';
 import { VisorArchivosService } from '../../services/visor-archivos.service';
+import { environment } from '../../../environments/environment';
 
 // ─── Tipos ──────────────────────────────────────────────────────────────────
 
@@ -54,7 +53,6 @@ const EXTENSIONES_VALIDAS: Record<string, string[]> = {
 })
 export class HerramientasPage implements OnInit {
 
-  private supabase: SupabaseClient;
 
   // ── Estado ───────────────────────────────────────────────────
   cargando    = true;
@@ -183,11 +181,7 @@ export class HerramientasPage implements OnInit {
     private alertCtrl:  AlertController,
     private toastCtrl:  ToastController,
     private visorArchivos: VisorArchivosService,
-  ) {
-    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
-      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
-    });
-  }
+  ) {}
 
   ngOnInit() {
     this.cargarDatos();
@@ -219,17 +213,20 @@ export class HerramientasPage implements OnInit {
   }
 
   private async cargarMaterialesDocente() {
-    const docenteId = this.sesion.usuario?.id;
-    if (!docenteId) return;
+    // Corregido: este proyecto no usa supabase.auth (ver SesionService —
+    // login propio vía RPC, persistSession:false). auth.getUser() siempre
+    // devuelve null aquí, así que esto nunca cargaba nada para el docente.
+    // Se usa el token propio de la sesión, igual que el resto de las RPCs.
+    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+    if (!token) return;
 
-    const { data, error } = await this.supabase
-      .from('academic_materialapoyo')
-      .select('id, titulo, descripcion, tipo, archivo, url_externa, activo, creado_en, asignatura_id, grupo_id')
-      .eq('docente_id', docenteId)
-      .eq('activo', true)
-      .order('creado_en', { ascending: false });
+    const { data, error } = await this.sesion.supabase
+      .rpc('leer_material_apoyo_docente', { p_token: token });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error cargando materiales docente:', error.message);
+      throw error;
+    }
     await this.hidratar(data || []);
   }
 
@@ -237,18 +234,14 @@ export class HerramientasPage implements OnInit {
     const alumnoId = this.sesion.usuario?.id;
     if (!alumnoId) return;
 
-    const { data: usu, error: eU } = await this.supabase
-      .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
+    const { data: usu, error: eU } = await this.sesion.supabase
+  .rpc('perfil_basico_usuario', { p_token: this.sesion.usuario?.token, p_user_id: alumnoId }).single();
     if (eU) throw eU;
     const grupoId = (usu as any)?.alumno_grupo_id;
     if (!grupoId) return;
 
-    const { data, error } = await this.supabase
-      .from('academic_materialapoyo')
-      .select('id, titulo, descripcion, tipo, archivo, url_externa, activo, creado_en, asignatura_id, grupo_id')
-      .eq('grupo_id', grupoId)
-      .eq('activo', true)
-      .order('creado_en', { ascending: false });
+    const { data, error } = await this.sesion.supabase
+      .rpc('leer_material_apoyo_grupo', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_grupo_id: grupoId });
 
     if (error) throw error;
     await this.hidratar(data || []);
@@ -258,18 +251,14 @@ export class HerramientasPage implements OnInit {
     const alumnoId = this.sesion.tutor?.alumno_id;
     if (!alumnoId) return;
 
-    const { data: usu, error: eU } = await this.supabase
-      .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
+    const { data: usu, error: eU } = await this.sesion.supabase
+  .rpc('perfil_basico_usuario', { p_token: this.sesion.tutor?.token, p_user_id: alumnoId }).single();
     if (eU) throw eU;
     const grupoId = (usu as any)?.alumno_grupo_id;
     if (!grupoId) return;
 
-    const { data, error } = await this.supabase
-      .from('academic_materialapoyo')
-      .select('id, titulo, descripcion, tipo, archivo, url_externa, activo, creado_en, asignatura_id, grupo_id')
-      .eq('grupo_id', grupoId)
-      .eq('activo', true)
-      .order('creado_en', { ascending: false });
+    const { data, error } = await this.sesion.supabase
+      .rpc('leer_material_apoyo_grupo', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_grupo_id: grupoId });
 
     if (error) throw error;
     await this.hidratar(data || []);
@@ -282,19 +271,15 @@ export class HerramientasPage implements OnInit {
     const plantelId = (this.sesion.usuario as any)?.plantel_id;
     if (!plantelId) { this.sinRolSoportado = true; return; }
 
-    const { data: grupos, error: gErr } = await this.supabase
-      .from('academic_grupo').select('id').eq('plantel_id', plantelId);
+    const { data: grupos, error: gErr } = await this.sesion.supabase
+      .rpc('grupos_por_plantel', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_plantel_id: plantelId });
     if (gErr) throw gErr;
 
     const grupoIds = (grupos || []).map((g: any) => g.id);
     if (!grupoIds.length) return;
 
-    const { data, error } = await this.supabase
-      .from('academic_materialapoyo')
-      .select('id, titulo, descripcion, tipo, archivo, url_externa, activo, creado_en, asignatura_id, grupo_id')
-      .in('grupo_id', grupoIds)
-      .eq('activo', true)
-      .order('creado_en', { ascending: false });
+    const { data, error } = await this.sesion.supabase
+      .rpc('leer_material_apoyo_grupos', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_grupo_ids: grupoIds });
 
     if (error) throw error;
     await this.hidratar(data || []);
@@ -308,8 +293,8 @@ export class HerramientasPage implements OnInit {
     const gruIds = [...new Set(rows.map(r => r.grupo_id))];
 
     const [{ data: asis }, { data: grus }] = await Promise.all([
-      this.supabase.from('academic_asignatura').select('id, nombre').in('id', asiIds),
-      this.supabase.from('academic_grupo').select('id, nombre, grado').in('id', gruIds),
+      this.sesion.supabase.rpc('nombres_asignaturas', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_ids: asiIds }),
+      this.sesion.supabase.rpc('nombres_grupos', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_ids: gruIds }),
     ]);
 
     const asiMap: Record<number, string> = {};
@@ -340,11 +325,7 @@ export class HerramientasPage implements OnInit {
   async cargarMaterias() {
     const uid = this.sesion.usuario?.id;
     if (!uid) return;
-    const { data: rel } = await this.supabase
-      .from('academic_asignatura_docentes').select('asignatura_id').eq('user_id', uid);
-    const ids = [...new Set((rel || []).map((r: any) => r.asignatura_id))];
-    if (!ids.length) return;
-    const { data } = await this.supabase.from('academic_asignatura').select('id, nombre').in('id', ids).order('nombre');
+    const { data } = await this.sesion.supabase.rpc('materias_del_docente', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token) });
     this.materias = data || [];
   }
 
@@ -354,18 +335,7 @@ async onMateriaChange() {
   if (!this.newMaterial.materiaId) return;
   this.cargandoOpts = true;
   try {
-    const { data: relGM } = await this.supabase
-      .from('academic_asignatura_grupos')
-      .select('grupo_id')
-      .eq('asignatura_id', this.newMaterial.materiaId);
-    const idsGM = (relGM || []).map((r: any) => r.grupo_id);
-    if (!idsGM.length) return;
-
-    const { data } = await this.supabase
-      .from('academic_grupo')
-      .select('id, nombre, grado')
-      .in('id', idsGM)
-      .order('grado');
+    const { data } = await this.sesion.supabase.rpc('grupos_de_materia_docente', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_materia_id: this.newMaterial.materiaId });
     this.gruposDeMateria = data || [];
   } finally { this.cargandoOpts = false; }
 }
@@ -457,6 +427,21 @@ async onMateriaChange() {
     if (f.tipo === 'LINK' && !f.url_externa?.trim())
       { this.toast('Ingresa la URL del enlace.', 'warning'); return; }
 
+    // Este proyecto NO usa supabase.auth (el cliente se crea con
+    // persistSession:false / autoRefreshToken:false) — el login es propio,
+    // vía RPC verificar_login + crear_sesion, y el token vive en
+    // sesion.usuario?.token / sesion.tutor?.token. Por eso hay que usar ESE
+    // token para las RPCs, igual que el resto del archivo, y no
+    // supabase.auth.getUser() (que siempre devuelve null aquí y por eso
+    // p_token llegaba undefined → JSON.stringify lo omitía del body →
+    // PostgREST respondía 404 "function not found", un mensaje engañoso
+    // que en realidad significaba "faltó un parámetro").
+    const uid = this.sesion.usuario?.token || this.sesion.tutor?.token;
+    if (!uid) {
+      this.toast('Tu sesión expiró. Vuelve a iniciar sesión.', 'danger');
+      return;
+    }
+
     this.guardando = true;
     try {
       let archivo_url = this.archivoExistente;
@@ -473,26 +458,23 @@ async onMateriaChange() {
         this.subiendoArchivo = false;
       }
 
-      const payload: any = {
+      const payload = {
         titulo:       f.titulo.trim(),
         descripcion:  f.descripcion.trim(),
         tipo:         f.tipo,
         url_externa:  f.url_externa?.trim() || null,
         archivo:      archivo_url,
-        asignatura_id: f.materiaId,
-        grupo_id:     f.grupoId,
-        docente_id:   this.sesion.usuario?.id,
-        activo:       true,
-        orden:        0,
+        asignatura_id: String(f.materiaId),  // ← JSON requiere strings para valores numéricos
+        grupo_id:     String(f.grupoId),     // ← JSON requiere strings para valores numéricos
       };
 
-      if (!this.editingId) {
-        payload.creado_en = new Date().toISOString();
-      }
-
       if (this.editingId) {
-        const { data, error } = await this.supabase
-          .from('academic_materialapoyo').update(payload).eq('id', this.editingId).select().single();
+        const { data, error } = await this.sesion.supabase
+          .rpc('actualizar_material_apoyo_json', {
+            p_payload: payload,      // ← PRIMERO
+            p_material_id: this.editingId,
+            p_token: uid,            // ← DESPUÉS el token
+          });
         if (error) throw error;
 
         const idx = this.materials.findIndex(m => m.id === this.editingId);
@@ -517,8 +499,11 @@ async onMateriaChange() {
 
         this.toast('Material actualizado.', 'success');
       } else {
-        const { data, error } = await this.supabase
-          .from('academic_materialapoyo').insert(payload).select().single();
+        const { data, error } = await this.sesion.supabase
+          .rpc('insertar_material_apoyo_json', {
+            p_payload: payload,   // ← DEBE ser primero
+            p_token: uid,         // ← DEBE ser segundo
+          });
         if (error) throw error;
 
         const asi = this.materias.find(m => m.id === f.materiaId);
@@ -553,8 +538,8 @@ async onMateriaChange() {
           text: 'Eliminar', role: 'destructive',
           handler: async () => {
             // Soft delete: activo = false
-            const { error } = await this.supabase
-              .from('academic_materialapoyo').update({ activo: false }).eq('id', mat.id);
+            const { error } = await this.sesion.supabase
+              .rpc('eliminar_material_apoyo_soft', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_material_id: mat.id });
             if (error) { this.toast('No se pudo eliminar.', 'danger'); return; }
             this.materials = this.materials.filter(m => m.id !== mat.id);
             if (mat.archivo_url) this.limpiarArchivoHuerfano(mat.archivo_url);
@@ -632,14 +617,7 @@ async onMateriaChange() {
     return { PDF:'#ef4444', VIDEO:'#ff6b00', IMAGEN:'#3b82f6', LINK:'#8b5cf6', OTRO:'#64748b' }[tipo] || '#64748b';
   }
 
-  // Normaliza el valor guardado en "archivo" para poder abrirlo/mostrarlo.
-  // En academic_materialapoyo hay registros viejos donde "archivo" quedó
-  // guardado como ruta relativa de Cloudinary (sin dominio, ej:
-  // "image/upload/v.../archivo.pdf") y otros donde puede venir con basura
-  // pegada antes de la URL real. Esta función:
-  //  1) Si ya trae "http" en algún punto, corta todo lo anterior (limpia prefijos corruptos).
-  //  2) Si no trae "http" para nada (ruta relativa "pura" de Cloudinary),
-  //     reconstruye la URL completa usando el cloud_name de environment.
+  
   urlArchivo(raw: string | null | undefined): string {
     if (!raw) return '';
     const idx = raw.indexOf('http');

@@ -242,7 +242,7 @@
         <h3 class="empty-title">Sin comunicados de maestros</h3>
         <p class="empty-sub">Los maestros aún no han publicado nada</p>
       </div>
-      <div class="post-card maestro-post" *ngFor="let c of comunicadosMaestros">
+      <div class="post-card maestro-post" [class.propio]="esPropio(c)" *ngFor="let c of comunicadosMaestros">
         <ng-container *ngTemplateOutlet="tarjetaComunicado; context: { c: c }"></ng-container>
       </div>
     </div>
@@ -254,7 +254,7 @@
         <h3 class="empty-title">Sin comunicados de dirección</h3>
         <p class="empty-sub">La dirección aún no ha publicado nada</p>
       </div>
-      <div class="post-card director-post" *ngFor="let c of comunicadosDireccion">
+      <div class="post-card director-post" [class.propio]="esPropio(c)" *ngFor="let c of comunicadosDireccion">
         <ng-container *ngTemplateOutlet="tarjetaComunicado; context: { c: c }"></ng-container>
       </div>
     </div>
@@ -262,11 +262,12 @@
   </ng-container>
 
   <!-- ════════════════════════════════════ -->
-  <!--  VISTA DOCENTE — lista unificada    -->
+  <!--  VISTA DOCENTE — lista separada     -->
   <!-- ════════════════════════════════════ -->
   <ng-container *ngIf="esDocente">
 
-    <p class="section-label">Comunicados publicados</p>
+    <!-- MIS COMUNICADOS -->
+    <p class="section-label">Mis comunicados</p>
 
     <ng-container *ngIf="cargando">
       <div class="skeleton-card" *ngFor="let i of [1,2]">
@@ -279,16 +280,42 @@
     </ng-container>
 
     <div class="posts-container" *ngIf="!cargando">
-      <div class="empty-state"
-        *ngIf="comunicadosMaestros.length === 0 && comunicadosDireccion.length === 0">
+      <div class="empty-state" *ngIf="getMisDelMaestro().length === 0 && getMisDelDirector().length === 0">
         <div class="empty-icon-wrap"><ion-icon name="chatbubbles-outline"></ion-icon></div>
         <h3 class="empty-title">Sin comunicados aún</h3>
         <p class="empty-sub">Publica el primero usando el formulario de arriba</p>
       </div>
-      <div class="post-card maestro-post" *ngFor="let c of comunicadosMaestros">
+      <div class="post-card maestro-post propio" *ngFor="let c of getMisDelMaestro()">
         <ng-container *ngTemplateOutlet="tarjetaComunicado; context: { c: c }"></ng-container>
       </div>
-      <div class="post-card director-post" *ngFor="let c of comunicadosDireccion">
+      <div class="post-card director-post propio" *ngFor="let c of getMisDelDirector()">
+        <ng-container *ngTemplateOutlet="tarjetaComunicado; context: { c: c }"></ng-container>
+      </div>
+    </div>
+
+    <!-- OTROS COMUNICADOS -->
+    <p class="section-label" style="margin-top:32px">Otros comunicados</p>
+
+    <ng-container *ngIf="cargando">
+      <div class="skeleton-card" *ngFor="let i of [1,2]">
+        <ion-skeleton-text animated style="width:40px;height:40px;border-radius:12px;flex-shrink:0"></ion-skeleton-text>
+        <div style="flex:1;margin-left:10px">
+          <ion-skeleton-text animated style="width:55%;height:13px;margin-bottom:6px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width:90%;height:11px"></ion-skeleton-text>
+        </div>
+      </div>
+    </ng-container>
+
+    <div class="posts-container" *ngIf="!cargando">
+      <div class="empty-state" *ngIf="getOtrosDelMaestro().length === 0 && getOtrosDelDirector().length === 0">
+        <div class="empty-icon-wrap"><ion-icon name="chatbubbles-outline"></ion-icon></div>
+        <h3 class="empty-title">Sin otros comunicados</h3>
+        <p class="empty-sub">No hay comunicados de otros docentes o dirección</p>
+      </div>
+      <div class="post-card maestro-post" *ngFor="let c of getOtrosDelMaestro()">
+        <ng-container *ngTemplateOutlet="tarjetaComunicado; context: { c: c }"></ng-container>
+      </div>
+      <div class="post-card director-post" *ngFor="let c of getOtrosDelDirector()">
         <ng-container *ngTemplateOutlet="tarjetaComunicado; context: { c: c }"></ng-container>
       </div>
     </div>

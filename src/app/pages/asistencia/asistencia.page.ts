@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { NavController, ToastController, AlertController } from '@ionic/angular';
 import { SesionService } from '../../services/sesion.service';
 
@@ -6,13 +6,13 @@ type Estado = 'P' | 'A' | 'R';
 
 interface Alumno {
   id: number;
-  numero: number; // posición fija en la lista, no cambia al filtrar
+  numero: number;
   nombre: string;
   apellido: string;
   foto: string | null;
   estado: Estado;
-  guardado: boolean; // true si ya hay registro en la fecha seleccionada
-  revisado: boolean; // true si el maestro ya tocó algún botón para este alumno
+  guardado: boolean;
+  revisado: boolean;
 }
 
 interface GrupoDeMateria {
@@ -21,7 +21,7 @@ interface GrupoDeMateria {
   grado: number;
   aula: string;
   totalAlumnos: number;
-  tomada: boolean; // ya se tomó lista en esta materia+grupo, en la fecha seleccionada
+  tomada: boolean;
 }
 
 interface MateriaConGrupos {
@@ -53,16 +53,12 @@ const MESES_CORTO = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Se
 })
 export class AsistenciaPage implements OnInit {
 
-  // ── Vista general ──────────────────────────────────────────
-  // 'selector' = eligiendo materia+grupo · 'tomar' = pasando lista / historial
   vista: 'selector' | 'tomar' = 'selector';
 
-  // ── Selector de materia + grupo ──────────────────────────────
   materias: MateriaConGrupos[] = [];
   cargandoGrupos = false;
   errorGrupos: string | null = null;
 
-  // ── Materia + grupo activos ───────────────────────────────────
   materiaId!: number;
   materiaNombre = '';
   grupoId!: number;
@@ -70,25 +66,20 @@ export class AsistenciaPage implements OnInit {
   grupoGrado: number | null = null;
   grupoAula = '';
 
-  // ── Fecha seleccionada para tomar/editar asistencia ─────────
-  // Por defecto hoy. El maestro puede elegir una fecha pasada para
-  // capturar o corregir listas atrasadas; no se permiten fechas futuras.
   fechaSeleccionada = new Date();
   mostrarSelectorFecha = false;
 
   alumnos: Alumno[] = [];
   filtroAlumno = '';
-  private snapshotEstados: Map<number, Estado> = new Map(); // para detectar cambios sin guardar
+  private snapshotEstados: Map<number, Estado> = new Map();
 
   cargando = false;
   guardando = false;
   error: string | null = null;
-  yaGuardada = false; // lista de esta materia+grupo+fecha ya existe
+  yaGuardada = false;
 
-  // Segmento activo dentro de 'tomar'
   segmento: 'lista' | 'historial' = 'lista';
 
-  // Historial (de esta materia+grupo), siempre ordenado descendente por fecha
   historial: HistorialItem[] = [];
   cargandoHistorial = false;
   errorHistorial: string | null = null;
@@ -115,7 +106,6 @@ export class AsistenciaPage implements OnInit {
     return this.alumnos.some(a => this.snapshotEstados.get(a.id) !== a.estado);
   }
 
-  // Etiqueta compacta del grupo activo, ej: "1° A — Aula 205"
   get grupoEtiqueta(): string {
     if (this.grupoGrado == null) return this.grupoNombre;
     const base = `${this.grupoGrado}° ${this.grupoNombre}`;
@@ -123,16 +113,12 @@ export class AsistenciaPage implements OnInit {
     return aula ? `${base} — ${aula}` : base;
   }
 
-  // Normaliza el texto del aula: si el dato guardado ya trae la palabra
-  // "Aula" (ej. "Aula 101") no la duplica; si trae solo el número/nombre
-  // (ej. "101"), le antepone "Aula".
   formatAula(aula: string | null | undefined): string {
     if (!aula) return '';
     const limpio = aula.trim();
     return /^aula\b/i.test(limpio) ? limpio : `Aula ${limpio}`;
   }
 
-  // ── Fecha: helpers de UI ─────────────────────────────────────
   get hoyISO(): string {
     return this.toDateStr(new Date());
   }
@@ -162,9 +148,9 @@ export class AsistenciaPage implements OnInit {
     this.cargarGrupos();
   }
 
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════════
   // SELECTOR DE MATERIA + GRUPO
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════════
 
   async cargarGrupos() {
     if (!this.sesion.esDocente()) {
@@ -177,99 +163,66 @@ export class AsistenciaPage implements OnInit {
 
     try {
       const docenteId = this.sesion.usuario!.id;
+      const token = this.sesion.usuario?.token;
 
-      // 1. Materias que da este maestro
-      const { data: relMat, error: eMat } = await this.sesion.supabase
-        .from('academic_asignatura_docentes')
-        .select('asignatura_id')
-        .eq('user_id', docenteId);
-      if (eMat) throw eMat;
+      if (!token) throw new Error('Sin token de autenticación');
 
-      const materiaIds = [...new Set((relMat || []).map((r: any) => r.asignatura_id))];
-      if (materiaIds.length === 0) {
+      // 1. Obtener grupos y materias asignados a este docente
+      const { data: rawRelaciones, error: errRel } = await this.sesion.supabase
+        .rpc('grupos_y_materias_del_docente', { p_token: token });
+      if (errRel) throw errRel;
+
+      if (!rawRelaciones || rawRelaciones.length === 0) {
         this.materias = [];
         return;
       }
 
-      const { data: materiasData, error: eMatNom } = await this.sesion.supabase
-        .from('academic_asignatura')
-        .select('id, nombre')
-        .in('id', materiaIds)
-        .order('nombre');
-      if (eMatNom) throw eMatNom;
+      // 2. Extraer IDs únicos
+      const materiaIds = [...new Set((rawRelaciones as any[]).map(r => r.asignatura_id))];
+      const grupoIds = [...new Set((rawRelaciones as any[]).map(r => r.grupo_id))];
 
-      // 2. Grupos donde se imparte cada materia
-      const { data: relAsigGrupo, error: eAG } = await this.sesion.supabase
-        .from('academic_asignatura_grupos')
-        .select('asignatura_id, grupo_id')
-        .in('asignatura_id', materiaIds);
-      if (eAG) throw eAG;
+      // 3. Cargar datos de materias
+      const { data: materiasData, error: eMat } = await this.sesion.supabase
+        .rpc('nombres_asignaturas', { p_token: token, p_ids: materiaIds });
+      if (eMat) throw eMat;
 
-      // 3. Grupos donde este maestro está asignado (filtro de seguridad,
-      //    evita mostrar grupos ajenos si la materia la comparten varios
-      //    maestros con distintos grupos)
-      const { data: relGrupoDoc, error: eGD } = await this.sesion.supabase
-        .from('academic_grupo_docentes')
-        .select('grupo_id')
-        .eq('user_id', docenteId);
-      if (eGD) throw eGD;
-      const misGrupoIds = new Set((relGrupoDoc || []).map((r: any) => r.grupo_id));
+      // 4. Cargar datos de grupos
+      const { data: gruposData, error: eGrup } = await this.sesion.supabase
+        .rpc('nombres_grupos', { p_token: token, p_ids: grupoIds });
+      if (eGrup) throw eGrup;
 
-      // Construir, por materia, la lista de grupo_id válidos (intersección)
-      const grupoIdsPorMateria = new Map<number, number[]>();
-      (relAsigGrupo || []).forEach((r: any) => {
-        if (!misGrupoIds.has(r.grupo_id)) return;
-        const lista = grupoIdsPorMateria.get(r.asignatura_id) || [];
-        lista.push(r.grupo_id);
-        grupoIdsPorMateria.set(r.asignatura_id, lista);
-      });
-
-      const todosGrupoIds = [...new Set(
-        Array.from(grupoIdsPorMateria.values()).flat()
-      )];
-
-      if (todosGrupoIds.length === 0) {
-        this.materias = (materiasData || []).map((m: any) => ({ id: m.id, nombre: m.nombre, grupos: [] }));
-        return;
-      }
-
-      // 4. Datos de esos grupos (nombre, grado, aula)
-      const { data: gruposData, error: eGrupos } = await this.sesion.supabase
-        .from('academic_grupo')
-        .select('id, nombre, grado, aula')
-        .in('id', todosGrupoIds);
-      if (eGrupos) throw eGrupos;
-      const infoPorGrupo = new Map(
-        (gruposData || []).map((g: any) => [g.id, { nombre: g.nombre, grado: g.grado, aula: g.aula }])
-      );
-
-      // 5. Cantidad de alumnos por grupo (una sola consulta)
-      // TODO(schema): confirmar columna real de FK alumno→grupo (alumno_grupo_id)
-      const { data: alumnosData, error: eAlumnosData } = await this.sesion.supabase
-  .rpc('alumnos_por_grupos', { p_docente_id: docenteId, p_grupo_ids: todosGrupoIds });
-if (eAlumnosData) throw eAlumnosData;
+      // 5. Contar alumnos por grupo
+      const { data: alumnosData, error: eAlu } = await this.sesion.supabase
+        .rpc('alumnos_por_grupos', { p_token: token, p_grupo_ids: grupoIds });
+      if (eAlu) throw eAlu;
 
       const conteoPorGrupo = new Map<number, number>();
       (alumnosData || []).forEach((a: any) => {
         conteoPorGrupo.set(a.alumno_grupo_id, (conteoPorGrupo.get(a.alumno_grupo_id) || 0) + 1);
       });
 
-      // 6. Qué combinaciones materia+grupo ya tienen lista en la fecha elegida
+      // 6. Obtener qué combos materia+grupo ya tienen lista en la fecha elegida
       const fechaStr = this.toDateStr(this.fechaSeleccionada);
-          const token = this.sesion.usuario?.token;
-          const { data: asistFecha } = token
-            ? await this.sesion.supabase.rpc('combos_con_lista', { p_token: token, p_grupo_ids: todosGrupoIds, p_materia_ids: materiaIds, p_fecha: fechaStr })
-            : { data: [] as any[] };
+      const { data: asistFecha } = await this.sesion.supabase
+        .rpc('combos_con_lista', { p_token: token, p_grupo_ids: grupoIds, p_materia_ids: materiaIds, p_fecha: fechaStr });
 
-          const combosConLista = new Set(
-            (asistFecha || []).map((a: any) => `${a.asignatura_id}-${a.grupo_id}`)
-          );
+      const combosConLista = new Set(
+        (asistFecha || []).map((a: any) => `${a.asignatura_id}-${a.grupo_id}`)
+      );
 
-      // 7. Ensamblar la estructura final: materias con sus grupos
+      // 7. Construir estructura: materias con sus grupos
+      const infoPorGrupo = new Map<number, { nombre: string; grado: number; aula: string }>(
+        (gruposData || []).map((g: any) => [g.id, { nombre: g.nombre, grado: g.grado, aula: g.aula }])
+      );
+
       this.materias = (materiasData || [])
         .map((m: any) => {
-          const idsDeEstaMateria = grupoIdsPorMateria.get(m.id) || [];
-          const grupos: GrupoDeMateria[] = idsDeEstaMateria
+          const gruposDeMateria = (rawRelaciones as any[])
+            .filter(r => r.asignatura_id === m.id)
+            .map(r => r.grupo_id);
+
+          const gruposUnicos = [...new Set(gruposDeMateria)];
+          const grupos: GrupoDeMateria[] = gruposUnicos
             .map(gid => {
               const info = infoPorGrupo.get(gid);
               return {
@@ -282,14 +235,13 @@ if (eAlumnosData) throw eAlumnosData;
               };
             })
             .sort((a, b) => a.grado - b.grado || a.nombre.localeCompare(b.nombre));
+
           return { id: m.id, nombre: m.nombre, grupos };
         })
         .filter((m: MateriaConGrupos) => m.grupos.length > 0);
 
     } catch (err: any) {
       console.error('Error cargando materias/grupos:', err.message);
-      // DIAGNÓSTICO TEMPORAL: mostramos el error real de Supabase para identificar
-      // si es RLS, columna inexistente, o tabla inexistente. Quitar después.
       this.errorGrupos = `No se pudieron cargar tus materias y grupos. Detalle: ${err.message || err}`;
     } finally {
       this.cargandoGrupos = false;
@@ -305,14 +257,11 @@ if (eAlumnosData) throw eAlumnosData;
     this.grupoAula = grupo.aula;
     this.vista = 'tomar';
     this.segmento = 'lista';
-    // El historial es específico de esta materia+grupo; se limpia para que
-    // no se arrastre el de una selección anterior mientras carga el nuevo.
     this.historial = [];
     this.errorHistorial = null;
     this.cargarAlumnos();
   }
 
-  // ── Cambiar la fecha seleccionada (protege cambios sin guardar) ──
   private parseISO(iso: string): Date {
     const [y, m, d] = iso.split('T')[0].split('-').map(Number);
     return new Date(y, m - 1, d);
@@ -336,9 +285,8 @@ if (eAlumnosData) throw eAlumnosData;
     this.cambiarFecha(new Date());
   }
 
-  // Tocar un día del historial: brinca directo a "Tomar lista" en esa fecha
   abrirDiaHistorial(fechaISO: string) {
-    this.cambiarFecha(this.parseISO(fechaISO), /* forzarSegmentoLista */ true);
+    this.cambiarFecha(this.parseISO(fechaISO), true);
   }
 
   private async cambiarFecha(nuevaFecha: Date, forzarSegmentoLista = false) {
@@ -352,9 +300,6 @@ if (eAlumnosData) throw eAlumnosData;
       }
     };
 
-    // this.hayComosGuardar refleja el estado de this.alumnos sin importar
-    // qué pestaña (lista/historial) esté activa en este momento — así se
-    // protege igual si el cambio de fecha viene desde el historial.
     if (this.vista === 'tomar' && this.hayCambiosSinGuardar) {
       const alert = await this.alertCtrl.create({
         header: 'Cambios sin guardar',
@@ -372,7 +317,6 @@ if (eAlumnosData) throw eAlumnosData;
     await aplicarCambio();
   }
 
-  // ── Pull-to-refresh ───────────────────────────────────────────
   async onRefresh(event: any) {
     try {
       if (this.vista === 'selector') {
@@ -387,7 +331,6 @@ if (eAlumnosData) throw eAlumnosData;
     }
   }
 
-  // ── Volver (con protección de cambios sin guardar) ──────────
   async volver() {
     if (this.vista === 'tomar') {
       if (this.segmento === 'lista' && this.hayCambiosSinGuardar) {
@@ -406,7 +349,6 @@ if (eAlumnosData) throw eAlumnosData;
       this.irASelector();
       return;
     }
-    // Ya estamos en el selector: salir de la página
     this.navCtrl.back();
   }
 
@@ -416,44 +358,21 @@ if (eAlumnosData) throw eAlumnosData;
     this.historial = [];
     this.error = null;
     this.errorHistorial = null;
-    this.cargarGrupos(); // refresca estados "tomada" para la fecha seleccionada
+    this.cargarGrupos();
   }
 
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════════
   // TOMAR LISTA
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════════
 
   async cargarAlumnos() {
     this.cargando = true;
     this.error = null;
     try {
-      const docenteId = this.sesion.usuario?.id;
+      const token = this.sesion.usuario?.token;
+      if (!token) throw new Error('Sin token de autenticación');
 
-      // Verificación de pertenencia: el maestro debe dar esta materia
-      // Y estar asignado a este grupo (dos relaciones M:N distintas).
-      const { data: relMateria, error: eRM } = await this.sesion.supabase
-        .from('academic_asignatura_docentes')
-        .select('id')
-        .eq('asignatura_id', this.materiaId)
-        .eq('user_id', docenteId)
-        .maybeSingle();
-      if (eRM) throw eRM;
-
-      const { data: relGrupo, error: eRG } = await this.sesion.supabase
-        .from('academic_grupo_docentes')
-        .select('id')
-        .eq('grupo_id', this.grupoId)
-        .eq('user_id', docenteId)
-        .maybeSingle();
-      if (eRG) throw eRG;
-
-      if (!relMateria || !relGrupo) {
-        this.error = 'No tienes permiso para tomar asistencia en esta materia/grupo.';
-        this.cargando = false;
-        return;
-      }
-
-      // Alumnos del grupo (el roster de un grupo no depende de la materia)
+      // Obtener alumnos del grupo
       const { data: users, error: e1 } = await this.sesion.supabase
         .from('users_user')
         .select('id, first_name, last_name, foto_perfil')
@@ -462,14 +381,12 @@ if (eAlumnosData) throw eAlumnosData;
       if (e1) throw e1;
 
       // Asistencia registrada para esta materia+grupo+fecha
-     const fechaStr = this.toDateStr(this.fechaSeleccionada);
-          const token = this.sesion.usuario?.token;
-          const { data: asist } = token
-            ? await this.sesion.supabase.rpc('asistencia_del_dia', { p_token: token, p_grupo_id: this.grupoId, p_materia_id: this.materiaId, p_fecha: fechaStr })
-            : { data: [] as any[] };
+      const fechaStr = this.toDateStr(this.fechaSeleccionada);
+      const { data: asist } = await this.sesion.supabase
+        .rpc('asistencia_del_dia', { p_token: token, p_grupo_id: this.grupoId, p_materia_id: this.materiaId, p_fecha: fechaStr });
 
-          const asistMap = new Map((asist || []).map((a: any) => [a.alumno_id, a.estado]));
-          this.yaGuardada = asistMap.size > 0;
+      const asistMap = new Map((asist || []).map((a: any) => [a.alumno_id, a.estado]));
+      this.yaGuardada = asistMap.size > 0;
 
       this.alumnos = (users || []).map((u: any, i: number) => ({
         id:       u.id,
@@ -477,18 +394,12 @@ if (eAlumnosData) throw eAlumnosData;
         nombre:   u.first_name || '',
         apellido: u.last_name || '',
         foto:     u.foto_perfil,
-        estado:   (asistMap.get(u.id) as Estado) ?? 'P', // default: Presente
+        estado:   (asistMap.get(u.id) as Estado) ?? 'P',
         guardado: asistMap.has(u.id),
-        // "revisado": si ya había un registro guardado antes, se considera
-        // que ya fue revisado en su momento. Si es la primera vez que se
-        // carga (sin registro), empieza sin revisar hasta que el maestro
-        // toque explícitamente algún botón P/R/A.
         revisado: asistMap.has(u.id),
       }));
 
       this.filtroAlumno = '';
-
-      // snapshot para detectar cambios sin guardar
       this.snapshotEstados = new Map(this.alumnos.map(a => [a.id, a.estado]));
 
     } catch (err: any) {
@@ -505,13 +416,11 @@ if (eAlumnosData) throw eAlumnosData;
     return (n + a).toUpperCase() || '?';
   }
 
-  // ── Cambiar estado de un alumno ──────────────────────────────
   setEstado(alumno: Alumno, estado: Estado) {
     alumno.estado = estado;
     alumno.revisado = true;
   }
 
-  // ── Acciones globales (con confirmación para evitar toques accidentales) ──
   async confirmarMarcarTodos(estado: Estado) {
     if (!this.alumnos.length) return;
 
@@ -532,13 +441,9 @@ if (eAlumnosData) throw eAlumnosData;
     this.alumnos.forEach(a => { a.estado = estado; a.revisado = true; });
   }
 
-  // ── Guardar lista ────────────────────────────────────────────
   async guardarLista() {
     if (!this.alumnos.length || this.guardando) return;
 
-    // 1) Si la fecha seleccionada NO es hoy, confirmar primero: es el error
-    //    más fácil de cometer al permitir elegir fecha (guardar en el día
-    //    equivocado sin darse cuenta).
     if (!this.esHoy) {
       const alert = await this.alertCtrl.create({
         header: 'Fecha distinta a hoy',
@@ -556,7 +461,6 @@ if (eAlumnosData) throw eAlumnosData;
     await this.confirmarSobrescrituraYGuardar();
   }
 
-  // 2) Aviso si ya existía una lista guardada en esa fecha (evita sobrescribir por error)
   private async confirmarSobrescrituraYGuardar() {
     if (this.yaGuardada) {
       const alert = await this.alertCtrl.create({
@@ -575,8 +479,6 @@ if (eAlumnosData) throw eAlumnosData;
     await this.confirmarResumenYGuardar();
   }
 
-  // 3) Resumen final — siempre se muestra antes de guardar, con avisos
-  //    adicionales si hay ausentismo alto o alumnos sin revisar.
   private async confirmarResumenYGuardar() {
     const pctAusentes = this.alumnos.length
       ? Math.round((this.totalAusentes / this.alumnos.length) * 100)
@@ -608,43 +510,36 @@ if (eAlumnosData) throw eAlumnosData;
 
   private async ejecutarGuardado() {
     this.guardando = true;
+    const fechaStr = this.toDateStr(this.fechaSeleccionada);
 
-const fechaStr = this.toDateStr(this.fechaSeleccionada);
+    const registros = this.alumnos.map(a => ({
+      alumno_id:     a.id,
+      grupo_id:      this.grupoId,
+      asignatura_id: this.materiaId,
+      fecha:         fechaStr,
+      estado:        a.estado,
+    }));
 
-        const registros = this.alumnos.map(a => ({
-          alumno_id:     a.id,
-          grupo_id:      this.grupoId,
-          asignatura_id: this.materiaId,
-          fecha:         fechaStr,
-          estado:        a.estado,
-        }));
+    const token = this.sesion.usuario?.token;
+    const { error } = token
+      ? await this.sesion.supabase.rpc('guardar_asistencia', { p_token: token, p_grupo_id: this.grupoId, p_materia_id: this.materiaId, p_registros: registros })
+      : { error: { message: 'Sesión no válida' } };
 
-        const token = this.sesion.usuario?.token;
-        const { error } = token
-          ? await this.sesion.supabase.rpc('guardar_asistencia', { p_token: token, p_grupo_id: this.grupoId, p_materia_id: this.materiaId, p_registros: registros })
-          : { error: { message: 'Sesión no válida' } };
+    this.guardando = false;
 
-        this.guardando = false;
-
-        if (error) {
-          this.mostrarToast(`Error al guardar. Detalle: ${error.message}`, 'danger');
-          console.error(error.message);
-          return;
+    if (error) {
+      this.mostrarToast(`Error al guardar. Detalle: ${error.message}`, 'danger');
+      console.error(error.message);
+      return;
     }
 
     this.alumnos.forEach(a => { a.guardado = true; a.revisado = true; });
     this.snapshotEstados = new Map(this.alumnos.map(a => [a.id, a.estado]));
     this.yaGuardada = true;
     this.mostrarToast(`Lista guardada · ${this.totalPresentes}P ${this.totalRetardos}R ${this.totalAusentes}A`, 'success');
-
-    // El historial pudo haber quedado desactualizado con este guardado
-    // (nueva fecha, o cambios sobre una fecha ya existente). Se limpia
-    // para que, si el maestro entra a la pestaña Historial después, se
-    // recargue con el dato fresco en vez de mostrar el cache viejo.
     this.historial = [];
   }
 
-  // ── Historial (de esta materia+grupo) ─────────────────────────
   async onSegmentoChange() {
     if (this.segmento === 'historial' && !this.historial.length) {
       await this.cargarHistorial();
@@ -655,16 +550,14 @@ const fechaStr = this.toDateStr(this.fechaSeleccionada);
     this.cargandoHistorial = true;
     this.errorHistorial = null;
 
-    // Traemos TODOS los registros de esta materia+grupo (sin límite de fecha),
-    // para que se vea el historial completo desde que se empezó a tomar lista.
-const token = this.sesion.usuario?.token;
-        const { data, error } = token
-          ? await this.sesion.supabase.rpc('historial_asistencia', { p_token: token, p_grupo_id: this.grupoId, p_materia_id: this.materiaId })
-          : { data: [] as any[], error: null };
+    const token = this.sesion.usuario?.token;
+    const { data, error } = token
+      ? await this.sesion.supabase.rpc('historial_asistencia', { p_token: token, p_grupo_id: this.grupoId, p_materia_id: this.materiaId })
+      : { data: [] as any[], error: null };
 
-        if (error) {
-          console.error('Error cargando historial:', error.message);
-          this.errorHistorial = 'No se pudo cargar el historial. Verifica tu conexión.';
+    if (error) {
+      console.error('Error cargando historial:', error.message);
+      this.errorHistorial = 'No se pudo cargar el historial. Verifica tu conexión.';
       this.historial = [];
       this.cargandoHistorial = false;
       return;
@@ -685,9 +578,6 @@ const token = this.sesion.usuario?.token;
         ausentes:  cnt.A,
         total:     cnt.P + cnt.A + cnt.R,
       }))
-      // Orden descendente explícito por fecha (más reciente primero).
-      // No depende del orden en que Supabase devolvió las filas ni del
-      // orden de inserción del Map: se garantiza aquí siempre.
       .sort((a, b) => b.fecha.localeCompare(a.fecha));
 
     this.cargandoHistorial = false;

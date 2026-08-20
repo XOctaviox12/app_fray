@@ -72,96 +72,77 @@ export class AulaPage implements OnInit {
     }
   }
 
-  private async cargarGruposDocente() {
-    const docenteId = this.sesion.usuario?.id;
-    if (!docenteId) return;
+private async cargarGruposDocente() {
+  const docenteId = this.sesion.usuario?.id;
+  console.log('DEBUG docenteId:', docenteId, 'usuario completo:', this.sesion.usuario);
+  if (!docenteId) return;
 
-    // 1. Grupos del docente
-    const { data: relGrupos } = await this.sesion.supabase
-      .from('academic_grupo_docentes')
-      .select('grupo_id')
-      .eq('user_id', docenteId);
+  // 1. Grupos del docente (Carga unificada segura vía RPC)
+    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+    const { data: rawData, error } = await this.sesion.supabase.rpc('grupos_y_materias_del_docente', { p_token: token });
 
-    if (!relGrupos?.length) { this.grupos = []; return; }
-    const grupoIds = relGrupos.map((r: any) => r.grupo_id);
-
-    const { data: gruposData, error } = await this.sesion.supabase
-      .from('academic_grupo')
-      .select('id, nombre, grado, aula, capacidad_maxima, plantel_id')
-      .in('id', grupoIds)
-      .order('grado');
-    if (error) throw error;
-
-    // 2. Todas las asignaturas del docente
-    const { data: relAsig } = await this.sesion.supabase
-      .from('academic_asignatura_docentes')
-      .select('asignatura_id')
-      .eq('user_id', docenteId);
-    const asigDocenteIds = (relAsig || []).map((r: any) => r.asignatura_id);
-
-    // 3. Por cada grupo, qué asignaturas del docente están en él
-    const { data: relGrupoAsig } = await this.sesion.supabase
-      .from('academic_asignatura_grupos')
-      .select('asignatura_id, grupo_id')
-      .in('grupo_id', grupoIds)
-      .in('asignatura_id', asigDocenteIds);
-
-    // 4. Datos de las asignaturas
-    const asigIds = [...new Set((relGrupoAsig || []).map((r: any) => r.asignatura_id))];
-    let asigMap: Record<number, any> = {};
-    if (asigIds.length) {
-      const { data: asigData } = await this.sesion.supabase
-        .from('academic_asignatura')
-        .select('id, nombre, clave')
-        .in('id', asigIds);
-      (asigData || []).forEach((a: any) => { asigMap[a.id] = a; });
+    if (error) {
+      console.error('Error grupos docente:', error.message);
+      this.error = 'No se pudieron cargar tus grupos.';
+      return;
     }
 
-    // 5. Armar estructura final
-    this.grupos = (gruposData || []).map((g: any) => {
-      const materiasDelGrupo = (relGrupoAsig || [])
-        .filter((r: any) => r.grupo_id === g.id)
-        .map((r: any) => ({
-          asignaturaId: r.asignatura_id,
-          nombre: asigMap[r.asignatura_id]?.nombre || '—',
-          clave:  asigMap[r.asignatura_id]?.clave  || '',
-        }));
+    if (!rawData || !rawData.length) {
+      this.grupos = [];
+      return;
+    }
 
-      return { ...g, materias: materiasDelGrupo } as GrupoConMaterias;
+    const gruposMap = new Map<number, any>();
+
+    rawData.forEach((row: any) => {
+      if (!gruposMap.has(row.grupo_id)) {
+        gruposMap.set(row.grupo_id, {
+  id: row.grupo_id,
+  nombre: row.grupo_nombre,
+  grado: row.grupo_grado,
+  aula: row.grupo_aula,
+  capacidad_maxima: row.grupo_capacidad_maxima,
+  plantel_id: row.grupo_plantel_id,
+  materias: []   // ← antes decía materiasDelGrupo
+});
+      }
+
+      const grupo = gruposMap.get(row.grupo_id);
+grupo.materias.push({   // ← antes decía grupo.materiasDelGrupo.push
+  asignaturaId: row.asignatura_id,
+  nombre: row.asignatura_nombre,
+  clave: row.asignatura_clave
+});
     });
+
+    this.grupos = Array.from(gruposMap.values());
   }
 
   private async cargarGrupoAlumno() {
     const { data: usu } = await this.sesion.supabase
-  .rpc('perfil_basico_usuario', { p_user_id: this.sesion.usuario!.id }).single();
+    .rpc('perfil_basico_usuario', { p_token: this.sesion.usuario?.token, p_user_id: this.sesion.usuario!.id }).single();
     const grupoId = (usu as any)?.alumno_grupo_id;
     if (!grupoId) { this.grupoAlumno = null; return; }
 
-    const { data } = await this.sesion.supabase
-      .from('academic_grupo')
-      .select('id, nombre, grado, aula, capacidad_maxima, plantel_id')
-      .eq('id', grupoId)
-      .single();
+    const { data: _g } = await this.sesion.supabase.rpc('leer_grupo_por_id', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_grupo_id: grupoId });
+    const data = _g && _g.length ? _g[0] : null;
     this.grupoAlumno = data || null;
   }
 
   private async cargarDatosTutor() {
     const alumnoId = this.sesion.tutor?.alumno_id;
-    if (!alumnoId) return;
+  if (!alumnoId) return;
 
-    const { data: alumno } = await this.sesion.supabase
-  .rpc('perfil_basico_usuario', { p_user_id: alumnoId }).single();
+  const { data: alumno } = await this.sesion.supabase
+    .rpc('perfil_basico_usuario', { p_token: this.sesion.tutor?.token, p_user_id: alumnoId }).single();
     if (!alumno) return;
 
     this.nombreHijo = `${(alumno as any).first_name} ${(alumno as any).last_name}`.trim();
     const grupoId   = (alumno as any).alumno_grupo_id;
     if (!grupoId) return;
 
-    const { data: grupo } = await this.sesion.supabase
-      .from('academic_grupo')
-      .select('id, nombre, grado, aula, capacidad_maxima, plantel_id')
-      .eq('id', grupoId)
-      .single();
+    const { data: _g2 } = await this.sesion.supabase.rpc('leer_grupo_por_id', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_grupo_id: grupoId });
+    const grupo = _g2 && _g2.length ? _g2[0] : null;
     this.grupoHijo = grupo || null;
   }
 
