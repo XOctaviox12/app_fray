@@ -66,6 +66,16 @@ $rojo:    #D32F2F;
     ion-icon { font-size: 15px; margin-right: 4px; }
   }
 }
+.historial-parcial-header {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--fh-text-2, #574235);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 16px 18px 6px;
+  margin: 0;
+  opacity: 0.8;
+}
 
 // ── CONTENT ─────────────────────────────────────────────
 .asist-content { --background: #{$navy}; }

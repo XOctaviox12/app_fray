@@ -1,5 +1,5 @@
 ﻿import { Component, OnInit } from '@angular/core';
-import { NavController, ToastController, AlertController } from '@ionic/angular';
+import { NavController, ToastController, AlertController, IonicSafeString } from '@ionic/angular';
 import { SesionService } from '../../services/sesion.service';
 
 type Estado = 'P' | 'A' | 'R';
@@ -36,6 +36,12 @@ interface HistorialItem {
   retardos: number;
   ausentes: number;
   total: number;
+  parcial: number;
+}
+
+interface HistorialGrupoParcial {
+  parcial: number;
+  items: HistorialItem[];
 }
 
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -81,6 +87,7 @@ export class AsistenciaPage implements OnInit {
   segmento: 'lista' | 'historial' = 'lista';
 
   historial: HistorialItem[] = [];
+  historialPorParcial: HistorialGrupoParcial[] = [];
   cargandoHistorial = false;
   errorHistorial: string | null = null;
 
@@ -258,6 +265,7 @@ export class AsistenciaPage implements OnInit {
     this.vista = 'tomar';
     this.segmento = 'lista';
     this.historial = [];
+    this.historialPorParcial = [];
     this.errorHistorial = null;
     this.cargarAlumnos();
   }
@@ -356,6 +364,7 @@ export class AsistenciaPage implements OnInit {
     this.vista = 'selector';
     this.alumnos = [];
     this.historial = [];
+    this.historialPorParcial = [];
     this.error = null;
     this.errorHistorial = null;
     this.cargarGrupos();
@@ -498,7 +507,11 @@ export class AsistenciaPage implements OnInit {
 
     const alert = await this.alertCtrl.create({
       header: 'Confirmar asistencia',
-      message: mensaje,
+      // Antes se mandaba "mensaje" como string plano: Angular lo escapa
+      // por seguridad y las etiquetas <strong>/<br> salían literales en
+      // pantalla. IonicSafeString le dice al AlertController "esto ya
+      // está sanitizado, ríndelo como HTML".
+      message: new IonicSafeString(mensaje),
       cssClass: 'asist-alert',
       buttons: [
         { text: 'Revisar de nuevo', role: 'cancel' },
@@ -538,6 +551,7 @@ export class AsistenciaPage implements OnInit {
     this.yaGuardada = true;
     this.mostrarToast(`Lista guardada · ${this.totalPresentes}P ${this.totalRetardos}R ${this.totalAusentes}A`, 'success');
     this.historial = [];
+    this.historialPorParcial = [];
   }
 
   async onSegmentoChange() {
@@ -559,13 +573,17 @@ export class AsistenciaPage implements OnInit {
       console.error('Error cargando historial:', error.message);
       this.errorHistorial = 'No se pudo cargar el historial. Verifica tu conexión.';
       this.historial = [];
+      this.historialPorParcial = [];
       this.cargandoHistorial = false;
       return;
     }
 
-    const porFecha = new Map<string, { P: number; A: number; R: number }>();
+    // Nota: se asume que cada fila de historial_asistencia ya trae "parcial"
+    // (la columna existe en academic_asistencia). Si el RPC no lo devuelve
+    // todavía, hay que agregarlo al SELECT de esa función.
+    const porFecha = new Map<string, { P: number; A: number; R: number; parcial: number }>();
     (data || []).forEach((r: any) => {
-      if (!porFecha.has(r.fecha)) porFecha.set(r.fecha, { P: 0, A: 0, R: 0 });
+      if (!porFecha.has(r.fecha)) porFecha.set(r.fecha, { P: 0, A: 0, R: 0, parcial: r.parcial ?? 1 });
       const d = porFecha.get(r.fecha)!;
       d[r.estado as Estado]++;
     });
@@ -577,8 +595,19 @@ export class AsistenciaPage implements OnInit {
         retardos:  cnt.R,
         ausentes:  cnt.A,
         total:     cnt.P + cnt.A + cnt.R,
+        parcial:   cnt.parcial,
       }))
       .sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+    // Agrupar el historial por parcial, el más reciente primero.
+    const porParcial = new Map<number, HistorialItem[]>();
+    this.historial.forEach(item => {
+      if (!porParcial.has(item.parcial)) porParcial.set(item.parcial, []);
+      porParcial.get(item.parcial)!.push(item);
+    });
+    this.historialPorParcial = Array.from(porParcial.entries())
+      .map(([parcial, items]) => ({ parcial, items }))
+      .sort((a, b) => b.parcial - a.parcial);
 
     this.cargandoHistorial = false;
   }

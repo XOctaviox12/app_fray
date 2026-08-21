@@ -295,42 +295,50 @@
       <p>Aún no hay listas guardadas para este grupo.</p>
     </div>
 
+    <!-- Historial separado por parcial: cada bloque trae su encabezado
+         "Parcial N" y, debajo, sus fechas ordenadas de más reciente a
+         más antigua. Los bloques de parcial también van del más
+         reciente al más antiguo. -->
     <div class="historial-list" *ngIf="!cargandoHistorial && historial.length > 0">
-      <button class="historial-card" *ngFor="let item of historial" (click)="abrirDiaHistorial(item.fecha)">
+      <ng-container *ngFor="let grupo of historialPorParcial">
+        <p class="historial-parcial-header">Parcial {{ grupo.parcial }}</p>
 
-        <div class="hist-fecha-col">
-          <span class="hist-dia">{{ item.fecha.split('-')[2] }}</span>
-          <span class="hist-mes">{{ formatFecha(item.fecha).split(' ')[1] }}</span>
-        </div>
+        <button class="historial-card" *ngFor="let item of grupo.items" (click)="abrirDiaHistorial(item.fecha)">
 
-        <div class="hist-info">
-          <div class="hist-bar-wrap">
-            <div class="hist-bar">
-              <div class="hist-bar-seg verde"
-                   [style.width.%]="(item.presentes / item.total) * 100"></div>
-              <div class="hist-bar-seg naranja"
-                   [style.width.%]="(item.retardos  / item.total) * 100"></div>
-              <div class="hist-bar-seg rojo"
-                   [style.width.%]="(item.ausentes  / item.total) * 100"></div>
+          <div class="hist-fecha-col">
+            <span class="hist-dia">{{ item.fecha.split('-')[2] }}</span>
+            <span class="hist-mes">{{ formatFecha(item.fecha).split(' ')[1] }}</span>
+          </div>
+
+          <div class="hist-info">
+            <div class="hist-bar-wrap">
+              <div class="hist-bar">
+                <div class="hist-bar-seg verde"
+                     [style.width.%]="(item.presentes / item.total) * 100"></div>
+                <div class="hist-bar-seg naranja"
+                     [style.width.%]="(item.retardos  / item.total) * 100"></div>
+                <div class="hist-bar-seg rojo"
+                     [style.width.%]="(item.ausentes  / item.total) * 100"></div>
+              </div>
+            </div>
+            <div class="hist-nums">
+              <span class="hist-n verde">{{ item.presentes }}P</span>
+              <span class="hist-n naranja">{{ item.retardos }}R</span>
+              <span class="hist-n rojo">{{ item.ausentes }}A</span>
+              <span class="hist-total">/ {{ item.total }}</span>
             </div>
           </div>
-          <div class="hist-nums">
-            <span class="hist-n verde">{{ item.presentes }}P</span>
-            <span class="hist-n naranja">{{ item.retardos }}R</span>
-            <span class="hist-n rojo">{{ item.ausentes }}A</span>
-            <span class="hist-total">/ {{ item.total }}</span>
-          </div>
-        </div>
 
-        <div class="hist-pct" [ngClass]="{
-          verde:   porcentajeHistorial(item) >= 85,
-          naranja: porcentajeHistorial(item) >= 70 && porcentajeHistorial(item) < 85,
-          rojo:    porcentajeHistorial(item) < 70
-        }">{{ porcentajeHistorial(item) }}%</div>
+          <div class="hist-pct" [ngClass]="{
+            verde:   porcentajeHistorial(item) >= 85,
+            naranja: porcentajeHistorial(item) >= 70 && porcentajeHistorial(item) < 85,
+            rojo:    porcentajeHistorial(item) < 70
+          }">{{ porcentajeHistorial(item) }}%</div>
 
-        <ion-icon name="chevron-forward-outline" class="hist-card-arrow"></ion-icon>
+          <ion-icon name="chevron-forward-outline" class="hist-card-arrow"></ion-icon>
 
-      </button>
+        </button>
+      </ng-container>
     </div>
 
   </ng-container>
