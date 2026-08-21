@@ -22,6 +22,7 @@
     "@angular/platform-browser": "~16.2.12",
     "@angular/platform-browser-dynamic": "~16.2.12",
     "@angular/router": "~16.2.12",
+    "@babel/runtime": "7.29.7",
     "@capacitor/android": "^8.5.0",
     "@capacitor/app": "^8.1.1",
     "@capacitor/browser": "^8.0.4",
@@ -35,6 +36,7 @@
     "@supabase/supabase-js": "^2.104.0",
     "ionicons": "^8.0.13",
     "rxjs": "~7.8.1",
+    "save": "^2.9.0",
     "tslib": "^2.6.2",
     "zone.js": "~0.13.3"
   },
@@ -66,5 +68,8 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.1.6"
+  },
+  "overrides": {
+    "@babel/runtime": "7.29.7"
   }
 }
