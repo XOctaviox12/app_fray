@@ -5,6 +5,7 @@ import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { SesionService } from '../../services/sesion.service';
 import { CloudinaryService, ArchivoSubido } from '../../services/cloudinary.service';
+import { Router } from '@angular/router';
 
 // ─── Tipos ─────────────────────────────────────────────────────────────
 
@@ -181,6 +182,7 @@ export class ActividadPage implements OnInit {
     private cloudinary: CloudinaryService,
     private alertCtrl:  AlertController,
     private toastCtrl:  ToastController,
+    private router: Router,
   ) {}
 
   ngOnInit() {
@@ -660,7 +662,11 @@ export class ActividadPage implements OnInit {
       this.subiendoEntrega  = false;
     }
   }
-
+ irADetalleActividad(id: any) {
+    if (id) {
+      this.router.navigate(['/detalle-actividad', id]);
+    }
+  }
   // ═══════════════════════════════════════════════════════════════════
   //  VER ENTREGAS (docente)
   // ═══════════════════════════════════════════════════════════════════

@@ -179,8 +179,14 @@
           <div class="cal-card-center">
             <h4 class="cal-materia-name">{{ m.nombre }}</h4>
             <p class="cal-docente">{{ m.docente }}</p>
-            <span class="cal-parcial-badge" *ngIf="m.parcial">Parcial {{ m.parcial }}</span>
-            <span class="cal-sin-nota" *ngIf="m.calificacion === null">Sin calificación publicada</span>
+
+            <!-- Desglose: qué parcial de esta materia corresponde a cada nota -->
+            <div class="cal-parciales-row" *ngIf="m.boletas.length > 0">
+              <span class="cal-parcial-badge" *ngFor="let b of m.boletas">
+                Parcial {{ b.parcial }}: {{ b.calificacion }}
+              </span>
+            </div>
+            <span class="cal-sin-nota" *ngIf="m.boletas.length === 0">Sin calificación publicada</span>
           </div>
           <div class="cal-card-right">
             <div [ngClass]="['cal-estado', colorCalificacion(m.calificacion)]">
@@ -334,8 +340,14 @@
         </div>
         <div class="cal-card-center">
           <h4 class="cal-materia-name">{{ m.nombre }}</h4>
-          <span class="cal-parcial-badge" *ngIf="m.parcial">Parcial {{ m.parcial }}</span>
-          <span class="cal-sin-nota" *ngIf="m.calificacion === null">Sin boleta publicada</span>
+
+          <!-- Desglose: qué parcial de esta materia corresponde a cada nota -->
+          <div class="cal-parciales-row" *ngIf="m.boletas.length > 0">
+            <span class="cal-parcial-badge" *ngFor="let b of m.boletas">
+              Parcial {{ b.parcial }}: {{ b.calificacion }}
+            </span>
+          </div>
+          <span class="cal-sin-nota" *ngIf="m.boletas.length === 0">Sin boleta publicada</span>
         </div>
         <div class="cal-card-right">
           <div [ngClass]="['cal-estado', colorCalificacion(m.calificacion)]">

@@ -1,8 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { SesionService } from '../../services/sesion.service';
 
+export interface BoletaItem {
+  parcial: number;
+  calificacion: number;
+}
+
 export interface MateriaAlumno {
   id: number; nombre: string; clave: string; docente: string;
+  boletas: BoletaItem[];
   calificacion: number | null; parcial: number | null;
   tareasPendientes: number; color: string;
 }
@@ -11,7 +17,9 @@ export interface MateriaDocente {
   totalAlumnos: number; tareasPub: number; actividadesPub: number;
 }
 export interface MateriaTutor {
-  id: number; nombre: string; calificacion: number | null;
+  id: number; nombre: string;
+  boletas: BoletaItem[];
+  calificacion: number | null;
   parcial: number | null; aprobada: boolean; docente?: string;
 }
 
@@ -86,6 +94,25 @@ export class MateriasPage implements OnInit {
 
   trackById(_: number, item: any) { return item.id; }
 
+  // Agrupa boletas ya publicadas por asignatura_id, ordenadas por parcial.
+  // Nota: si la fila trae "publicada" se respeta ese valor; si el RPC ya
+  // devuelve solo publicadas y no manda ese campo, no se descarta nada
+  // (evita que boletas_alumno_publicadas quede vacía por falta del campo).
+  private agruparBoletasPorMateria(boletas: any[]): Record<number, BoletaItem[]> {
+    const mapa: Record<number, BoletaItem[]> = {};
+    (boletas || [])
+      .filter((b: any) => b.publicada !== false)
+      .forEach((b: any) => {
+        if (!mapa[b.asignatura_id]) mapa[b.asignatura_id] = [];
+        mapa[b.asignatura_id].push({
+          parcial: b.parcial,
+          calificacion: b.calificacion_final,
+        });
+      });
+    Object.values(mapa).forEach(lista => lista.sort((a, b) => a.parcial - b.parcial));
+    return mapa;
+  }
+
   // ══════════════════════════════════════════════════════
   //  ALUMNO
   // ══════════════════════════════════════════════════════
@@ -93,38 +120,42 @@ export class MateriasPage implements OnInit {
     const alumnoId = this.sesion.usuario?.id;
     if (!alumnoId) return;
 
+    const token = this.sesion.usuario?.token;
+
     const { data: usu } = await this.sesion.supabase
-      .rpc('perfil_basico_usuario', { p_token: this.sesion.usuario?.token, p_user_id: alumnoId }).single();
+      .rpc('perfil_basico_usuario', { p_token: token, p_user_id: alumnoId }).single();
     const grupoId = (usu as any)?.alumno_grupo_id;
     if (!grupoId) return;
 
-    // Carga segura vía RPC
-    const token = this.sesion.usuario?.token;
-
-    // Usamos la RPC que cruza asignatura, grupo y docente en el servidor
     const { data: materiasInfo } = await this.sesion.supabase.rpc('obtener_materias_grupo_tutor', {
-        p_token: token, p_grupo_id: grupoId, p_alumno_id: this.sesion.usuario!.id
+        p_token: token, p_grupo_id: grupoId, p_alumno_id: alumnoId
     });
 
     if (!materiasInfo || !materiasInfo.length) return;
 
-    // Obtener tareas pendientes
-    const { data: tareasData } = await this.sesion.supabase.rpc('tareas_del_alumno', { p_token: token, p_alumno_id: this.sesion.usuario!.id });
+    // Tareas y actividades pendientes, combinadas
+    const { data: tareasData } = await this.sesion.supabase.rpc('tareas_del_alumno', { p_token: token, p_alumno_id: alumnoId });
+    const { data: actividadesData } = await this.sesion.supabase.rpc('actividades_del_alumno', { p_token: token, p_alumno_id: alumnoId });
+
     const tareasPendientes = (tareasData || []).filter((t: any) => t.publicada);
+    const actividadesPendientes = (actividadesData || []).filter((a: any) => a.publicada);
 
-    // Antes el objeto mapeado no coincidía con la interfaz MateriaAlumno
-    // (usaba totalTareas/totalEntregadas/progreso, que no existen ahí),
-    // así que "calificacion" y "tareasPendientes" quedaban undefined más
-    // abajo. Se corrige para que los nombres coincidan con la interfaz.
+    // Boletas publicadas, desglosadas por parcial y materia
+    const { data: boletasRaw } = await this.sesion.supabase
+      .rpc('obtener_boletas_alumno_tutor', { p_token: token, p_alumno_id: alumnoId });
+    const boletasPorMateria = this.agruparBoletasPorMateria(boletasRaw);
+
     this.materiasAlumno = materiasInfo.map((asi: any, idx: number) => {
-      // Contar tareas de esta materia
       const totalTareas = tareasPendientes.filter((t: any) => t.asignatura_id === asi.id).length;
+      const totalActividades = actividadesPendientes.filter((a: any) => a.asignatura_id === asi.id).length;
 
-      // La RPC ya devuelve los docentes anidados
       let docenteNombre = 'Sin asignar';
       if (asi.docentes && asi.docentes.length > 0 && asi.docentes[0].user) {
          docenteNombre = `${asi.docentes[0].user.first_name} ${asi.docentes[0].user.last_name}`.trim();
       }
+
+      const boletas = boletasPorMateria[asi.id] || [];
+      const ultima = boletas.length ? boletas[boletas.length - 1] : null;
 
       return {
         id: asi.id,
@@ -132,14 +163,15 @@ export class MateriasPage implements OnInit {
         clave: asi.clave,
         color: this.coloresMateria[idx % this.coloresMateria.length],
         docente: docenteNombre,
-        calificacion: null,
-        parcial: null,
-        tareasPendientes: totalTareas,
+        boletas,
+        calificacion: ultima ? ultima.calificacion : null,
+        parcial: ultima ? ultima.parcial : null,
+        tareasPendientes: totalTareas + totalActividades,
       } as MateriaAlumno;
     });
 
     this.tareasPendientesTotal = this.materiasAlumno.reduce((s, m) => s + m.tareasPendientes, 0);
-    this.sinCalificaciones     = !this.materiasAlumno.some(m => m.calificacion !== null);
+    this.sinCalificaciones     = !this.materiasAlumno.some(m => m.boletas.length > 0);
   }
 
   // ══════════════════════════════════════════════════════
@@ -207,10 +239,6 @@ export class MateriasPage implements OnInit {
   // ══════════════════════════════════════════════════════
   //  TUTOR
   // ══════════════════════════════════════════════════════
-  // Antes este bloque completo vivía pegado al final de cargarDocente(),
-  // mezclando datos de tutor dentro del flujo de docente. Además
-  // cargarDatos() llama a "this.cargarTutor()" para el caso TUTOR, pero
-  // ese método no existía en la clase — se corrige separándolo aquí.
   async cargarTutor() {
     const token = this.sesion.tutor?.token;
     const alumnoId = this.sesion.tutor?.alumno_id;
@@ -229,27 +257,27 @@ export class MateriasPage implements OnInit {
 
     if (!materiasInfo || !materiasInfo.length) return;
 
-    const { data: boletas } = await this.sesion.supabase.rpc('boletas_alumno_publicadas', { p_token: token, p_alumno_id: alumnoId });
+    const { data: boletasRaw } = await this.sesion.supabase
+      .rpc('boletas_alumno_publicadas', { p_token: token, p_alumno_id: alumnoId });
+    const boletasPorMateria = this.agruparBoletasPorMateria(boletasRaw);
 
-    // Antes se devolvía { promedio, estado }, que no coincide con la
-    // interfaz MateriaTutor (calificacion, parcial, aprobada), así que el
-    // cálculo de "notas" más abajo (que lee m.calificacion) siempre daba
-    // arrays vacíos.
     this.materiasTutor = materiasInfo.map((asi: any) => {
-      const boleta = (boletas || []).find((b: any) => b.asignatura_id === asi.id);
-
       let docenteNombre = 'Sin asignar';
       if (asi.docentes && asi.docentes.length > 0 && asi.docentes[0].user) {
          docenteNombre = `${asi.docentes[0].user.first_name} ${asi.docentes[0].user.last_name}`.trim();
       }
 
+      const boletas = boletasPorMateria[asi.id] || [];
+      const ultima = boletas.length ? boletas[boletas.length - 1] : null;
+
       return {
         id: asi.id,
         nombre: asi.nombre,
         docente: docenteNombre,
-        calificacion: boleta ? boleta.calificacion_final : null,
-        parcial: null,
-        aprobada: boleta ? boleta.calificacion_final >= 6 : false,
+        boletas,
+        calificacion: ultima ? ultima.calificacion : null,
+        parcial: ultima ? ultima.parcial : null,
+        aprobada: ultima ? ultima.calificacion >= 6 : false,
       } as MateriaTutor;
     });
 

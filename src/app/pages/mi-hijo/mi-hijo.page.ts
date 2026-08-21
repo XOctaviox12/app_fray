@@ -132,9 +132,12 @@ async cargarMaterias(alumnoId: number, grupoId: number) {
       return;
     }
 
-    // 2. Boletas parciales del alumno
-    const { data: boletasData } = await this.sesion.supabase
+    // 2. Boletas parciales del alumno — solo las publicadas
+    const { data: boletasRaw } = await this.sesion.supabase
       .rpc('obtener_boletas_alumno_tutor', { p_token: token, p_alumno_id: alumnoId });
+
+    // Filtrar solo boletas con publicada=true
+    const boletasData = (boletasRaw || []).filter((b: any) => b.publicada === true);
 
     // 3. Asistencias del alumno en este grupo
     const { data: asistData } = await this.sesion.supabase

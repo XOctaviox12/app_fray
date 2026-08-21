@@ -105,9 +105,8 @@ async iniciarSesion(username: string, password: string): Promise<boolean> {
   async iniciarSesionTutor(codigo: string): Promise<boolean> {
     try {
       const { data, error } = await this.supabase
-        .from('users_tutor')
-        .select('id, nombre, parentesco, correo, telefono, alumno_id, codigo_acceso')
-        .eq('codigo_acceso', codigo).single();
+        .rpc('verificar_codigo_tutor', { p_codigo: codigo })
+        .single<{ id: number; nombre: string; parentesco: string; correo: string | null; telefono: string; alumno_id: number }>();
 
       if (error || !data) { console.error('Login tutor fallido:', error?.message); return false; }
 

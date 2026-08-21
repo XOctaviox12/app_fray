@@ -1,7 +1,6 @@
 // ============================================
 // MATERIAS.PAGE.SCSS
 // Alineado a la paleta del mock (Universidad Lisboa)
-// Solo estilos — ninguna clase, evento o binding del HTML fue modificado.
 // ============================================
 
 :host {
@@ -162,8 +161,6 @@ ion-segment-button {
 
 // ══════════════════════════════════════════
 //  ALUMNO — tarjetas de materia
-//  (degradado arriba + tarjeta blanca "flotando" encima,
-//   igual que el mock de dashboard)
 // ══════════════════════════════════════════
 
 .materia-card {
@@ -415,6 +412,16 @@ ion-segment-button {
   color: var(--fh-text-2);
   opacity: 0.85;
   margin: 0 0 7px;
+}
+
+// Wrapper del desglose por parcial: uno o varios .cal-parcial-badge en fila,
+// con salto de línea si no caben (una materia puede tener 1 a 4 parciales
+// publicados).
+.cal-parciales-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 4px;
 }
 
 .cal-parcial-badge {

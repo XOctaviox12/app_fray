@@ -361,18 +361,10 @@ export class DetalleTareaPage implements OnInit {
     if (!this.tarea) return;
     try {
       const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
-      // NOTA: la RPC real se llama 'comentarios_tarea' (no 'leer_comentarios_tarea').
-      // Además esta función NO devuelve autor_nombre/autor_rol, así que los
-      // completamos con valores por defecto para no romper el template hasta
-      // que exista una RPC que resuelva esos nombres.
       const { data, error } = await this.sesion.supabase
-        .rpc('comentarios_tarea', { p_token: token, p_tarea_id: this.tarea.id });
+        .rpc('leer_comentarios_tarea', { p_token: token, p_tarea_id: this.tarea.id });
       if (error) throw error;
-      this.comentarios = (data || []).map((c: any) => ({
-        ...c,
-        autor_nombre: c.autor_nombre ?? '',
-        autor_rol: c.autor_rol ?? '',
-      }));
+      this.comentarios = data || [];
     } catch (e: any) {
       this.toast(`No se pudieron cargar los comentarios: ${e.message}`, 'danger');
     }

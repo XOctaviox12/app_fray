@@ -18,7 +18,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   // Fallback real de avatar: si la imagen falla en tiempo real (URL rota,
   // Cloudinary/Supabase caído, etc.) se conmuta a un avatar local por defecto.
-  private avatarFallback = 'assets/img/usuario.png';
+  private avatarFallback = 'assets/img/default-avatar.png';
   private avatarErrorOcurrido = false;
 
   // Guarda la última URL "cruda" (sin cache-busting) que devolvió el

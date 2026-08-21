@@ -5,6 +5,7 @@ import { CloudinaryService } from '../../services/cloudinary.service';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { environment } from 'src/environments/environment';
 import { ActividadSyncService } from '../../services/actividad-sync.service';
+import { Router } from '@angular/router';
 
 
 export type BloqueType = 'texto' | 'pdf' | 'video' | 'actividad' | 'imagen' | 'link';
@@ -224,6 +225,7 @@ constructor(
   private cloudinary: CloudinaryService,
   private sanitizer: DomSanitizer,
   private actividadSync: ActividadSyncService,
+  private router: Router,
 ) {}
 
   ngOnInit()    { this.inicializar(); }
@@ -421,12 +423,21 @@ async buscarSesionActivaDocente() {
     return;
   }
 
-  // FUERZA: ignora siempre lo que devuelve data
-  console.log('DEBUG: RPC devolvió:', data);
-  this.desuscribir();
-  this.sesionActiva = null;
-  this.bloques = [];
+  // ✅ FIX: Usar el resultado de data si existe
+  if (data) {
+    this.sesionActiva = data[0];
+    await this.cargarBloques();
+    this.suscribirRealtime();
+    console.log('DEBUG: Sesión activa del docente cargada:', this.sesionActiva);
+  } else {
+    // Si no hay sesión activa, limpiar
+    this.desuscribir();
+    this.sesionActiva = null;
+    this.bloques = [];
+    console.log('DEBUG: No hay sesión activa para el docente');
+  }
 }
+
   // Una clase FINALIZADA sigue siendo "vigente" (visible en modo lectura)
   // mientras estemos dentro de DIAS_VISIBILIDAD_FINALIZADA desde que se
   // terminó. Si no trae finalizada_en (dato viejo, previo a este cambio),
@@ -1648,7 +1659,7 @@ async guardarPlan(publicar: boolean) {
     await this.cargarPlanes();
 
     const actualizado = this.planes.find(p => p.id === planId);
-    if (actualizado) this.abrirDetallePlan(actualizado);
+    if (actualizado) this.abrirDetalle(actualizado);
     else this.vistaPlanes = 'lista';
 
   } catch (e: any) {
@@ -1707,10 +1718,9 @@ async eliminarPlan(p: PlanClase) {
   this.volverALista();
 }
 
-  async abrirDetallePlan(p: PlanClase) {
-    this.planSeleccionado = p;
-    this.vistaPlanes = 'detalle';
-    await this.cargarTemas();
+  abrirDetalle(a: any) {
+    console.log('Navegando a actividad:', a.id);
+    this.router.navigate(['/detalle-actividad', a.id]);
   }
 
   volverALista() {

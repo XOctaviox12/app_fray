@@ -183,11 +183,6 @@ export class DetalleActividadPage implements OnInit {
     if (error) throw error;
     if (!a) { this.actividad = null; return; }
 
-    const [{ data: asi }, { data: gru }] = await Promise.all([
-      this.sesion.supabase.from('materias').select('nombre').eq('id', (a as any).asignatura_id).single(),
-      this.sesion.supabase.from('grupos').select('nombre, grado').eq('id', (a as any).grupo_id).single(),
-    ]);
-
     this.actividad = {
       id: (a as any).id,
       titulo: (a as any).titulo,
@@ -197,8 +192,8 @@ export class DetalleActividadPage implements OnInit {
       valor_total: parseFloat((a as any).valor_total),
       url_interactiva: (a as any).url_interactiva,
       publicada: (a as any).publicada,
-      materia_nombre: (asi as any)?.nombre || '—',
-      grupo_nombre: gru ? `${(gru as any).grado}° ${(gru as any).nombre}` : '—',
+      materia_nombre: (a as any).materia_nombre || '—',
+      grupo_nombre: (a as any).grupo_nombre || '—',
       grupo_id: (a as any).grupo_id,
       asignatura_id: (a as any).asignatura_id,
       docente_id: (a as any).docente_id,
