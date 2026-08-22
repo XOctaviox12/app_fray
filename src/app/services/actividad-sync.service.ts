@@ -10,14 +10,11 @@ import {
 // Fin del día (23:59:59) de una fecha dada.
 // Se usa como fecha_entrega por defecto cuando una actividad
 // se crea desde un bloque de clase que no pide fecha límite propia.
+// ✅ CORREGIDO: construir directamente en ISO para evitar desplazamiento de zona horaria
 function finDelDia(fechaIso: string): string {
   const soloFecha = fechaIso.split('T')[0];
-  const [y, m, d] = soloFecha.split('-').map(Number);
-
-  // Construido en hora local y convertido posteriormente a ISO.
-  const fecha = new Date(y, m - 1, d, 23, 59, 59, 999);
-
-  return fecha.toISOString();
+  // Directamente en ISO 8601 sin conversión de zona horaria
+  return `${soloFecha}T23:59:59.999Z`;
 }
 
 const VALOR_TOTAL_DEFECTO = 10;
@@ -42,13 +39,14 @@ export class ActividadSyncService {
   //   - origen_pregunta_id (para academic_preguntaactividad)
   //
   // Por lo tanto no pierde las entregas ya realizadas por alumnos.
+  // ✅ CORREGIDO: devuelve {success, error} en lugar de Promise<void>
   async sincronizarBloque(
     bloque: BloqueClase,
     sesionActiva: SesionClase
-  ): Promise<void> {
+  ): Promise<{ success: boolean; error?: string }> {
 
     if (bloque.tipo !== 'actividad' || !bloque.id) {
-      return;
+      return { success: false, error: 'Bloque no es de tipo actividad o sin ID' };
     }
 
     const act: ActividadContenido =
@@ -58,8 +56,13 @@ export class ActividadSyncService {
       p => p.pregunta?.trim()
     );
 
+    // ✅ CORREGIDO: advertencia en lugar de silent return
     if (!preguntasValidas.length) {
-      return;
+      console.warn(
+        `[sincronizarBloque] Bloque ${bloque.id} no tiene preguntas válidas. ` +
+        `Solo se sincronizarán las instrucciones (sin autocalificación).`
+      );
+      // Continuar igual — la actividad se crea con instrucciones, sin preguntas
     }
 
     const actividadId = await this.upsertActividad(
@@ -68,11 +71,23 @@ export class ActividadSyncService {
       act
     );
 
+    if (!actividadId) {
+      return { success: false, error: 'No se pudo crear/actualizar la actividad' };
+    }
+
     // Usar RPC para sincronizar todas las preguntas de una vez
-    await this.sincronizarPreguntasViaRpc(
-      actividadId,
-      preguntasValidas
-    );
+    if (preguntasValidas.length > 0) {
+      const syncResult = await this.sincronizarPreguntasViaRpc(
+        actividadId,
+        preguntasValidas
+      );
+
+      if (!syncResult.success) {
+        return syncResult;
+      }
+    }
+
+    return { success: true };
   }
 
   // ============================================================
@@ -87,11 +102,11 @@ export class ActividadSyncService {
     bloqueId: number
   ): Promise<void> {
 
-    const token = this.sesion.usuario?.token;
+    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
 
     if (!token) {
       throw new Error(
-        'No hay una sesión válida de docente.'
+        'No hay una sesión válida de docente o tutor.'
       );
     }
 
@@ -138,12 +153,18 @@ export class ActividadSyncService {
     bloque: BloqueClase,
     sesionActiva: SesionClase,
     act: ActividadContenido
-  ): Promise<number> {
+  ): Promise<number | null> {
 
     // Antes: "p_bloque_origen_id:" se mandaba vacío (nunca se pasaba
     // bloque.id), así que la búsqueda de la actividad existente nunca
     // encontraba nada y siempre se creaba una actividad nueva.
-    const { data: _ex, error: errorBusqueda } = await this.sesion.supabase.rpc('id_actividad_por_bloque_origen', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_bloque_origen_id: bloque.id });
+    const { data: _ex, error: errorBusqueda } = await this.sesion.supabase.rpc(
+      'id_actividad_por_bloque_origen',
+      {
+        p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token),
+        p_bloque_origen_id: bloque.id
+      }
+    );
 
     if (errorBusqueda) {
       throw errorBusqueda;
@@ -152,31 +173,21 @@ export class ActividadSyncService {
     const existente = _ex && _ex.length ? _ex[0] : null;
 
     const payload = {
-      titulo:
-        bloque.titulo?.trim() ||
-        'Actividad de clase',
-
-      instrucciones:
-        act.instrucciones || '',
-
+      titulo: bloque.titulo?.trim() || 'Actividad de clase',
+      instrucciones: act.instrucciones || '',
       tipo: 'MIXTA',
-
       publicada: true,
-
-      asignatura_id:
-        sesionActiva.asignatura_id,
-
-      grupo_id:
-        sesionActiva.grupo_id,
-
-      docente_id:
-        sesionActiva.docente_id,
-
-      bloque_origen_id:
-        bloque.id,
-
-      sesion_origen_id:
-        sesionActiva.id,
+      asignatura_id: sesionActiva.asignatura_id,
+      grupo_id: sesionActiva.grupo_id,
+      docente_id: sesionActiva.docente_id,
+      bloque_origen_id: bloque.id,
+      sesion_origen_id: sesionActiva.id,
+      fecha_entrega: new Date().toISOString(),
+      valor_total: 10,
+      url_interactiva: null,
+      archivo: null,
+      calificacion_automatica: false,
+      creada_en: new Date().toISOString(),
     };
 
     // ----------------------------------------------------------
@@ -207,20 +218,25 @@ export class ActividadSyncService {
     // "payload" ya armado arriba, así que la actividad se creaba sin
     // título, instrucciones, asignatura, grupo, docente ni referencia
     // al bloque de origen.
-    const { data: nueva, error } =
-      await this.sesion.supabase
-        .rpc('insertar_actividad_json', {
-          p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token),
-          p_payload: payload
-        })
-        .select('id')
-        .single();
+const { data: nueva, error } = await this.sesion.supabase
+  .rpc('insertar_actividad_json', {
+    p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token),
+    p_payload: payload
+  });
 
-    if (error) {
-      throw error;
-    }
+if (error) {
+  throw error;
+}
 
-    return (nueva as any).id;
+// El resultado es un objeto JSON: { id: 123, titulo: "...", ... }
+if (nueva && typeof nueva === 'object') {
+  const id = (nueva as any).id;
+  if (id) {
+    return Number(id);
+  }
+}
+
+return null;
   }
 
   // ============================================================
@@ -236,17 +252,20 @@ export class ActividadSyncService {
   // - Actualiza preguntas existentes
   // - Sincroniza opciones automáticamente
 
+  // ✅ CORREGIDO: devuelve {success, error} en lugar de Promise<void>
   private async sincronizarPreguntasViaRpc(
     actividadId: number,
     preguntas: PreguntaActividad[]
-  ): Promise<void> {
+  ): Promise<{ success: boolean; error?: string }> {
 
-    const token = this.sesion.usuario?.token;
+    // ✅ CORREGIDO: usar fallback de tutor
+    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
 
     if (!token) {
-      throw new Error(
-        'No hay una sesión válida de docente.'
-      );
+      return {
+        success: false,
+        error: 'No hay una sesión válida de docente o tutor.'
+      };
     }
 
     // Convertir preguntas al formato esperado por la RPC
@@ -276,8 +295,13 @@ export class ActividadSyncService {
     );
 
     if (error) {
-      throw error;
+      return {
+        success: false,
+        error: `Error sincronizando preguntas: ${error.message}`
+      };
     }
+
+    return { success: true };
   }
 
   // ============================================================

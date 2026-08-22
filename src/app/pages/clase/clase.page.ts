@@ -6,8 +6,8 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { environment } from 'src/environments/environment';
 import { ActividadSyncService } from '../../services/actividad-sync.service';
 import { Router } from '@angular/router';
-
-
+import { IonicModule, AlertController, ToastController } from '@ionic/angular';
+//                                      ^^^^^^^^^^^^^^ debe estar
 export type BloqueType = 'texto' | 'pdf' | 'video' | 'actividad' | 'imagen' | 'link';
 
 export interface BloqueClase {
@@ -226,6 +226,7 @@ constructor(
   private sanitizer: DomSanitizer,
   private actividadSync: ActividadSyncService,
   private router: Router,
+  private toastCtrl: ToastController
 ) {}
 
   ngOnInit()    { this.inicializar(); }
@@ -773,8 +774,6 @@ async guardarBorrador() {
     this.suscribirRealtime();
   }
 
-  // Convierte el borrador que se está editando en sesión ACTIVA — a partir
-  // de este momento los alumnos sí ven el título y el contenido ya cargado.
 async publicarBorrador() {
   if (!this.sesionActiva?.id || this.sesionActiva.estado !== ESTADO_SESION_BORRADOR) return;
 
@@ -808,7 +807,13 @@ async publicarBorrador() {
   await this.cargarBloques();
 
   for (const b of this.bloques.filter(b => b.tipo === 'actividad')) {
-    await this.actividadSync.sincronizarBloque(b, this.sesionActiva!);
+    const result = await this.actividadSync.sincronizarBloque(b, this.sesionActiva!);
+    if (!result.success) {
+      console.warn(`⚠️  No se sincronizó bloque ${b.id}: ${result.error}`);
+      // Continuar con los demás bloques — no interrumps el flujo
+    } else {
+      console.log(`✅ Bloque ${b.id} (${b.tipo}) sincronizado correctamente`);
+    }
   }
 }
 
@@ -887,7 +892,6 @@ async reutilizarUltimaClase() {
   // ═══════════════════════════════════════════════════
   //  BLOQUES (en vivo)
   // ═══════════════════════════════════════════════════
-
 async cargarBloques() {
   if (!this.sesionActiva?.id) return;
 
@@ -1340,13 +1344,36 @@ async guardarBloque() {
     this.editandoBloque = null;
     await this.cargarBloques();
 
-    // Si es una actividad y la clase ya es visible para alumnos
-    if (tipo === 'actividad' && (this.claseEnVivo || this.esBorradorEnEdicion === false)) {
-      const bloqueGuardado = this.bloques.find(b =>
-        this.editandoBloque ? b.id === this.editandoBloque!.id : b.orden === this.nuevoBloque.orden
-      );
-      if (bloqueGuardado) {
-        await this.actividadSync.sincronizarBloque(bloqueGuardado, this.sesionActiva!);
+    // ✅ CORREGIDO: Sincronizar actividades en AMBOS casos (crear y editar)
+    // Condición también CORREGIDA: usar !this.esBorradorEnEdicion en lugar de === false
+    if (tipo === 'actividad' && (this.claseEnVivo || !this.esBorradorEnEdicion)) {
+      // Buscar el bloque guardado por ID (si es edición) o por el contenido (si es nuevo)
+      let bloqueGuardado: BloqueClase | undefined;
+
+      if (this.editandoBloque) {
+        // ✅ EDITAR: buscar por ID
+        bloqueGuardado = this.bloques.find(b => b.id === this.editandoBloque!.id);
+      } else {
+        // ✅ CREAR: buscar el más reciente (último en el array después de recargar)
+        // Los bloques se cargan en orden, así que el último es el nuevo
+        bloqueGuardado = this.bloques[this.bloques.length - 1];
+      }
+
+      if (bloqueGuardado && bloqueGuardado.tipo === 'actividad') {
+        const result = await this.actividadSync.sincronizarBloque(bloqueGuardado, this.sesionActiva!);
+        if (!result.success) {
+          console.warn(`⚠️  No se sincronizó actividad: ${result.error}`);
+          // Mostrar toast al usuario
+          const t = await this.toastCtrl.create({
+            message: `Actividad guardada pero con advertencia: ${result.error}`,
+            duration: 3000,
+            color: 'warning',
+            position: 'bottom'
+          });
+          await t.present();
+        } else {
+          console.log(`✅ Actividad sincronizada correctamente`);
+        }
       }
     }
   } catch (e: any) {

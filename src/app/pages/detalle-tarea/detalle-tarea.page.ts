@@ -193,6 +193,8 @@ export class DetalleTareaPage implements OnInit {
         .rpc('alumnos_por_grupos', { p_token: this.sesion.usuario?.token, p_grupo_ids: [this.tarea.grupo_id] });
       if (eAl) throw eAl;
 
+      console.log('alumnos_por_grupos ->', alumnos); // TEMP
+
       const { data: entregas, error: eEnt } = await this.sesion.supabase
         .rpc('entregas_de_tarea_docente', { p_token: this.sesion.usuario?.token, p_tarea_id: this.tarea.id });
       if (eEnt) throw eEnt;
@@ -362,7 +364,7 @@ export class DetalleTareaPage implements OnInit {
     try {
       const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
       const { data, error } = await this.sesion.supabase
-        .rpc('leer_comentarios_tarea', { p_token: token, p_tarea_id: this.tarea.id });
+        .rpc('comentarios_tarea', { p_token: token, p_tarea_id: this.tarea.id });
       if (error) throw error;
       this.comentarios = data || [];
     } catch (e: any) {
@@ -472,3 +474,4 @@ export class DetalleTareaPage implements OnInit {
     return raw;
   }
 }
+
