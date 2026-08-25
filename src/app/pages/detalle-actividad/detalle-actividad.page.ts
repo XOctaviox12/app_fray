@@ -376,10 +376,8 @@ export class DetalleActividadPage implements OnInit {
       const pregIds = (pregs || []).map((p: any) => p.id);
       let opcionTextoPorId: Record<number, string> = {};
       if (pregIds.length) {
-        const { data: ops } = await this.sesion.supabase
-          .from('academic_opcionrespuesta_publica')
-          .select('id, texto')
-          .in('pregunta_id', pregIds);
+       const { data: ops } = await this.sesion.supabase
+          .rpc('opciones_alumno_multi', { p_token: token, p_pregunta_ids: pregIds });
         (ops || []).forEach((o: any) => { opcionTextoPorId[o.id] = o.texto; });
       }
 
@@ -430,9 +428,7 @@ export class DetalleActividadPage implements OnInit {
           let opciones: { id: number; texto: string }[] = [];
           if (tipo !== 'ABIERTA') {
             const { data: ops } = await this.sesion.supabase
-              .from('academic_opcionrespuesta_publica')
-              .select('id, texto')
-              .eq('pregunta_id', p.id);
+              .rpc('opciones_alumno_multi', { p_token: token, p_pregunta_ids: [p.id] });
             opciones = ops || [];
           }
           this.preguntasAlumno.push({ id: p.id, tipo, texto: p.texto, opciones });
@@ -846,12 +842,10 @@ export class DetalleActividadPage implements OnInit {
 
       for (const p of pregs || []) {
         const tipo = (p.tipo || 'MULTIPLE') as TipoPregunta;
-        let opciones: { id: number; texto: string }[] = [];
+       let opciones: { id: number; texto: string }[] = [];
         if (tipo !== 'ABIERTA') {
           const { data: ops } = await this.sesion.supabase
-            .from('academic_opcionrespuesta_publica')
-            .select('id, texto')
-            .eq('pregunta_id', p.id);
+            .rpc('opciones_alumno_multi', { p_token: token, p_pregunta_ids: [p.id] });
           opciones = ops || [];
         }
         this.preguntasAlumno.push({ id: p.id, tipo, texto: p.texto, opciones });

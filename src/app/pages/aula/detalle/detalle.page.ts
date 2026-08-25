@@ -122,22 +122,15 @@ export class DetallePage implements OnInit {
 
       // Si viene materia específica, confirmar que el docente la imparte
       if (this.asignaturaId) {
-        const { data: relAsigDocente } = await this.sesion.supabase
-          .from('academic_asignatura_docentes')
-          .select('asignatura_id')
-          .eq('user_id', userId)
-          .eq('asignatura_id', this.asignaturaId)
-          .maybeSingle();
-        if (!relAsigDocente) return false;
+      const { data: combos, error: errCombos } = await this.sesion.supabase
+        .rpc('combos_asignatura_grupo_docente', { p_token: token });
+      if (errCombos) return false;
 
-        const { data: relAsigGrupo } = await this.sesion.supabase
-          .from('academic_asignatura_grupos')
-          .select('asignatura_id')
-          .eq('asignatura_id', this.asignaturaId)
-          .eq('grupo_id', this.grupoId)
-          .maybeSingle();
-        if (!relAsigGrupo) return false;
-      }
+      const tieneCombo = (combos || []).some(
+        (c: any) => c.asignatura_id === this.asignaturaId && c.grupo_id === this.grupoId
+      );
+      if (!tieneCombo) return false;
+    }
 
       return true;
     }

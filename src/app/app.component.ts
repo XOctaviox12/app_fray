@@ -159,35 +159,54 @@ export class AppComponent implements OnInit, OnDestroy {
   private async chequearAsistenciaPendienteHoy() {
     try {
       const uid = this.sesion.usuario?.id;
-      if (!uid) return;
+      const token = this.sesion.usuario?.token;
 
+      if (!uid || !token) return;
+
+      // ✅ MIGRADO: Usar RPC grupos_del_docente en vez de .from('users_docentegrupo')
+      // Línea 165 original: .from('users_docentegrupo').select('grupo_id').eq('docente_id', uid).eq('activo', true)
       const { data: relGrupos, error: errRG } = await this.sesion.supabase
-        .from('users_docentegrupo').select('grupo_id').eq('docente_id', uid).eq('activo', true);
-      if (errRG) { console.error('Error grupos docente:', errRG.message); return; }
+        .rpc('grupos_del_docente', { p_token: token });
+
+      if (errRG) {
+        console.error('❌ Error cargando grupos docente (RPC):', errRG.message);
+        return;
+      }
+
       const grupoIds = [...new Set((relGrupos || []).map((r: any) => r.grupo_id))];
       if (!grupoIds.length) return;
 
-const { data: relMaterias, error: errRM } = await this.sesion.supabase
-  .from('users_docentegrupo').select('asignatura_id').eq('docente_id', uid).eq('activo', true);
-if (errRM) { console.error('Error materias docente:', errRM.message); return; }
+      // ✅ MIGRADO: Para asignaturas, usar RPC materias_del_docente
+      // Línea 171 original: .from('users_docentegrupo').select('asignatura_id').eq('docente_id', uid).eq('activo', true)
+      const { data: relMaterias, error: errRM } = await this.sesion.supabase
+        .rpc('materias_del_docente', { p_token: token });
+
+      if (errRM) {
+        console.error('❌ Error cargando asignaturas docente (RPC):', errRM.message);
+        return;
+      }
+
       const materiaIds = [...new Set((relMaterias || []).map((r: any) => r.asignatura_id))];
       if (!materiaIds.length) return;
 
-      const { data: relAG } = await this.sesion.supabase.rpc('combos_asignatura_grupo_docente', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_docente_id: uid });
+      // RPC existente: combos_asignatura_grupo_docente
+      const { data: relAG } = await this.sesion.supabase
+        .rpc('combos_asignatura_grupo_docente', { p_token: token, p_docente_id: uid });
 
       const combos = new Set((relAG || []).map((r: any) => `${r.asignatura_id}-${r.grupo_id}`));
       if (combos.size === 0) return;
 
+      // RPC existente: combos_con_lista (ya usa token)
       const hoy = new Date().toISOString().split('T')[0];
-      const token = this.sesion.usuario?.token;
-      const { data: asistHoy } = token
-        ? await this.sesion.supabase.rpc('combos_con_lista', { p_token: token, p_grupo_ids: grupoIds, p_materia_ids: materiaIds, p_fecha: hoy })
-        : { data: [] as any[] };
+      const { data: asistHoy } = await this.sesion.supabase
+        .rpc('combos_con_lista', { p_token: token, p_grupo_ids: grupoIds, p_materia_ids: materiaIds, p_fecha: hoy });
 
       const combosConLista = new Set((asistHoy || []).map((a: any) => `${a.asignatura_id}-${a.grupo_id}`));
 
       this.hayAsistenciaPendienteHoy = [...combos].some(c => !combosConLista.has(c));
-    } catch {
+      console.log('✅ Badge "HOY" actualizado:', this.hayAsistenciaPendienteHoy);
+    } catch (err) {
+      console.error('❌ Error en chequearAsistenciaPendienteHoy:', err);
       this.hayAsistenciaPendienteHoy = false;
     }
   }

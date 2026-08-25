@@ -73,6 +73,18 @@ interface Grupo   { id: number; nombre: string; grado: number; aula: string; }
 interface ArchivoEnProgreso {
   file: File; progreso: number; subiendo: boolean; error: boolean; resultado?: ArchivoSubido;
 }
+// Combo materia+grupo del docente, ya filtrado por período activo (NON/PAR).
+// Reemplaza las consultas directas a academic_asignatura_docentes,
+// academic_asignatura_grupos, users_docentegrupo y academic_grupo del
+// formulario de creación/edición.
+interface ComboMateriaGrupo {
+  asignatura_id: number;
+  asignatura_nombre: string;
+  grupo_id: number;
+  grupo_nombre: string;
+  grado: number;
+  aula: string;
+}
 
 // Filtros por rol
 type FiltroAlumno  = 'TODAS' | 'PENDIENTE' | 'ENTREGADA' | 'CALIFICADA';
@@ -168,6 +180,9 @@ export class ActividadPage implements OnInit {
 
   materias:        Materia[] = [];
   gruposDeMateria: Grupo[]   = [];
+  // Cache del combo materia+grupo del docente (período activo), cargado una
+  // sola vez en cargarMaterias() y filtrado en memoria por onMateriaChange().
+  combosMateriaGrupo: ComboMateriaGrupo[] = [];
   cargandoOpts = false;
   errorOpts: string | null = null;
 
@@ -349,7 +364,11 @@ export class ActividadPage implements OnInit {
     const asiIds = [...new Set((acts || []).map((a: any) => a.asignatura_id))];
     let asiMap: Record<number, string> = {};
     if (asiIds.length) {
-      const { data: asis } = await this.sesion.supabase.from('academic_asignatura').select('id, nombre').in('id', asiIds);
+      // Antes: SELECT directo a academic_asignatura (from('academic_asignatura')
+      // .select('id, nombre').in('id', asiIds)) — bloqueado por REVOKE (NON/PAR).
+      const { data: asis, error: errAsis } = await this.sesion.supabase
+        .rpc('nombres_asignaturas', { p_token: token, p_asignatura_ids: asiIds });
+      if (errAsis) console.error('Error nombres_asignaturas:', errAsis.message);
       (asis || []).forEach((a: any) => { asiMap[a.id] = a.nombre; });
     }
 
@@ -422,13 +441,20 @@ export class ActividadPage implements OnInit {
     const gruIds = [...new Set((acts || []).map((a: any) => a.grupo_id))] as number[];
     let asiMap: Record<number, string> = {};
     let gruMap: Record<number, string> = {};
+    const tokenDoc0 = this.sesion.usuario?.token;
 
     if (asiIds.length) {
-      const { data: asis } = await this.sesion.supabase.from('academic_asignatura').select('id, nombre').in('id', asiIds);
+      // Antes: SELECT directo a academic_asignatura — bloqueado por REVOKE (NON/PAR).
+      const { data: asis, error: errAsis } = await this.sesion.supabase
+        .rpc('nombres_asignaturas', { p_token: tokenDoc0, p_asignatura_ids: asiIds });
+      if (errAsis) console.error('Error nombres_asignaturas:', errAsis.message);
       (asis || []).forEach((a: any) => { asiMap[a.id] = a.nombre; });
     }
     if (gruIds.length) {
-      const { data: grus } = await this.sesion.supabase.from('academic_grupo').select('id, nombre, grado').in('id', gruIds);
+      // Antes: SELECT directo a academic_grupo — bloqueado por REVOKE (NON/PAR).
+      const { data: grus, error: errGrus } = await this.sesion.supabase
+        .rpc('nombres_grupos', { p_token: tokenDoc0, p_grupo_ids: gruIds });
+      if (errGrus) console.error('Error nombres_grupos:', errGrus.message);
       (grus || []).forEach((g: any) => { gruMap[g.id] = `${g.grado}° ${g.nombre}`; });
     }
 
@@ -494,7 +520,10 @@ export class ActividadPage implements OnInit {
     const asiIds = [...new Set((acts || []).map((a: any) => a.asignatura_id))];
     let asiMap: Record<number, string> = {};
     if (asiIds.length) {
-      const { data: asis } = await this.sesion.supabase.from('academic_asignatura').select('id, nombre').in('id', asiIds);
+      // Antes: SELECT directo a academic_asignatura — bloqueado por REVOKE (NON/PAR).
+      const { data: asis, error: errAsis } = await this.sesion.supabase
+        .rpc('nombres_asignaturas', { p_token: token, p_asignatura_ids: asiIds });
+      if (errAsis) console.error('Error nombres_asignaturas:', errAsis.message);
       (asis || []).forEach((a: any) => { asiMap[a.id] = a.nombre; });
     }
 
@@ -551,14 +580,30 @@ export class ActividadPage implements OnInit {
         // Antes: "p_actividad_id:" vacío — nunca traía las preguntas.
         const { data: pregs } = await this.sesion.supabase.rpc('leer_preguntas_actividad', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_actividad_id: act.id });
 
+        // Antes: un SELECT directo a academic_opcionrespuesta_publica POR
+        // CADA pregunta dentro del for — bloqueado por REVOKE (NON/PAR) y
+        // además N llamadas en serie. Se agrupa en una sola llamada a
+        // opciones_alumno_multi (misma RPC ya creada para
+        // detalle-actividad.page.ts) y se reparte el resultado en memoria.
+        const idsConOpciones = (pregs || [])
+          .filter((p: any) => p.tipo === 'MULTIPLE' || p.tipo === 'VF')
+          .map((p: any) => p.id);
+
+        let opcionesPorPregunta: Record<number, { id: number; texto: string }[]> = {};
+        if (idsConOpciones.length) {
+          const tokenAlu = this.sesion.usuario?.token || this.sesion.tutor?.token;
+          const { data: opsMulti, error: errOps } = await this.sesion.supabase
+            .rpc('opciones_alumno_multi', { p_token: tokenAlu, p_pregunta_ids: idsConOpciones });
+          if (errOps) console.error('Error opciones_alumno_multi:', errOps.message);
+          (opsMulti || []).forEach((o: any) => {
+            if (!opcionesPorPregunta[o.pregunta_id]) opcionesPorPregunta[o.pregunta_id] = [];
+            // El alumno lee opciones vía la RPC pública — nunca ve es_correcta.
+            opcionesPorPregunta[o.pregunta_id].push({ id: o.id, texto: o.texto });
+          });
+        }
+
         for (const p of pregs || []) {
-          let opciones: { id: number; texto: string }[] = [];
-          if (p.tipo === 'MULTIPLE' || p.tipo === 'VF') {
-            // El alumno lee opciones vía la vista pública — nunca ve es_correcta.
-            const { data: ops } = await this.sesion.supabase
-              .from('academic_opcionrespuesta_publica').select('id, texto').eq('pregunta_id', p.id);
-            opciones = ops || [];
-          }
+          const opciones = (p.tipo === 'MULTIPLE' || p.tipo === 'VF') ? (opcionesPorPregunta[p.id] || []) : [];
           this.preguntasAlumno.push({ id: p.id, tipo: p.tipo, texto: p.texto, opciones });
         }
 
@@ -876,12 +921,31 @@ export class ActividadPage implements OnInit {
     const uid = this.sesion.usuario?.id; if (!uid) return;
     this.cargandoOpts = true;
     try {
-      const { data: rel } = await this.sesion.supabase
-        .from('academic_asignatura_docentes').select('asignatura_id').eq('user_id', uid);
-      const ids = [...new Set((rel || []).map((r: any) => r.asignatura_id))];
-      if (!ids.length) return;
-      const { data } = await this.sesion.supabase.from('academic_asignatura').select('id, nombre').in('id', ids).order('nombre');
-      this.materias = data || [];
+      // Antes: SELECT directo a academic_asignatura_docentes (relación
+      // docente→materia) seguido de otro SELECT a academic_asignatura —
+      // bloqueados por REVOKE (NON/PAR). Se reemplaza por
+      // combos_asignatura_grupo_docente, la misma RPC ya usada en
+      // aula/detalle.page.ts, que trae materia+grupo del docente ya
+      // filtrados por período activo en una sola llamada. El resultado se
+      // cachea en combosMateriaGrupo y onMateriaChange() lo filtra en
+      // memoria sin volver a pegarle al backend.
+      const token = this.sesion.usuario?.token;
+      const { data: combos, error } = await this.sesion.supabase
+        .rpc('combos_asignatura_grupo_docente', { p_token: token });
+      if (error) throw error;
+      this.combosMateriaGrupo = combos || [];
+
+      const vistas = new Set<number>();
+      const materiasUnicas: Materia[] = [];
+      for (const c of this.combosMateriaGrupo) {
+        if (!vistas.has(c.asignatura_id)) {
+          vistas.add(c.asignatura_id);
+          materiasUnicas.push({ id: c.asignatura_id, nombre: c.asignatura_nombre });
+        }
+      }
+      this.materias = materiasUnicas.sort((a, b) => a.nombre.localeCompare(b.nombre));
+    } catch (e: any) {
+      console.error('Error combos_asignatura_grupo_docente:', e.message);
     } finally { this.cargandoOpts = false; }
   }
 
@@ -891,19 +955,17 @@ export class ActividadPage implements OnInit {
     if (!this.newAct.materiaId) return;
     this.cargandoOpts = true; this.errorOpts = null;
     try {
-      const uid = this.sesion.usuario?.id;
-      const { data: relGM } = await this.sesion.supabase
-        .from('academic_asignatura_grupos').select('grupo_id').eq('asignatura_id', this.newAct.materiaId);
-      const idsGM = (relGM || []).map((r: any) => r.grupo_id);
-      if (!idsGM.length) return;
-      const { data: relDG, error: errDG } = await this.sesion.supabase
-  .from('users_docentegrupo').select('grupo_id').eq('docente_id', uid).eq('activo', true).in('grupo_id', idsGM);
-if (errDG) { console.error('Error grupos docente:', errDG.message); return; }
-const idsFinal = (relDG || []).map((r: any) => r.grupo_id);
-      if (!idsFinal.length) return;
-      const { data } = await this.sesion.supabase
-        .from('academic_grupo').select('id, nombre, grado, aula').in('id', idsFinal).order('grado').order('nombre');
-      this.gruposDeMateria = data || [];
+      // Antes: SELECT directo a academic_asignatura_grupos, luego a
+      // users_docentegrupo y por último a academic_grupo — 3 llamadas
+      // encadenadas, bloqueadas por REVOKE (NON/PAR). Ya no hace falta
+      // ninguna consulta: se filtra en memoria el combo que cargó
+      // cargarMaterias() (combos_asignatura_grupo_docente), que ya viene
+      // limitado al período activo.
+      this.gruposDeMateria = this.combosMateriaGrupo
+        .filter(c => c.asignatura_id === this.newAct.materiaId)
+        .map(c => ({ id: c.grupo_id, nombre: c.grupo_nombre, grado: c.grado, aula: c.aula }))
+        .sort((a, b) => a.grado - b.grado || a.nombre.localeCompare(b.nombre));
+
       if (preservarGrupo && this.gruposDeMateria.some(g => g.id === preservarGrupo))
         this.newAct.grupoId = preservarGrupo;
     } catch (e: any) { this.errorOpts = e.message; }

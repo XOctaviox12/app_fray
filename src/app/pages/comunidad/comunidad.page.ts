@@ -143,15 +143,14 @@ export class ComunidadPage implements OnInit {
       const token = this.sesion.usuario?.token;
       if (!token) throw new Error('Sin token de autenticación');
 
-      // Grupos asignados al docente
+      // ✅ MIGRADO: Grupos asignados al docente (con período activo)
+      // Antes: .from('users_docentegrupo').select('grupo_id').eq('docente_id', uid).eq('activo', true)
+      // Ahora: RPC segura que valida período activo
       const { data: relGrupos, error: eG } = await this.sesion.supabase
-        .from('users_docentegrupo')
-        .select('grupo_id')
-        .eq('docente_id', uid)
-        .eq('activo', true);
+        .rpc('grupos_del_docente', { p_token: token });
       if (eG) throw eG;
 
-      const grupoIds = [...new Set((relGrupos || []).map((r: any) => r.grupo_id))];
+      const grupoIds = relGrupos || [];
 
       if (grupoIds.length) {
         const { data, error: eGD } = await this.sesion.supabase
@@ -165,14 +164,14 @@ export class ComunidadPage implements OnInit {
         this.misGrupos = [];
       }
 
-      // Materias del docente
+      // ✅ MIGRADO: Materias del docente
+      // Antes: .from('academic_asignatura_docentes').select('asignatura_id').eq('user_id', uid)
+      // Ahora: RPC segura que valida sesión
       const { data: relAsig, error: eA } = await this.sesion.supabase
-        .from('academic_asignatura_docentes')
-        .select('asignatura_id')
-        .eq('user_id', uid);
+        .rpc('materias_del_docente', { p_token: token });
       if (eA) throw eA;
 
-      const asignaturaIds = [...new Set((relAsig || []).map((r: any) => r.asignatura_id))];
+      const asignaturaIds = relAsig || [];
       if (asignaturaIds.length) {
         const { data, error: eAN } = await this.sesion.supabase
           .from('academic_asignatura')
@@ -182,7 +181,9 @@ export class ComunidadPage implements OnInit {
         if (eAN) throw eAN;
         this.misMaterias = data || [];
 
-        // Relación materia -> grupos
+        // ✅ MIGRADO: Relación materia → grupos
+        // Antes: .from('academic_asignatura_grupos').select('asignatura_id, grupo_id').in('asignatura_id', asignaturaIds)
+        // Ahora: Query directo (no bloqueado porque no tiene período crítico en el filtro)
         const { data: relAG, error: eAG } = await this.sesion.supabase
           .from('academic_asignatura_grupos')
           .select('asignatura_id, grupo_id')
@@ -244,6 +245,10 @@ export class ComunidadPage implements OnInit {
       }
 
       const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+
+      // ✅ MIGRADO: Cargar comunicados del plantel
+      // Antes: .from('academic_comunicado').select(...).eq('plantel_id', this.plantelId)
+      // Ahora: Query directo (Comunicado no tiene período, pero el filtro de plantel es válido)
       const { data, error } = await this.sesion.supabase
         .from('academic_comunicado')
         .select(`

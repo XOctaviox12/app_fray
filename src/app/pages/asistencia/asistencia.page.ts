@@ -383,11 +383,9 @@ export class AsistenciaPage implements OnInit {
 
       // Obtener alumnos del grupo
       const { data: users, error: e1 } = await this.sesion.supabase
-        .from('users_user')
-        .select('id, first_name, last_name, foto_perfil')
-        .eq('alumno_grupo_id', this.grupoId)
-        .order('last_name');
+        .rpc('roster_grupo', { p_token: token, p_grupo_id: this.grupoId });
       if (e1) throw e1;
+      (users || []).sort((a: any, b: any) => (a.last_name || '').localeCompare(b.last_name || ''));
 
       // Asistencia registrada para esta materia+grupo+fecha
       const fechaStr = this.toDateStr(this.fechaSeleccionada);

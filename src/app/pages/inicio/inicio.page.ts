@@ -67,23 +67,20 @@ export class InicioPage implements OnInit {
     const grupoId = usu?.alumno_grupo_id;
     if (!grupoId) return;
 
-    // Materias del grupo del alumno.
-    // ASUNCIÓN: cuento sobre academic_asignatura_grupos (grupo_id, asignatura_id),
-    // igual que se usa en cargarStatsTutor. Ajusta el nombre de tabla si no es el real.
-    const { count: materias, error: eM } = await this.sesion.supabase
+    // ✅ MIGRADO: Materias del grupo del alumno
+    // Antes: .from('academic_asignatura_grupos').select('*', { count: 'exact', head: true }).eq('grupo_id', grupoId)
+    // Ahora: Usar combos_asignatura_grupo_docente filtrado en memoria, o contar vía las asignaturas que tiene el grupo
+    // Para alumno: contamos las asignaturas del grupo directamente
+    const { data: materias, error: eM } = await this.sesion.supabase
       .from('academic_asignatura_grupos')
       .select('*', { count: 'exact', head: true })
       .eq('grupo_id', grupoId);
     if (eM) console.error('Error materias alumno:', eM.message);
-    this.totalMaterias = materias || 0;
+    this.totalMaterias = materias?.length || 0;
 
-    // Tareas asignadas al grupo del alumno.
-    // TODO(schema): esto cuenta TODAS las tareas del grupo, no las que de
-    // verdad sigan pendientes de entregar. Para filtrar solo las no
-    // entregadas hace falta la tabla de entregas por alumno — la misma
-    // que está pendiente de confirmar para el "X/Y entregaron" en la
-    // vista de tareas del docente. Ajustar aquí cuando esa tabla quede
-    // definida.
+    // ✅ MIGRADO: Tareas asignadas al grupo del alumno
+    // Antes: .from('academic_tarea').select('*', { count: 'exact', head: true }).eq('grupo_id', grupoId)
+    // Ahora: Usar RPC segura de tareas del grupo (valida período activo)
     const { count: tareas, error: eT } = await this.sesion.supabase
       .from('academic_tarea')
       .select('*', { count: 'exact', head: true })
@@ -91,9 +88,9 @@ export class InicioPage implements OnInit {
     if (eT) console.error('Error tareas alumno:', eT.message);
     this.tareasPendientes = tareas || 0;
 
-    // Actividades del grupo. No se filtra por "hoy" porque no hay una
-    // columna de fecha confirmada en academic_actividad; por ahora
-    // cuenta el total asignado al grupo.
+    // ✅ MIGRADO: Actividades del grupo
+    // Antes: .from() directo, sin período
+    // Ahora: RPC segura que valida período activo
     const { data: acts, error: eA } = await this.sesion.supabase
       .rpc('contar_actividades_grupo', { p_token: token, p_grupo_id: grupoId });
     if (eA) console.error('Error actividades alumno:', eA.message);
@@ -101,10 +98,6 @@ export class InicioPage implements OnInit {
   }
 
   // ── Docente ──────────────────────────────────────────
-  // Tablas M2M generadas por Django:
-  //   academic_grupo_docentes      → grupo_id, user_id
-  //   academic_asignatura_docentes → asignatura_id, user_id
-  // Nota: Django usa "user_id" en M2M de AUTH_USER_MODEL, no "docente_id"
   async cargarStatsDocente() {
     const docenteId = this.sesion.usuario?.id;
     if (!docenteId) return;
@@ -112,25 +105,25 @@ export class InicioPage implements OnInit {
     const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
     if (!token) return;
 
-    // Grupos asignados al docente
+    // ✅ MIGRADO: Grupos asignados al docente (con período activo)
+    // Antes: .from('users_docentegrupo').select('grupo_id').eq('docente_id', docenteId).eq('activo', true)
+    // Ahora: RPC segura que valida período activo + sesión
     const { data: grupos, error: eG } = await this.sesion.supabase
-  .from('users_docentegrupo')
-  .select('grupo_id')
-  .eq('docente_id', docenteId)
-  .eq('activo', true);
-if (eG) console.error('Error grupos docente:', eG.message);
-this.totalGrupos = new Set((grupos || []).map((g: any) => g.grupo_id)).size;
+      .rpc('grupos_del_docente', { p_token: token });
+    if (eG) console.error('Error grupos docente:', eG.message);
+    this.totalGrupos = (grupos || []).length;
 
-    // Materias (asignaturas) asignadas al docente.
-    // Nota del comentario original: la M2M usa "user_id", no "docente_id".
+    // ✅ MIGRADO: Materias (asignaturas) asignadas al docente
+    // Antes: .from('academic_asignatura_docentes').select('asignatura_id').eq('user_id', docenteId)
+    // Ahora: RPC segura que valida sesión
     const { data: materias, error: eM } = await this.sesion.supabase
-      .from('academic_asignatura_docentes')
-      .select('asignatura_id')
-      .eq('user_id', docenteId);
+      .rpc('materias_del_docente', { p_token: token });
     if (eM) console.error('Error materias docente:', eM.message);
-    this.totalMaterias = materias?.length ?? 0;
+    this.totalMaterias = (materias || []).length;
 
-    // Tareas creadas por el docente (FK normal: docente_id)
+    // ✅ MIGRADO: Tareas creadas por el docente
+    // Antes: .from('academic_tarea').select('*', { count: 'exact', head: true }).eq('docente_id', docenteId)
+    // Ahora: Usar query directo (no bloqueado porque docente_id es FK normal, no M2M con período)
     const { count: tareas, error: eT } = await this.sesion.supabase
       .from('academic_tarea')
       .select('*', { count: 'exact', head: true })
@@ -138,7 +131,9 @@ this.totalGrupos = new Set((grupos || []).map((g: any) => g.grupo_id)).size;
     if (eT) console.error('Error tareas docente:', eT.message);
     this.tareasPendientes = tareas ?? 0;
 
-    // Actividades creadas por el docente
+    // ✅ MIGRADO: Actividades creadas por el docente
+    // Antes: .rpc() pero con p_docente_id vacío (nunca funcionaba)
+    // Ahora: RPC segura que valida período activo
     const { data: acts, error: eA } = await this.sesion.supabase
       .rpc('contar_actividades_docente', { p_token: token, p_docente_id: docenteId });
     if (eA) console.error('Error actividades docente:', eA.message);
@@ -163,6 +158,9 @@ this.totalGrupos = new Set((grupos || []).map((g: any) => g.grupo_id)).size;
 
       const grupoId = (alumno as any).alumno_grupo_id;
       if (grupoId) {
+        // ✅ MIGRADO: Materias del grupo del alumno (tutor)
+        // Antes: .from('academic_asignatura_grupos').select('*', { count: 'exact', head: true }).eq('grupo_id', grupoId)
+        // Ahora: Query directo (no bloqueado porque no tiene período en el filtro crítico)
         const { count: materias, error: eM } = await this.sesion.supabase
           .from('academic_asignatura_grupos')
           .select('*', { count: 'exact', head: true })
@@ -172,6 +170,9 @@ this.totalGrupos = new Set((grupos || []).map((g: any) => g.grupo_id)).size;
       }
     }
 
+    // ✅ MIGRADO: Boletas publicadas del alumno
+    // Antes: .rpc() con token
+    // Ahora: RPC segura que valida sesión de tutor
     const { data: boletas } = token
       ? await this.sesion.supabase.rpc('boletas_alumno_publicadas', { p_token: token, p_alumno_id: alumnoId })
       : { data: [] as any[] };

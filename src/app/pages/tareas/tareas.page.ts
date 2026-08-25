@@ -451,40 +451,51 @@ export class TareasPage implements OnInit {
     } finally { this.guardando = false; }
   }
 
-  private async crear(archivos: ArchivoSubido[], mat?: Materia, grp?: Grupo) {
-    const t = this.newTask;
-    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
-    const { data, error } = await this.sesion.supabase.rpc('crear_tarea', {
-      p_token: token,
-      p_titulo: t.titulo.trim(), p_descripcion: t.descripcion.trim(),
-      p_asignatura_id: t.materiaId, p_grupo_id: t.grupoId, p_fecha_entrega: t.fecha
-    });
-    if (error) throw error;
-    this.tareas.unshift({
-      id: data.id, titulo: data.titulo, descripcion: data.descripcion || '', fecha_entrega: data.fecha_entrega,
-      materia_id: data.asignatura_id, materia_nombre: mat?.nombre || '—',
-      grupo_id: data.grupo_id, grupo_nombre: this.formatGrupo(grp),
-      archivos, publicada: data.publicada, totalEntregas: 0, totalAlumnos: 0
-    });
-  }
+private async crear(archivos: ArchivoSubido[], mat?: Materia, grp?: Grupo) {
+  const t = this.newTask;
+  const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+  const hoy = new Date().toISOString().slice(0, 10);
+  const { data, error } = await this.sesion.supabase.rpc('crear_tarea', {
+    p_token: token,
+    p_grupo_id: t.grupoId,
+    p_titulo: t.titulo.trim(),
+    p_descripcion: t.descripcion.trim(),
+    p_fecha_inicio: hoy,
+    p_fecha_vencimiento: t.fecha,
+    p_asignatura_id: t.materiaId
+  });
+  if (error) throw error;
+  this.tareas.unshift({
+    id: data.tarea_id, titulo: t.titulo.trim(), descripcion: t.descripcion.trim() || '', fecha_entrega: t.fecha,
+    materia_id: t.materiaId!, materia_nombre: mat?.nombre || '—',
+    grupo_id: t.grupoId!, grupo_nombre: this.formatGrupo(grp),
+    archivos, publicada: t.publicada, totalEntregas: 0, totalAlumnos: 0
+  });
+}
 
-  private async actualizar(archivos: ArchivoSubido[], mat?: Materia, grp?: Grupo) {
-    const id = this.editingTarea!.id; const t = this.newTask;
-    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
-    const { data, error } = await this.sesion.supabase.rpc('editar_tarea', {
-      p_token: token, p_tarea_id: id,
-      p_titulo: t.titulo.trim(), p_descripcion: t.descripcion.trim(), p_fecha_entrega: t.fecha
-    });
-    if (error) throw error;
-    const idx = this.tareas.findIndex(x => x.id === id);
-    if (idx !== -1) this.tareas[idx] = {
-      ...this.tareas[idx], ...data,
-      materia_id: data.asignatura_id,
-      materia_nombre: mat?.nombre || this.tareas[idx].materia_nombre,
-      grupo_nombre: this.formatGrupo(grp) || this.tareas[idx].grupo_nombre,
-      archivos
-    };
-  }
+private async actualizar(archivos: ArchivoSubido[], mat?: Materia, grp?: Grupo) {
+  const id = this.editingTarea!.id; const t = this.newTask;
+  const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+  const { data, error } = await this.sesion.supabase.rpc('editar_tarea', {
+    p_token: token,
+    p_tarea_id: id,
+    p_titulo: t.titulo.trim(),
+    p_descripcion: t.descripcion.trim(),
+    p_fecha_vencimiento: t.fecha
+  });
+  if (error) throw error;
+  const idx = this.tareas.findIndex(x => x.id === id);
+  if (idx !== -1) this.tareas[idx] = {
+    ...this.tareas[idx],
+    titulo: t.titulo.trim(),
+    descripcion: t.descripcion.trim() || '',
+    fecha_entrega: t.fecha,
+    materia_id: t.materiaId!,
+    materia_nombre: mat?.nombre || this.tareas[idx].materia_nombre,
+    grupo_nombre: this.formatGrupo(grp) || this.tareas[idx].grupo_nombre,
+    archivos
+  };
+}
 
   async deleteTask(tarea: Tarea) {
     const detalle = tarea.totalEntregas
