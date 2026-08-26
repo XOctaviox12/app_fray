@@ -344,88 +344,409 @@ export class ActividadPage implements OnInit {
   }
 
   // ── Alumno ────────────────────────────────────────────────────
-  async cargarParaAlumno() {
-    const alumnoId = this.sesion.usuario?.id;
-    if (!alumnoId) return;
+async cargarParaAlumno() {
 
-    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
-    if (!token) return;
-    const { data: usu } = await this.sesion.supabase
-      .rpc('perfil_basico_usuario', { p_token: token, p_user_id: alumnoId })
-      .single<{ alumno_grupo_id: number }>();
-    const grupoId = usu?.alumno_grupo_id;
-    if (!grupoId) return;
+  // ============================================================
+  // 1. SESIÓN DEL ALUMNO
+  // ============================================================
 
-    // Antes: "p_grupo_id:" vacío — nunca traía las actividades del grupo.
-    const { data: acts, error } = await this.sesion.supabase
-      .rpc('leer_actividades_grupo', { p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token), p_grupo_id: grupoId });
-    if (error) throw error;
+  const alumnoId = this.sesion.usuario?.id;
 
-    const asiIds = [...new Set((acts || []).map((a: any) => a.asignatura_id))];
-    let asiMap: Record<number, string> = {};
-    if (asiIds.length) {
-      // Antes: SELECT directo a academic_asignatura (from('academic_asignatura')
-      // .select('id, nombre').in('id', asiIds)) — bloqueado por REVOKE (NON/PAR).
-      const { data: asis, error: errAsis } = await this.sesion.supabase
-        .rpc('nombres_asignaturas', { p_token: token, p_asignatura_ids: asiIds });
-      if (errAsis) console.error('Error nombres_asignaturas:', errAsis.message);
-      (asis || []).forEach((a: any) => { asiMap[a.id] = a.nombre; });
+  if (!alumnoId) {
+    console.warn('⚠️ cargarParaAlumno: no existe alumnoId');
+    return;
+  }
+
+  const token =
+    this.sesion.usuario?.token ||
+    this.sesion.tutor?.token;
+
+  if (!token) {
+    console.warn('⚠️ cargarParaAlumno: no existe token');
+    return;
+  }
+
+  console.log('══════════════════════════════════════');
+  console.log('🎓 CARGANDO ACTIVIDADES DEL ALUMNO');
+  console.log('👤 alumnoId:', alumnoId);
+  console.log('🔐 token disponible:', !!token);
+  console.log('══════════════════════════════════════');
+
+
+  // ============================================================
+  // 2. OBTENER GRUPO DEL ALUMNO
+  // ============================================================
+
+  const {
+    data: usu,
+    error: errUsu
+  } = await this.sesion.supabase
+    .rpc('perfil_basico_usuario', {
+      p_token: token,
+      p_user_id: alumnoId
+    })
+    .single<{ alumno_grupo_id: number }>();
+
+  if (errUsu) {
+    console.error(
+      '❌ Error perfil_basico_usuario:',
+      errUsu
+    );
+    throw errUsu;
+  }
+
+  const grupoId = usu?.alumno_grupo_id;
+
+  console.log(
+    '👥 grupoId obtenido:',
+    grupoId
+  );
+
+  if (!grupoId) {
+    console.warn(
+      '⚠️ El alumno no tiene grupo asignado'
+    );
+
+    this.actividades = [];
+    return;
+  }
+
+
+  // ============================================================
+  // 3. LEER ACTIVIDADES DEL GRUPO
+  // ============================================================
+
+const {
+  data: actsRaw,
+  error: errActs
+} = await this.sesion.supabase
+  .rpc('leer_actividades_grupo', {
+    p_token: token,
+    p_grupo_id: grupoId
+  });
+
+console.log(
+  '📚 leer_actividades_grupo - respuesta RPC:',
+  actsRaw
+);
+
+console.log(
+  '📚 cantidad recibida:',
+  actsRaw?.length || 0
+);
+
+console.log(
+  '📚 primera actividad RAW:',
+  actsRaw?.[0]
+);
+
+if (errActs) {
+  console.error(
+    '❌ Error leer_actividades_grupo:',
+    errActs.message
+  );
+
+  throw errActs;
+}
+
+// ============================================================
+// NORMALIZAR RESPUESTA DE LA RPC
+// La RPC devuelve columnas out_*
+// El resto del código utiliza nombres normales.
+// ============================================================
+
+const acts = (actsRaw || []).map((a: any) => ({
+  id: a.out_id,
+  titulo: a.out_titulo,
+  instrucciones: a.out_instrucciones,
+  tipo: a.out_tipo,
+  fecha_entrega: a.out_fecha_entrega,
+  valor_total: a.out_valor_total,
+  url_interactiva: a.out_url_interactiva,
+  asignatura_id: a.out_asignatura_id,
+  grupo_id: a.out_grupo_id
+}));
+
+console.log(
+  '✅ ACTIVIDADES NORMALIZADAS:',
+  acts
+);
+
+console.log(
+  '✅ IDs DE ACTIVIDADES:',
+  acts.map((a: any) => a.id)
+);
+
+
+  // ============================================================
+  // 4. NOMBRES DE ASIGNATURAS
+  // ============================================================
+
+  const asiIds = [
+    ...new Set(
+      (acts || [])
+        .map((a: any) => a.asignatura_id)
+        .filter(Boolean)
+    )
+  ];
+
+  let asiMap: Record<number, string> = {};
+
+  if (asiIds.length) {
+
+    const {
+      data: asis,
+      error: errAsis
+    } = await this.sesion.supabase
+      .rpc('nombres_asignaturas', {
+        p_token: token,
+        p_ids: asiIds
+      });
+
+    if (errAsis) {
+      console.error(
+        '❌ Error nombres_asignaturas:',
+        errAsis.message
+      );
     }
 
-    // Entregas propias del alumno (vía RPC segura: valida sesión y solo
-    // devuelve entregas del propio alumno — reemplaza el .from() directo)
-    const actIds = (acts || []).map((a: any) => a.id);
-    let entregas: any[] = [];
-    if (actIds.length) {
-      const { data, error: errEnt } = await this.sesion.supabase
-        .rpc('entregas_propias_de_actividades', { p_token: token, p_actividad_ids: actIds });
-      if (errEnt) throw errEnt;
-      entregas = data || [];
-    }
-    const entMap: Record<number, any> = {};
-    entregas.forEach((e: any) => { entMap[e.actividad_id] = e; });
-
-    // Respuestas de texto del alumno (resumen: primera respuesta abierta de cada entrega)
-    let respMap: Record<number, string> = {};
-    if (actIds.length) {
-      const entregaIds = Object.values(entMap).map((e: any) => e?.id).filter(Boolean);
-      if (entregaIds.length) {
-        const { data: resps } = await this.sesion.supabase
-          .rpc('respuestas_de_entregas_multi', { p_token: this.sesion.usuario?.token, p_entrega_ids: entregaIds });
-        // Mapear entrega_id → actividad_id → texto
-        const entIdToActId: Record<number, number> = {};
-        Object.entries(entMap).forEach(([actId, ent]: any) => {
-          if (ent?.id) entIdToActId[ent.id] = parseInt(actId);
-        });
-        (resps || []).forEach((r: any) => {
-          const actId = entIdToActId[r.entrega_id];
-          if (actId && !respMap[actId]) respMap[actId] = r.texto;
-        });
-      }
-    }
-
-    const ahora = new Date();
-    this.actividades = (acts || []).map((a: any) => {
-      const ent = entMap[a.id];
-      return {
-        id: a.id, titulo: a.titulo, instrucciones: a.instrucciones || '',
-        tipo: a.tipo, fecha_entrega: a.fecha_entrega,
-        valor_total: parseFloat(a.valor_total),
-        url_interactiva: a.url_interactiva,
-        asignatura: asiMap[a.asignatura_id] || '—', asignatura_id: a.asignatura_id,
-        grupo: '', grupo_id: a.grupo_id, docente: '', publicada: true,
-        vencida: new Date(a.fecha_entrega) < ahora,
-        entrega: ent ? {
-          id:              ent.id,
-          calificacion:    ent.calificacion != null ? parseFloat(ent.calificacion) : null,
-          feedback:        ent.feedback || '',
-          entregada_en:    ent.entregada_en,
-          archivo_url:     ent.archivo || null,
-          respuesta_texto: respMap[a.id] || '',
-        } : null,
-      };
+    (asis || []).forEach((a: any) => {
+      asiMap[a.id] = a.nombre;
     });
   }
+
+
+  // ============================================================
+  // 5. ENTREGAS PROPIAS DEL ALUMNO
+  // ============================================================
+
+  const actIds = (acts || [])
+    .map((a: any) => a.id)
+    .filter(Boolean);
+
+  console.log(
+    '📝 IDs de actividades:',
+    actIds
+  );
+
+  let entregas: any[] = [];
+
+  if (actIds.length) {
+
+    const {
+      data,
+      error: errEnt
+    } = await this.sesion.supabase
+      .rpc('entregas_propias_de_actividades', {
+        p_token: token,
+        p_actividad_ids: actIds
+      });
+
+    if (errEnt) {
+      console.error(
+        '❌ Error entregas_propias_de_actividades:',
+        errEnt.message
+      );
+
+      throw errEnt;
+    }
+
+    entregas = data || [];
+
+    console.log(
+      '📤 Entregas propias:',
+      entregas
+    );
+  }
+
+
+  // ============================================================
+  // 6. MAPA DE ENTREGAS
+  // ============================================================
+
+  const entMap: Record<number, any> = {};
+
+  entregas.forEach((e: any) => {
+
+    if (e?.actividad_id) {
+      entMap[e.actividad_id] = e;
+    }
+
+  });
+
+
+  // ============================================================
+  // 7. RESPUESTAS DE TEXTO DEL ALUMNO
+  // ============================================================
+
+  let respMap: Record<number, string> = {};
+
+  if (actIds.length) {
+
+    const entregaIds = Object.values(entMap)
+      .map((e: any) => e?.id)
+      .filter(Boolean);
+
+    console.log(
+      '🗒️ IDs de entregas:',
+      entregaIds
+    );
+
+    if (entregaIds.length) {
+
+      const {
+        data: resps,
+        error: errResps
+      } = await this.sesion.supabase
+        .rpc('respuestas_de_entregas_multi', {
+          p_token: token,
+          p_entrega_ids: entregaIds
+        });
+
+      if (errResps) {
+        console.error(
+          '❌ Error respuestas_de_entregas_multi:',
+          errResps.message
+        );
+      }
+
+      const entIdToActId: Record<number, number> = {};
+
+      Object.entries(entMap).forEach(
+        ([actId, ent]: [string, any]) => {
+
+          if (ent?.id) {
+            entIdToActId[ent.id] =
+              parseInt(actId, 10);
+          }
+
+        }
+      );
+
+      (resps || []).forEach((r: any) => {
+
+        const actId =
+          entIdToActId[r.entrega_id];
+
+        if (
+          actId &&
+          !respMap[actId]
+        ) {
+          respMap[actId] =
+            r.texto || '';
+        }
+
+      });
+    }
+  }
+
+
+  // ============================================================
+  // 8. CONSTRUIR ACTIVIDADES PARA LA VISTA
+  // ============================================================
+
+  const ahora = new Date();
+
+  this.actividades = (acts || []).map(
+    (a: any) => {
+
+      const ent =
+        entMap[a.id];
+
+      return {
+
+        id: a.id,
+
+        titulo:
+          a.titulo,
+
+        instrucciones:
+          a.instrucciones || '',
+
+        tipo:
+          a.tipo,
+
+        fecha_entrega:
+          a.fecha_entrega,
+
+        valor_total:
+          parseFloat(a.valor_total),
+
+        url_interactiva:
+          a.url_interactiva,
+
+        asignatura:
+          asiMap[a.asignatura_id] || '—',
+
+        asignatura_id:
+          a.asignatura_id,
+
+        grupo: '',
+
+        grupo_id:
+          a.grupo_id,
+
+        docente: '',
+
+        publicada: true,
+
+        vencida:
+          new Date(a.fecha_entrega) < ahora,
+
+        entrega: ent
+          ? {
+
+              id:
+                ent.id,
+
+              calificacion:
+                ent.calificacion != null
+                  ? parseFloat(ent.calificacion)
+                  : null,
+
+              feedback:
+                ent.feedback || '',
+
+              entregada_en:
+                ent.entregada_en,
+
+              archivo_url:
+                ent.archivo || null,
+
+              respuesta_texto:
+                respMap[a.id] || ''
+
+            }
+          : null
+
+      };
+
+    }
+  );
+
+
+  // ============================================================
+  // 9. RESULTADO FINAL
+  // ============================================================
+
+  console.log(
+    '══════════════════════════════════════'
+  );
+
+  console.log(
+    '✅ ACTIVIDADES FINALES DEL ALUMNO:',
+    this.actividades
+  );
+
+  console.log(
+    '✅ TOTAL ACTIVIDADES:',
+    this.actividades.length
+  );
+
+  console.log(
+    '══════════════════════════════════════'
+  );
+}
 
   // ── Docente ───────────────────────────────────────────────────
   async cargarParaDocente() {
@@ -446,14 +767,15 @@ export class ActividadPage implements OnInit {
     if (asiIds.length) {
       // Antes: SELECT directo a academic_asignatura — bloqueado por REVOKE (NON/PAR).
       const { data: asis, error: errAsis } = await this.sesion.supabase
-        .rpc('nombres_asignaturas', { p_token: tokenDoc0, p_asignatura_ids: asiIds });
+        .rpc('nombres_asignaturas', { p_token: tokenDoc0, p_ids: asiIds });
       if (errAsis) console.error('Error nombres_asignaturas:', errAsis.message);
       (asis || []).forEach((a: any) => { asiMap[a.id] = a.nombre; });
     }
     if (gruIds.length) {
       // Antes: SELECT directo a academic_grupo — bloqueado por REVOKE (NON/PAR).
-      const { data: grus, error: errGrus } = await this.sesion.supabase
-        .rpc('nombres_grupos', { p_token: tokenDoc0, p_grupo_ids: gruIds });
+// nombres_grupos — aparece en cargarParaDocente
+const { data: grus, error: errGrus } = await this.sesion.supabase
+  .rpc('nombres_grupos', { p_token: tokenDoc0, p_ids: gruIds });
       if (errGrus) console.error('Error nombres_grupos:', errGrus.message);
       (grus || []).forEach((g: any) => { gruMap[g.id] = `${g.grado}° ${g.nombre}`; });
     }
@@ -522,7 +844,7 @@ export class ActividadPage implements OnInit {
     if (asiIds.length) {
       // Antes: SELECT directo a academic_asignatura — bloqueado por REVOKE (NON/PAR).
       const { data: asis, error: errAsis } = await this.sesion.supabase
-        .rpc('nombres_asignaturas', { p_token: token, p_asignatura_ids: asiIds });
+        .rpc('nombres_asignaturas', { p_token: token, p_ids: asiIds });
       if (errAsis) console.error('Error nombres_asignaturas:', errAsis.message);
       (asis || []).forEach((a: any) => { asiMap[a.id] = a.nombre; });
     }
@@ -849,11 +1171,20 @@ export class ActividadPage implements OnInit {
     return this.actividades;
   }
     // ── Agrupación por semana (más recientes arriba) ────────────
-  get actividadesAgrupadas(): { label: string; items: ActividadItem[] }[] {
-    const ordenadas = [...this.actividadesFiltradas].sort((a, b) =>
-      new Date(b.fecha_entrega).getTime() - new Date(a.fecha_entrega).getTime()
-    );
+get actividadesAgrupadas(): { label: string; items: ActividadItem[] }[] {
+  // Filtrar solo actividades con fecha_entrega válida
+  const validas = this.actividadesFiltradas.filter(a => {
+    if (!a.fecha_entrega) return false;
+    const date = new Date(a.fecha_entrega);
+    return !isNaN(date.getTime());
+  });
 
+  // Si no hay válidas, retornar vacío
+  if (!validas.length) return [];
+
+  const ordenadas = [...validas].sort((a, b) =>
+    new Date(b.fecha_entrega).getTime() - new Date(a.fecha_entrega).getTime()
+  );
     const grupos = new Map<string, ActividadItem[]>();
     for (const act of ordenadas) {
       const key = this.claveSemana(act.fecha_entrega);
@@ -876,9 +1207,14 @@ export class ActividadPage implements OnInit {
     return date;
   }
 
-  private claveSemana(fechaStr: string): string {
-    return this.inicioSemana(new Date(fechaStr)).toISOString().slice(0, 10);
-  }
+private claveSemana(fechaStr: string): string {
+  if (!fechaStr) return 'sin-fecha';
+
+  const date = new Date(fechaStr);
+  if (isNaN(date.getTime())) return 'sin-fecha';
+
+  return this.inicioSemana(date).toISOString().slice(0, 10);
+}
 
   private etiquetaSemana(fechaStr: string): string {
     const lunes = this.inicioSemana(new Date(fechaStr));
@@ -931,7 +1267,7 @@ export class ActividadPage implements OnInit {
       // memoria sin volver a pegarle al backend.
       const token = this.sesion.usuario?.token;
       const { data: combos, error } = await this.sesion.supabase
-        .rpc('combos_asignatura_grupo_docente', { p_token: token });
+        .rpc('combos_asignatura_grupo_docente', { p_token: token,p_docente_id: uid  });
       if (error) throw error;
       this.combosMateriaGrupo = combos || [];
 

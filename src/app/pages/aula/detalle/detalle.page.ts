@@ -122,8 +122,11 @@ export class DetallePage implements OnInit {
 
       // Si viene materia específica, confirmar que el docente la imparte
       if (this.asignaturaId) {
+      // Antes: solo mandaba p_token — Supabase respondía 404 PGRST202
+      // ("Could not find the function ... combos_asignatura_grupo_docente(p_token)")
+      // porque la firma real requiere también p_docente_id.
       const { data: combos, error: errCombos } = await this.sesion.supabase
-        .rpc('combos_asignatura_grupo_docente', { p_token: token });
+        .rpc('combos_asignatura_grupo_docente', { p_token: token, p_docente_id: userId });
       if (errCombos) return false;
 
       const tieneCombo = (combos || []).some(

@@ -358,37 +358,45 @@ export class DetalleTareaPage implements OnInit {
 
   // ─────────────────────────────────────────────
   // COMENTARIOS (ambos roles)
-  // ─────────────────────────────────────────────
-  async cargarComentarios() {
-    if (!this.tarea) return;
-    try {
-      const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
-      const { data, error } = await this.sesion.supabase
-        .rpc('comentarios_tarea', { p_token: token, p_tarea_id: this.tarea.id });
-      if (error) throw error;
-      this.comentarios = data || [];
-    } catch (e: any) {
-      this.toast(`No se pudieron cargar los comentarios: ${e.message}`, 'danger');
-    }
-  }
+private async cargarComentarios() {
+  const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+  const tareaId = this.tarea?.id;
 
-  async agregarComentario() {
-    const texto = this.nuevoComentario.trim();
-    if (!texto || !this.tarea) return;
-    this.enviandoComentario = true;
-    try {
-      const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
-      const { data, error } = await this.sesion.supabase
-        .rpc('crear_comentario_tarea', { p_token: token, p_tarea_id: this.tarea.id, p_texto: texto });
-      if (error) throw error;
-      if (data) this.comentarios.push(data);
-      this.nuevoComentario = '';
-    } catch (e: any) {
-      this.toast(`No se pudo enviar el comentario: ${e.message}`, 'danger');
-    } finally {
-      this.enviandoComentario = false;
-    }
+  if (!token || !tareaId) return;
+
+  try {
+    const { data, error } = await this.sesion.supabase.rpc(
+      'comentarios_tarea',
+      { p_token: token, p_tarea_id: tareaId }
+    );
+
+    if (error) throw error;
+    this.comentarios = data || [];
+  } catch (e: any) {
+    console.error('Error cargando comentarios:', e.message);
   }
+}
+
+async agregarComentario() {
+  const texto = this.nuevoComentario.trim();
+  if (!texto || !this.tarea) return;
+  this.enviandoComentario = true;
+  try {
+    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
+    const { data, error } = await this.sesion.supabase
+      .rpc('crear_comentario_tarea', { p_token: token, p_tarea_id: this.tarea.id, p_texto: texto });
+    if (error) throw error;
+
+    // ✅ AQUÍ: No confíes en data — recarga los comentarios completos
+    this.nuevoComentario = '';
+    await this.cargarComentarios();
+
+  } catch (e: any) {
+    this.toast(`No se pudo enviar el comentario: ${e.message}`, 'danger');
+  } finally {
+    this.enviandoComentario = false;
+  }
+}
 
   toggleEditarComentario(c: Comentario) {
     c.editando = !c.editando;

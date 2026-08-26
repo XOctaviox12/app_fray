@@ -134,81 +134,67 @@ export class ComunidadPage implements OnInit {
     return null;
   }
 
-  async cargarOpcionesDocente() {
-    const uid = this.sesion.usuario?.id;
-    if (!uid) return;
-    this.cargandoOpciones = true;
+async cargarOpcionesDocente() {
+  const uid = this.sesion.usuario?.id;
+  if (!uid) return;
+  this.cargandoOpciones = true;
 
-    try {
-      const token = this.sesion.usuario?.token;
-      if (!token) throw new Error('Sin token de autenticación');
+  try {
+    const token = this.sesion.usuario?.token;
+    if (!token) throw new Error('Sin token de autenticación');
 
-      // ✅ MIGRADO: Grupos asignados al docente (con período activo)
-      // Antes: .from('users_docentegrupo').select('grupo_id').eq('docente_id', uid).eq('activo', true)
-      // Ahora: RPC segura que valida período activo
-      const { data: relGrupos, error: eG } = await this.sesion.supabase
-        .rpc('grupos_del_docente', { p_token: token });
-      if (eG) throw eG;
+    // Grupos asignados al docente (con período activo) — ya trae nombre/grado/aula
+    const { data: relGrupos, error: eG } = await this.sesion.supabase
+      .rpc('grupos_del_docente', { p_token: token });
+    if (eG) throw eG;
 
-      const grupoIds = relGrupos || [];
+    this.misGrupos = (relGrupos || []).map((r: any) => ({
+      id: r.grupo_id,
+      nombre: r.nombre,
+      grado: r.grado,
+    })).sort((a: any, b: any) => a.grado - b.grado);
 
-      if (grupoIds.length) {
-        const { data, error: eGD } = await this.sesion.supabase
-          .from('academic_grupo')
-          .select('id, nombre, grado')
-          .in('id', grupoIds)
-          .order('grado');
-        if (eGD) throw eGD;
-        this.misGrupos = data || [];
-      } else {
-        this.misGrupos = [];
-      }
+    const grupoIds = this.misGrupos.map(g => g.id);
 
-      // ✅ MIGRADO: Materias del docente
-      // Antes: .from('academic_asignatura_docentes').select('asignatura_id').eq('user_id', uid)
-      // Ahora: RPC segura que valida sesión
-      const { data: relAsig, error: eA } = await this.sesion.supabase
-        .rpc('materias_del_docente', { p_token: token });
-      if (eA) throw eA;
+    // Materias del docente — ya trae nombre
+    const { data: relAsig, error: eA } = await this.sesion.supabase
+      .rpc('materias_del_docente', { p_token: token });
+    if (eA) throw eA;
 
-      const asignaturaIds = relAsig || [];
-      if (asignaturaIds.length) {
-        const { data, error: eAN } = await this.sesion.supabase
-          .from('academic_asignatura')
-          .select('id, nombre, clave')
-          .in('id', asignaturaIds)
-          .order('nombre');
-        if (eAN) throw eAN;
-        this.misMaterias = data || [];
+    this.misMaterias = (relAsig || []).map((r: any) => ({
+      id: r.id,
+      nombre: r.nombre,
+    }));
 
-        // ✅ MIGRADO: Relación materia → grupos
-        // Antes: .from('academic_asignatura_grupos').select('asignatura_id, grupo_id').in('asignatura_id', asignaturaIds)
-        // Ahora: Query directo (no bloqueado porque no tiene período crítico en el filtro)
-        const { data: relAG, error: eAG } = await this.sesion.supabase
-          .from('academic_asignatura_grupos')
-          .select('asignatura_id, grupo_id')
-          .in('asignatura_id', asignaturaIds);
-        if (eAG) throw eAG;
+    const asignaturaIds = this.misMaterias.map(m => m.id);
 
-        const misGrupoIds = new Set(grupoIds);
-        (relAG || []).forEach((r: any) => {
-          if (!misGrupoIds.has(r.grupo_id)) return;
-          const lista = this.asignaturaGrupoMap.get(r.asignatura_id) || [];
-          lista.push(r.grupo_id);
-          this.asignaturaGrupoMap.set(r.asignatura_id, lista);
-        });
-      }
+    if (asignaturaIds.length) {
+      // Relación materia → grupos (no bloqueada por RLS, query directo)
+      const { data: relAG, error: eAG } = await this.sesion.supabase
+        .from('academic_asignatura_grupos')
+        .select('asignatura_id, grupo_id')
+        .in('asignatura_id', asignaturaIds);
+      if (eAG) throw eAG;
 
-      this.gruposCandidatos = this.misGrupos;
-
-    } catch (e: any) {
-      this.errorPublicar = `No se pudieron cargar tus materias/grupos. Detalle: ${e.message}`;
-      this.misGrupos = [];
-      this.gruposCandidatos = [];
-    } finally {
-      this.cargandoOpciones = false;
+      const misGrupoIds = new Set(grupoIds);
+      (relAG || []).forEach((r: any) => {
+        if (!misGrupoIds.has(r.grupo_id)) return;
+        const lista = this.asignaturaGrupoMap.get(r.asignatura_id) || [];
+        lista.push(r.grupo_id);
+        this.asignaturaGrupoMap.set(r.asignatura_id, lista);
+      });
     }
+
+    this.gruposCandidatos = this.misGrupos;
+
+  } catch (e: any) {
+    this.errorPublicar = `No se pudieron cargar tus materias/grupos. Detalle: ${e.message}`;
+    this.misGrupos = [];
+    this.gruposCandidatos = [];
+  } finally {
+    this.cargandoOpciones = false;
   }
+}
 
   onMateriaChange() {
     this.gruposSeleccionados = [];

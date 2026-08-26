@@ -237,7 +237,7 @@
           <div class="comentarios-scroll">
             <div class="comentario-row" *ngFor="let c of comentarios" [class.comentario-row-propio]="c.autor_rol === 'DOCENTE'">
               <div class="comentario-avatar" [class.avatar-docente]="c.autor_rol === 'DOCENTE'">
-                {{ c.autor_nombre.charAt(0) }}
+                {{ c.autor_nombre && c.autor_nombre.length > 0 ? c.autor_nombre.charAt(0) : 'U' }}
               </div>
               <div class="comentario-bubble" [class.bubble-docente]="c.autor_rol === 'DOCENTE'">
                 <div class="comentario-top">

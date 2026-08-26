@@ -464,57 +464,110 @@ async buscarSesionActivaAlumno() {
     return;
   }
 
-  // Obtener grupo del alumno
-  const { data: perfil, error: ePerfil } = await this.sesion.supabase
-    .rpc('perfil_basico_usuario', {
-      p_token: token,
-      p_user_id: alumnoId
-    })
-    .single();
+  try {
+    // ✅ 1️⃣ Obtener perfil con timeout (5s)
+    let grupoId: number | null = null;
 
-  if (ePerfil) {
-    console.error('Error obteniendo perfil:', ePerfil.message);
-    this.error = 'No se pudo obtener tu información.';
-    return;
-  }
+    try {
+      const perfilPromise = this.sesion.supabase
+        .rpc('perfil_basico_usuario', {
+          p_token: token,
+          p_user_id: alumnoId
+        })
+        .single();
 
-  const grupoId = (perfil as any)?.alumno_grupo_id;
-  if (!grupoId) {
-    this.error = 'No tienes grupo asignado.';
-    this.desuscribir();
-    this.sesionActiva = null;
-    this.bloques = [];
-    this.materiasFinalizadasSecciones = [];
-    return;
-  }
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout obteniendo perfil')), 5000)
+      );
 
-  // Buscar sesión activa
-  const { data, error } = await this.sesion.supabase.rpc(
-    'sesion_activa_alumno',
-    {
-      p_token: token,
-      p_alumno_id: alumnoId
+      const { data: perfil, error: ePerfil } = await Promise.race([
+        perfilPromise,
+        timeoutPromise
+      ]) as any;
+
+      if (ePerfil) {
+        console.error('Error obteniendo perfil:', ePerfil.message);
+        this.error = 'No se pudo obtener tu información.';
+        return;
+      }
+
+      grupoId = (perfil as any)?.alumno_grupo_id;
+    } catch (e: any) {
+      console.error('Error en perfil_basico_usuario:', e?.message || e);
+      this.error = 'Error al obtener tu perfil.';
+      return;
     }
-  );
 
-  if (error) {
-    console.error('Error buscando sesión activa:', error.message);
+    if (!grupoId) {
+      this.error = 'No tienes grupo asignado.';
+      this.desuscribir();
+      this.sesionActiva = null;
+      this.bloques = [];
+      this.materiasFinalizadasSecciones = [];
+      return;
+    }
+
+    // ✅ 2️⃣ Buscar sesión activa con timeout (5s)
+    let sessionData: any = null;
+
+    try {
+      const sessionPromise = this.sesion.supabase
+        .rpc('sesion_activa_alumno', {
+          p_token: token,
+          p_alumno_id: alumnoId
+        })
+        .single();
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout buscando sesión activa')), 5000)
+      );
+
+      const { data, error } = await Promise.race([
+        sessionPromise,
+        timeoutPromise
+      ]) as any;
+
+      if (error) {
+        console.error('Error buscando sesión activa:', error.message);
+        // No es fatal — continuar a buscar clases finalizadas
+      } else {
+        sessionData = data;
+      }
+    } catch (e: any) {
+      console.error('Error en sesion_activa_alumno:', e?.message || e);
+      // Continuar a buscar clases finalizadas
+    }
+
+    if (sessionData) {
+      this.sesionActiva = sessionData;
+      this.materiasFinalizadasSecciones = [];
+      await this.cargarBloques();
+      this.suscribirRealtime();
+      console.log('✅ Sesión activa cargada:', this.sesionActiva);
+    } else {
+      // ✅ 3️⃣ Si no hay sesión activa, cargar clases finalizadas
+      this.desuscribir();
+      this.sesionActiva = null;
+      this.bloques = [];
+
+      try {
+        await this.cargarClasesFinalizadasAlumno(grupoId);
+      } catch (e: any) {
+        console.error('Error cargando clases finalizadas:', e?.message || e);
+        // No es fatal
+      }
+
+      if (!this.materiasFinalizadasSecciones.length) {
+        this.error = 'No hay clase en vivo ni clases finalizadas disponibles.';
+      }
+    }
+  } catch (e: any) {
+    console.error('Error inesperado en buscarSesionActivaAlumno:', e?.message || e);
+    this.error = 'Error cargando la clase.';
     this.desuscribir();
     this.sesionActiva = null;
     this.bloques = [];
-    return;
-  }
-
-  if (data) {
-    this.sesionActiva = data;
     this.materiasFinalizadasSecciones = [];
-    await this.cargarBloques();
-    this.suscribirRealtime();
-  } else {
-    this.desuscribir();
-    this.sesionActiva = null;
-    this.bloques = [];
-    await this.cargarClasesFinalizadasAlumno(grupoId);
   }
 }
 // Trae las clases FINALIZADAS del grupo del alumno que siguen dentro de la
@@ -529,51 +582,65 @@ private async cargarClasesFinalizadasAlumno(grupoId: number) {
     return;
   }
 
-  const { data, error } = await this.sesion.supabase.rpc(
-    'clases_finalizadas_alumno',
-    {
-      p_token: token,
-      p_alumno_id: alumnoId
-    }
-  );
+  try {
+    const finalizadasPromise = this.sesion.supabase
+      .rpc('clases_finalizadas_alumno', {
+        p_token: token,
+        p_alumno_id: alumnoId
+      });
 
-  if (error) {
-    console.error('Error cargando clases finalizadas:', error.message);
-    this.materiasFinalizadasSecciones = [];
-    return;
-  }
-
-  const vigentes: SesionClase[] = data || [];
-  if (!vigentes.length) {
-    this.materiasFinalizadasSecciones = [];
-    return;
-  }
-
-  const asigIds = [...new Set(vigentes.map(s => s.asignatura_id))];
-  let asigMap: Record<number, string> = {};
-  if (asigIds.length) {
-    const { data: asigs } = await this.sesion.supabase.rpc(
-      'nombres_asignaturas', { p_token: token, p_ids: asigIds }
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Timeout cargando clases finalizadas')), 5000)
     );
-    (asigs || []).forEach((a: any) => { asigMap[a.id] = a.nombre; });
-  }
 
-  vigentes.forEach(s => { s.asignatura_nombre = asigMap[s.asignatura_id] || 'Materia'; });
+    const { data, error } = await Promise.race([
+      finalizadasPromise,
+      timeoutPromise
+    ]) as any;
 
-  const secciones: Record<number, SeccionMateriaFinalizada> = {};
-  vigentes.forEach(s => {
-    if (!secciones[s.asignatura_id]) {
-      secciones[s.asignatura_id] = {
-        asignatura_id: s.asignatura_id,
-        asignatura_nombre: s.asignatura_nombre!,
-        sesiones: [],
-      };
+    if (error) {
+      console.error('Error cargando clases finalizadas:', error.message);
+      this.materiasFinalizadasSecciones = [];
+      return;
     }
-    secciones[s.asignatura_id].sesiones.push(s);
-  });
 
-  this.materiasFinalizadasSecciones = Object.values(secciones)
-    .sort((a, b) => a.asignatura_nombre.localeCompare(b.asignatura_nombre));
+    const vigentes: SesionClase[] = data || [];
+    if (!vigentes.length) {
+      this.materiasFinalizadasSecciones = [];
+      return;
+    }
+
+    const asigIds = [...new Set(vigentes.map(s => s.asignatura_id))];
+    let asigMap: Record<number, string> = {};
+    if (asigIds.length) {
+      const { data: asigs } = await this.sesion.supabase.rpc(
+        'nombres_asignaturas', { p_token: token, p_ids: asigIds }
+      );
+      (asigs || []).forEach((a: any) => { asigMap[a.id] = a.nombre; });
+    }
+
+    vigentes.forEach(s => { s.asignatura_nombre = asigMap[s.asignatura_id] || 'Materia'; });
+
+    const secciones: Record<number, SeccionMateriaFinalizada> = {};
+    vigentes.forEach(s => {
+      if (!secciones[s.asignatura_id]) {
+        secciones[s.asignatura_id] = {
+          asignatura_id: s.asignatura_id,
+          asignatura_nombre: s.asignatura_nombre!,
+          sesiones: [],
+        };
+      }
+      secciones[s.asignatura_id].sesiones.push(s);
+    });
+
+    this.materiasFinalizadasSecciones = Object.values(secciones)
+      .sort((a, b) => a.asignatura_nombre.localeCompare(b.asignatura_nombre));
+
+    console.log('✅ Clases finalizadas cargadas:', this.materiasFinalizadasSecciones);
+  } catch (e: any) {
+    console.error('Error en cargarClasesFinalizadasAlumno:', e?.message || e);
+    this.materiasFinalizadasSecciones = [];
+  }
 }
 
 // Abre el detalle de solo lectura de una clase finalizada al tocar su tarjeta.
