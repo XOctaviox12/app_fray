@@ -511,12 +511,12 @@ async buscarSesionActivaAlumno() {
     let sessionData: any = null;
 
     try {
-      const sessionPromise = this.sesion.supabase
+       const sessionPromise = this.sesion.supabase
         .rpc('sesion_activa_alumno', {
           p_token: token,
           p_alumno_id: alumnoId
         })
-        .single();
+        .maybeSingle();
 
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Timeout buscando sesión activa')), 5000)
@@ -583,10 +583,9 @@ private async cargarClasesFinalizadasAlumno(grupoId: number) {
   }
 
   try {
-    const finalizadasPromise = this.sesion.supabase
+      const finalizadasPromise = this.sesion.supabase
       .rpc('clases_finalizadas_alumno', {
-        p_token: token,
-        p_alumno_id: alumnoId
+        p_token: token
       });
 
     const timeoutPromise = new Promise((_, reject) =>
