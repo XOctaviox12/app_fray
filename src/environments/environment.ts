@@ -1,12 +1,9 @@
-// This file can be replaced during build by using the `fileReplacements` array.
-// `ng build` replaces `environment.ts` with `environment.prod.ts`.
-// The list of file replacements can be found in `angular.json`.
-
-// src/environments/environment.ts
 export const environment = {
   production: false,
+  // BD de producción (activa)
   supabaseUrl: 'https://uhgfamoypjnkvbyqgqsu.supabase.co',
   supabaseKey: 'sb_publishable_se23xbte24gox5L6_nN89g_1M7LR45U',
+  // BD de prueba — descomentar y comentar el bloque de arriba para probar contra ella
   // supabaseUrl: 'https://fduvwczwhqwpkcunjcxv.supabase.co',
   // supabaseKey: 'sb_publishable_J2aDXAcPAo8NXfTZCAr4Mw_w7ekAj26',
   // Solo cloud_name + upload_preset (unsigned). NUNCA pongas aquí el API_SECRET

@@ -121,14 +121,17 @@ export class ComunidadPage implements OnInit {
     if (usuario?.alumno_id) return usuario.alumno_id;
     if (usuario?.alumno?.id) return usuario.alumno.id;
 
+    // ✅ CORREGIDO: Cambiar de .from('users_tutor') directo a RPC
+    // Antes: .from('users_tutor').select('alumno_id').eq('id', usuario.id)
+    // Ahora: Usar RPC segura o preferir usar sesion.tutor?.alumno_id
     if (usuario?.id) {
-      const { data, error } = await this.sesion.supabase
-        .from('users_tutor')
-        .select('alumno_id')
-        .eq('id', usuario.id)
-        .maybeSingle();
+      const token = this.sesion.tutor?.token;
+      if (token) {
+        const { data, error } = await this.sesion.supabase
+          .rpc('obtener_alumno_id_tutor', { p_token: token });
 
-      if (!error && data?.alumno_id) return data.alumno_id;
+        if (!error && data) return data;
+      }
     }
 
     return null;
@@ -233,8 +236,7 @@ async cargarOpcionesDocente() {
       const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
 
       // ✅ MIGRADO: Cargar comunicados del plantel
-      // Antes: .from('academic_comunicado').select(...).eq('plantel_id', this.plantelId)
-      // Ahora: Query directo (Comunicado no tiene período, pero el filtro de plantel es válido)
+      // Query directo a academic_comunicado (no tiene período crítico en el filtro)
       const { data, error } = await this.sesion.supabase
         .from('academic_comunicado')
         .select(`

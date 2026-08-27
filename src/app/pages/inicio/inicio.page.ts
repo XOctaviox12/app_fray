@@ -68,9 +68,7 @@ export class InicioPage implements OnInit {
     if (!grupoId) return;
 
     // ✅ MIGRADO: Materias del grupo del alumno
-    // Antes: .from('academic_asignatura_grupos').select('*', { count: 'exact', head: true }).eq('grupo_id', grupoId)
-    // Ahora: Usar combos_asignatura_grupo_docente filtrado en memoria, o contar vía las asignaturas que tiene el grupo
-    // Para alumno: contamos las asignaturas del grupo directamente
+    // Usa query directo a academic_asignatura_grupos (tabla sin período crítico)
     const { data: materias, error: eM } = await this.sesion.supabase
       .from('academic_asignatura_grupos')
       .select('*', { count: 'exact', head: true })
@@ -78,19 +76,19 @@ export class InicioPage implements OnInit {
     if (eM) console.error('Error materias alumno:', eM.message);
     this.totalMaterias = materias?.length || 0;
 
-    // ✅ MIGRADO: Tareas asignadas al grupo del alumno
-    // Antes: .from('academic_tarea').select('*', { count: 'exact', head: true }).eq('grupo_id', grupoId)
-    // Ahora: Usar RPC segura de tareas del grupo (valida período activo)
-    const { count: tareas, error: eT } = await this.sesion.supabase
-      .from('academic_tarea')
-      .select('*', { count: 'exact', head: true })
-      .eq('grupo_id', grupoId);
-    if (eT) console.error('Error tareas alumno:', eT.message);
-    this.tareasPendientes = tareas || 0;
+    // ✅ CORREGIDO: Tareas asignadas al grupo del alumno
+    // Cambiado de .from('academic_tarea') directo a RPC segura
+    const { data: tareaCount, error: eT } = await this.sesion.supabase
+      .rpc('contar_tareas_grupo', { p_token: token, p_grupo_id: grupoId });
+    if (eT) {
+      console.error('Error al contar tareas:', eT.message);
+      this.tareasPendientes = 0;
+    } else {
+      this.tareasPendientes = tareaCount || 0;
+    }
 
     // ✅ MIGRADO: Actividades del grupo
-    // Antes: .from() directo, sin período
-    // Ahora: RPC segura que valida período activo
+    // Usa RPC segura que valida período activo
     const { data: acts, error: eA } = await this.sesion.supabase
       .rpc('contar_actividades_grupo', { p_token: token, p_grupo_id: grupoId });
     if (eA) console.error('Error actividades alumno:', eA.message);
@@ -106,34 +104,32 @@ export class InicioPage implements OnInit {
     if (!token) return;
 
     // ✅ MIGRADO: Grupos asignados al docente (con período activo)
-    // Antes: .from('users_docentegrupo').select('grupo_id').eq('docente_id', docenteId).eq('activo', true)
-    // Ahora: RPC segura que valida período activo + sesión
+    // Usa RPC segura que valida período activo + sesión
     const { data: grupos, error: eG } = await this.sesion.supabase
       .rpc('grupos_del_docente', { p_token: token });
     if (eG) console.error('Error grupos docente:', eG.message);
     this.totalGrupos = (grupos || []).length;
 
     // ✅ MIGRADO: Materias (asignaturas) asignadas al docente
-    // Antes: .from('academic_asignatura_docentes').select('asignatura_id').eq('user_id', docenteId)
-    // Ahora: RPC segura que valida sesión
+    // Usa RPC segura que valida sesión
     const { data: materias, error: eM } = await this.sesion.supabase
       .rpc('materias_del_docente', { p_token: token });
     if (eM) console.error('Error materias docente:', eM.message);
     this.totalMaterias = (materias || []).length;
 
-    // ✅ MIGRADO: Tareas creadas por el docente
-    // Antes: .from('academic_tarea').select('*', { count: 'exact', head: true }).eq('docente_id', docenteId)
-    // Ahora: Usar query directo (no bloqueado porque docente_id es FK normal, no M2M con período)
-    const { count: tareas, error: eT } = await this.sesion.supabase
-      .from('academic_tarea')
-      .select('*', { count: 'exact', head: true })
-      .eq('docente_id', docenteId);
-    if (eT) console.error('Error tareas docente:', eT.message);
-    this.tareasPendientes = tareas ?? 0;
+    // ✅ CORREGIDO: Tareas creadas por el docente
+    // Cambiado de .from('academic_tarea') directo a RPC segura
+    const { data: tareaCount, error: eT } = await this.sesion.supabase
+      .rpc('contar_tareas_docente', { p_token: token, p_docente_id: docenteId });
+    if (eT) {
+      console.error('Error tareas docente:', eT.message);
+      this.tareasPendientes = 0;
+    } else {
+      this.tareasPendientes = tareaCount || 0;
+    }
 
     // ✅ MIGRADO: Actividades creadas por el docente
-    // Antes: .rpc() pero con p_docente_id vacío (nunca funcionaba)
-    // Ahora: RPC segura que valida período activo
+    // Usa RPC segura que valida período activo
     const { data: acts, error: eA } = await this.sesion.supabase
       .rpc('contar_actividades_docente', { p_token: token, p_docente_id: docenteId });
     if (eA) console.error('Error actividades docente:', eA.message);
@@ -159,8 +155,7 @@ export class InicioPage implements OnInit {
       const grupoId = (alumno as any).alumno_grupo_id;
       if (grupoId) {
         // ✅ MIGRADO: Materias del grupo del alumno (tutor)
-        // Antes: .from('academic_asignatura_grupos').select('*', { count: 'exact', head: true }).eq('grupo_id', grupoId)
-        // Ahora: Query directo (no bloqueado porque no tiene período en el filtro crítico)
+        // Query directo OK (academic_asignatura_grupos no tiene período crítico)
         const { count: materias, error: eM } = await this.sesion.supabase
           .from('academic_asignatura_grupos')
           .select('*', { count: 'exact', head: true })
@@ -171,8 +166,7 @@ export class InicioPage implements OnInit {
     }
 
     // ✅ MIGRADO: Boletas publicadas del alumno
-    // Antes: .rpc() con token
-    // Ahora: RPC segura que valida sesión de tutor
+    // Usa RPC segura que valida sesión de tutor
     const { data: boletas } = token
       ? await this.sesion.supabase.rpc('boletas_alumno_publicadas', { p_token: token, p_alumno_id: alumnoId })
       : { data: [] as any[] };

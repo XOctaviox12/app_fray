@@ -99,28 +99,29 @@ export class PerfilPage implements OnInit {
       return;
     }
 
-try {
-          const token = this.sesion.usuario?.token;
-          if (!token) return;
-          const { error } = await this.sesion.supabase.rpc('actualizar_perfil_propio', {
-            p_token: token,
-            p_telefono: tel || null,
-            p_direccion: this.formEdicion.direccion?.trim() || null,
-            p_fecha_nacimiento: this.formEdicion.fecha_nacimiento
-              ? this.formEdicion.fecha_nacimiento.substring(0, 10)
-              : null,
-          });
+    try {
+      const token = this.sesion.usuario?.token;
+      if (!token) return;
+      const { error } = await this.sesion.supabase.rpc('actualizar_perfil_propio', {
+        p_token: token,
+        p_telefono: tel || null,
+        p_direccion: this.formEdicion.direccion?.trim() || null,
+        p_fecha_nacimiento: this.formEdicion.fecha_nacimiento
+          ? this.formEdicion.fecha_nacimiento.substring(0, 10)
+          : null,
+      });
 
       if (error) throw error;
 
-      // Reflejar cambios localmente sin recargar toda la sesión
+      // Reflejar cambios localmente y persistir vía sesion.service
+      // (único punto de escritura a localStorage)
       this.usuario = {
         ...this.usuario,
         telefono: tel || undefined,
         direccion: this.formEdicion.direccion?.trim() || undefined,
         fecha_nacimiento: this.formEdicion.fecha_nacimiento || undefined,
       };
-      this.sesion.usuario = this.usuario;
+      this.sesion.actualizarUsuario(this.usuario);
 
       this.editando = false;
       const toast = await this.toastCtrl.create({
@@ -142,47 +143,47 @@ try {
   }
 
   async onFotoSeleccionada(event: Event) {
-  const input = event.target as HTMLInputElement;
-  const archivo = input.files?.[0];
-  if (!archivo || !this.usuario) return;
+    const input = event.target as HTMLInputElement;
+    const archivo = input.files?.[0];
+    if (!archivo || !this.usuario) return;
 
-  if (!archivo.type.startsWith('image/')) {
-    this.errorGuardado = 'Selecciona un archivo de imagen válido.';
-    return;
+    if (!archivo.type.startsWith('image/')) {
+      this.errorGuardado = 'Selecciona un archivo de imagen válido.';
+      return;
+    }
+    if (archivo.size > 5 * 1024 * 1024) {
+      this.errorGuardado = 'La imagen no debe superar 5MB.';
+      return;
+    }
+
+    this.subiendoFoto = true;
+    this.progresoFoto = 0;
+    this.errorGuardado = '';
+    try {
+      const subido = await this.cloudinary.subirArchivo(archivo, pct => this.progresoFoto = pct);
+
+      const token = this.sesion.usuario?.token;
+      if (!token) return;
+      const { error } = await this.sesion.supabase.rpc('actualizar_foto_perfil', {
+        p_token: token,
+        p_url: subido.url,
+      });
+
+      if (error) throw error;
+
+      // Reflejar cambios localmente y persistir vía sesion.service
+      // (único punto de escritura a localStorage — antes se hacía
+      // localStorage.setItem() directo aquí)
+      this.usuario = { ...this.usuario, foto_perfil: subido.url };
+      this.sesion.actualizarUsuario(this.usuario);
+      this.avatarUrl = subido.url;
+    } catch (e: any) {
+      this.errorGuardado = 'No se pudo actualizar la foto: ' + (e.message || 'error desconocido');
+    } finally {
+      this.subiendoFoto = false;
+      input.value = '';
+    }
   }
-  if (archivo.size > 5 * 1024 * 1024) {
-    this.errorGuardado = 'La imagen no debe superar 5MB.';
-    return;
-  }
-
-  this.subiendoFoto = true;
-  this.progresoFoto = 0;
-  this.errorGuardado = '';
-  try {
-const subido = await this.cloudinary.subirArchivo(archivo, pct => this.progresoFoto = pct);
-
-        const token = this.sesion.usuario?.token;
-        if (!token) return;
-        const { error } = await this.sesion.supabase.rpc('actualizar_foto_perfil', {
-          p_token: token,
-          p_url: subido.url,
-        });
-
-    if (error) throw error;
-
-    this.usuario = { ...this.usuario, foto_perfil: subido.url };
-    this.sesion.usuario = this.usuario;
-    this.avatarUrl = subido.url;
-
-    // Mantener localStorage sincronizado, como hace SesionService al iniciar sesión
-    localStorage.setItem('usuario_sesion', JSON.stringify(this.usuario));
-  } catch (e: any) {
-    this.errorGuardado = 'No se pudo actualizar la foto: ' + (e.message || 'error desconocido');
-  } finally {
-    this.subiendoFoto = false;
-    input.value = '';
-  }
-}
 
   onErrorImagen() {
     this.avatarUrl = 'assets/img/default-avatar.png';
@@ -200,18 +201,18 @@ const subido = await this.cloudinary.subirArchivo(archivo, pct => this.progresoF
     return this.nombresRoles[rol] || this.usuario?.rol || 'Sin rol asignado';
   }
 
-esActivo(): boolean {
-  const est = this.usuario?.estatus?.toString().trim().toLowerCase();
+  esActivo(): boolean {
+    const est = this.usuario?.estatus?.toString().trim().toLowerCase();
 
-  if (est) {
-    // Cubre variantes comunes que a veces se usan en la BD
-    const valoresActivos = ['activo', 'active', 'activa', '1', 'true'];
-    return valoresActivos.includes(est);
+    if (est) {
+      // Cubre variantes comunes que a veces se usan en la BD
+      const valoresActivos = ['activo', 'active', 'activa', '1', 'true'];
+      return valoresActivos.includes(est);
+    }
+
+    // Fallback si no hay estatus, usa is_active
+    return !!this.usuario?.is_active;
   }
-
-  // Fallback si no hay estatus, usa is_active
-  return !!this.usuario?.is_active;
-}
 
   getFechaMiembro(): string {
     if (!this.usuario?.date_joined) return '';

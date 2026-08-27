@@ -139,6 +139,15 @@ async iniciarSesion(username: string, password: string): Promise<boolean> {
     localStorage.removeItem(STORAGE_KEY);
   }
 
+  // ── Actualizar usuario en sesión ──────────────────────────
+  // Único punto de escritura a localStorage para cambios post-login
+  // (edición de perfil, foto, etc.). Evita que otras páginas escriban
+  // directo a localStorage y se desincronicen entre sí.
+  actualizarUsuario(usuario: Usuario): void {
+    this.usuario = usuario;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(usuario));
+  }
+
   // ── Rol ──────────────────────────────────────────────────
   get rolActual(): string {
     if (this.tutor) return 'TUTOR';
