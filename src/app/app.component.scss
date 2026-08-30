@@ -1,6 +1,7 @@
 // ============================================
 // APP.COMPONENT.SCSS — Menú lateral
 // Rediseño: acorde al mockup Fray Hub / Navigation Drawer (soft UI claro)
+// + Ajustes responsivos iPad + patrones iOS (GUIA_DISENO_RESPONSIVO / PATRONES_IONIC_IOS_AVANZADO)
 // ============================================
 
 ion-menu {
@@ -18,10 +19,16 @@ ion-menu {
   --error:               #BA1A1A;
   --live-purple:          #8B5CF6;
 
-  --width: 300px;
+  --width: 280px;  // estándar iOS (móvil)
 
-  @media (min-width: 1024px) {
+  // iPad Mini / 7-8" — antes solo existía el salto a 1024px
+  @media (min-width: 768px) {
     --width: 320px;
+  }
+
+  // iPad Pro 12.9" — aprovechar más espacio disponible
+  @media (min-width: 1366px) {
+    --width: 350px;
   }
 }
 
@@ -32,6 +39,15 @@ ion-toolbar {
   --border-style: none;
   --min-height: 68px;
   border-bottom: 1px solid var(--outline-variant);
+}
+
+// Notch / Dynamic Island: el menú puede quedar detrás del status bar en algunos
+// dispositivos con notch si no se respeta el safe area explícitamente.
+@supports (padding: max(0px)) {
+  ion-toolbar {
+    padding-top: max(env(safe-area-inset-top), 0px);
+    padding-left: max(env(safe-area-inset-left), 0px);
+  }
 }
 
 ion-title {
@@ -73,11 +89,17 @@ ion-title {
 
 ion-content {
   --background: var(--navy);
+  --padding-bottom: 24px; // margen extra reservado en el contenedor interno de scroll
+  // Momentum scroll en iOS + GPU layer para evitar jank en listas largas (iPad)
+  -webkit-overflow-scrolling: touch;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 ion-list {
   background: transparent;
   padding: 12px 0;
+  contain: layout style paint; // perf en listas largas de docentes/materias
 }
 
 // ============================================
@@ -165,10 +187,12 @@ ion-list {
   --box-shadow: none;
   --padding-top: 10px;
   --padding-bottom: 10px;
+  --min-height: 44px; // área táctil mínima Apple HIG
   font-size: 12.5px;
   font-weight: 700;
   letter-spacing: 0.2px;
   text-transform: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .user-card-skeleton {
@@ -203,7 +227,7 @@ ion-item {
   --background-activated-opacity: 1;
   --padding-start: 16px;
   --inner-padding-end: 16px;
-  --min-height: 48px;
+  --min-height: 48px;  // ya cumple el mínimo de 44px de Apple HIG
   --border-style: none;
   margin: 2px 10px;
   border-radius: 13px;
@@ -211,6 +235,9 @@ ion-item {
   position: relative;
   --color: var(--on-surface-variant);
   transition: background 0.18s ease;
+  -webkit-tap-highlight-color: transparent; // quita el flash gris nativo en iOS
+  user-select: none;
+  -webkit-user-select: none;
 
   ion-icon[slot="start"] {
     font-size: 20px;
@@ -346,6 +373,17 @@ ion-item.clase-item {
   flex-direction: column;
   gap: 10px;
   margin-top: 12px;
+}
+
+// Home indicator / gesture bar en iPhone X+ y iPad
+@supports (padding: max(0px)) {
+  .menu-footer {
+    // antes: max(env(safe-area-inset-bottom), 18px)
+    // ahora con margen extra para que "Cerrar sesión" (arriba en la lista)
+    // y el footer no queden pegados al borde en pantallas más cortas
+    padding-bottom: calc(max(env(safe-area-inset-bottom), 18px) + 12px);
+    padding-left: max(env(safe-area-inset-left), 22px);
+  }
 }
 
 .footer-brand {

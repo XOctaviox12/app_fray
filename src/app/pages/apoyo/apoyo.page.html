@@ -132,10 +132,7 @@
             </div>
             <div class="resource-info">
               <span class="resource-name">{{ item.nombre }}</span>
-              <span class="resource-meta">
-                {{ getTipoLabel(item.tipo) }}
-                <span class="resource-meta">{{ getTipoLabel(item.tipo) }}</span>
-              </span>
+              <span class="resource-meta">{{ getTipoLabel(item.tipo) }}</span>
             </div>
             <ion-button fill="clear" size="small" class="resource-action-btn" [ngClass]="grupo.color + '-action'">
               <ion-icon [name]="getTipoAccionIcon(item.tipo)" slot="icon-only"></ion-icon>

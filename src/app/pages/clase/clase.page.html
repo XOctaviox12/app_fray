@@ -1,34 +1,34 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="header-toolbar">
     <ion-buttons slot="start">
-      <ion-menu-button>
-        <ion-icon name="menu-outline"></ion-icon>
+      <ion-menu-button aria-label="Abrir menú">
+        <ion-icon name="menu-outline" aria-hidden="true"></ion-icon>
       </ion-menu-button>
     </ion-buttons>
     <ion-title class="header-title">
       {{ sesionActiva ? sesionActiva.titulo : 'Clase en Vivo' }}
     </ion-title>
     <ion-buttons slot="end">
-      <div class="live-badge" *ngIf="claseEnVivo">
-        <span class="live-dot"></span>
+      <div class="live-badge" *ngIf="claseEnVivo" role="status" aria-label="Clase en vivo">
+        <span class="live-dot" aria-hidden="true"></span>
         EN VIVO
       </div>
-      <div class="borrador-badge-header" *ngIf="esBorradorEnEdicion">
-        <ion-icon name="create-outline"></ion-icon>
+      <div class="borrador-badge-header" *ngIf="esBorradorEnEdicion" role="status" aria-label="Editando borrador">
+        <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
         BORRADOR
       </div>
-      <div class="finalizada-badge-header" *ngIf="sesionFinalizada">
-        <ion-icon name="checkmark-done-circle-outline"></ion-icon>
+      <div class="finalizada-badge-header" *ngIf="sesionFinalizada" role="status" aria-label="Clase finalizada">
+        <ion-icon name="checkmark-done-circle-outline" aria-hidden="true"></ion-icon>
         FINALIZADA
       </div>
     </ion-buttons>
   </ion-toolbar>
-  <div class="header-accent-bar"></div>
+  <div class="header-accent-bar" aria-hidden="true"></div>
 </ion-header>
 
-<ion-content class="clase-content">
+<ion-content class="clase-content" role="main" aria-label="Clase en vivo">
 
-  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" aria-label="Actualizar clase">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
@@ -46,18 +46,18 @@
        lo mismo sin importar cuánto contenido tengan dentro.
        ============================================================ -->
   <ng-template #bloqueCardTpl let-b="bloque" let-editable="editable">
-    <div class="bloque-card" [ngClass]="'bloque-' + b.tipo">
+    <div class="bloque-card" [ngClass]="'bloque-' + b.tipo" role="listitem" [attr.aria-label]="etiquetaTipo(b.tipo) + (b.titulo ? ': ' + b.titulo : '')">
       <div class="bloque-header">
         <div class="bloque-tipo-badge">
-          <ion-icon [name]="iconoBloque(b.tipo)"></ion-icon>
+          <ion-icon [name]="iconoBloque(b.tipo)" aria-hidden="true"></ion-icon>
           {{ etiquetaTipo(b.tipo) }}
         </div>
         <div class="bloque-header-actions" *ngIf="editable">
           <button type="button" class="bloque-edit-btn" (click)="editarBloque(b)" aria-label="Editar bloque">
-            <ion-icon name="create-outline"></ion-icon>
+            <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
           </button>
           <button type="button" class="bloque-delete-btn" (click)="eliminarBloque(b)" aria-label="Eliminar bloque">
-            <ion-icon name="trash-outline"></ion-icon>
+            <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
           </button>
         </div>
       </div>
@@ -73,7 +73,7 @@
           <iframe [src]="pdfEmbed(b.contenido)" width="100%" height="360px" class="pdf-iframe"
   [title]="b.titulo || 'Documento PDF'"></iframe>
           <a [href]="b.contenido" target="_blank" rel="noopener" class="pdf-open-link">
-            <ion-icon name="open-outline"></ion-icon> Abrir en nueva pestaña
+            <ion-icon name="open-outline" aria-hidden="true"></ion-icon> Abrir en nueva pestaña
           </a>
         </div>
 
@@ -82,35 +82,37 @@
     <iframe [src]="youtubeEmbed(b.contenido)" frameborder="0" allowfullscreen class="video-iframe"
       [title]="b.titulo || 'Video de la clase'"></iframe>
     <a [href]="youtubeWatchUrl(b.contenido)" target="_blank" rel="noopener" class="btn-abrir-youtube-app">
-      <ion-icon name="logo-youtube"></ion-icon>
+      <ion-icon name="logo-youtube" aria-hidden="true"></ion-icon>
       Abrir en la app de YouTube
     </a>
   </div>
   <div class="video-native-wrap" *ngIf="!esYoutube(b.contenido)">
-    <video controls playsinline webkit-playsinline class="video-native">
+    <video controls playsinline webkit-playsinline class="video-native" [attr.aria-label]="b.titulo || 'Video de la clase'">
       <source [src]="b.contenido" type="video/mp4" />
       Tu navegador no puede reproducir este video.
     </video>
     <button type="button" class="btn-expandir-media" (click)="abrirMedia(b.contenido, 'video')"
       aria-label="Ver video en pantalla completa" title="Ver en pantalla completa">
-      <ion-icon name="expand-outline"></ion-icon>
+      <ion-icon name="expand-outline" aria-hidden="true"></ion-icon>
     </button>
   </div>
 </div>
 
         <div class="bloque-imagen-wrap" *ngIf="b.tipo === 'imagen'">
           <img [src]="imagenOptimizada(b.contenido, 700)" [alt]="b.titulo || 'Imagen de la clase'" class="bloque-imagen"
-  (click)="abrirMedia(b.contenido, 'imagen')" />
+  role="button" tabindex="0"
+  (click)="abrirMedia(b.contenido, 'imagen')"
+  (keyup.enter)="abrirMedia(b.contenido, 'imagen')" />
           <button type="button" class="btn-expandir-media" (click)="abrirMedia(b.contenido, 'imagen')"
             aria-label="Ver imagen en pantalla completa" title="Ver en pantalla completa">
-            <ion-icon name="expand-outline"></ion-icon>
+            <ion-icon name="expand-outline" aria-hidden="true"></ion-icon>
           </button>
         </div>
 
-        <a *ngIf="b.tipo === 'link'" [href]="b.contenido" target="_blank" rel="noopener" class="bloque-link">
-          <ion-icon name="link-outline"></ion-icon>
+        <a *ngIf="b.tipo === 'link'" [href]="b.contenido" target="_blank" rel="noopener" class="bloque-link" [attr.aria-label]="'Abrir enlace: ' + hostnameDe(b.contenido)">
+          <ion-icon name="link-outline" aria-hidden="true"></ion-icon>
           <span class="bloque-link-host">{{ hostnameDe(b.contenido) }}</span>
-          <ion-icon name="open-outline" class="bloque-link-open"></ion-icon>
+          <ion-icon name="open-outline" class="bloque-link-open" aria-hidden="true"></ion-icon>
         </a>
 
         <!-- Actividad estructurada -->
@@ -126,25 +128,25 @@
             <ng-container *ngIf="editable">
               <div class="pregunta-card" *ngFor="let p of act.preguntas; let i = index">
                 <div class="pregunta-header">
-  <span class="pregunta-num">{{ i + 1 }}</span>
+  <span class="pregunta-num" aria-hidden="true">{{ i + 1 }}</span>
   <span class="pregunta-tipo-tag">{{ etiquetaTipoPregunta(p.tipo) }}</span>
 </div>
                 <p class="pregunta-texto">{{ p.pregunta }}</p>
 
                 <div class="pregunta-opciones" *ngIf="p.tipo === 'opcion_multiple'">
                   <div class="opcion-item" *ngFor="let op of p.opciones; let oi = index">
-                    <span class="opcion-letra">{{ ['A','B','C','D','E','F'][oi] }}</span>
+                    <span class="opcion-letra" aria-hidden="true">{{ ['A','B','C','D','E','F'][oi] }}</span>
                     <span>{{ op }}</span>
                   </div>
                 </div>
 
                 <div class="pregunta-opciones" *ngIf="p.tipo === 'verdadero_falso'">
-                  <div class="opcion-item"><span class="opcion-letra">V</span> Verdadero</div>
-                  <div class="opcion-item"><span class="opcion-letra">F</span> Falso</div>
+                  <div class="opcion-item"><span class="opcion-letra" aria-hidden="true">V</span> Verdadero</div>
+                  <div class="opcion-item"><span class="opcion-letra" aria-hidden="true">F</span> Falso</div>
                 </div>
 
                 <div class="pregunta-respuesta-corta" *ngIf="p.tipo === 'respuesta_corta'">
-                  <ion-icon name="create-outline"></ion-icon> Respuesta abierta
+                  <ion-icon name="create-outline" aria-hidden="true"></ion-icon> Respuesta abierta
                 </div>
               </div>
             </ng-container>
@@ -157,17 +159,19 @@
                  puede enviar aunque falten respuestas.
                  ══════════════════════════════════════════════════ -->
             <ng-container *ngIf="!editable">
-              <div class="pregunta-card pregunta-card-alumno"
+              <fieldset class="pregunta-card pregunta-card-alumno"
      *ngFor="let p of act.preguntas; let i = index; trackBy: trackPregunta"
      [class.pregunta-enviada]="actividadesEnviadas[b.id!]">
+                <legend class="ion-sr-only">Pregunta {{ i + 1 }}: {{ p.pregunta }}</legend>
                 <div class="pregunta-header">
-  <span class="pregunta-num">{{ i + 1 }}</span>
+  <span class="pregunta-num" aria-hidden="true">{{ i + 1 }}</span>
   <span class="pregunta-tipo-tag">{{ etiquetaTipoPregunta(p.tipo) }}</span>
   <ion-icon *ngIf="actividadesEnviadas[b.id!] && p.tipo !== 'respuesta_corta'"
     class="pregunta-resultado-icon"
     [class.correcta]="(p.tipo === 'opcion_multiple' && getRespuestaOpcion(b.id!, p.id) === p.respuestaCorrecta) || (p.tipo === 'verdadero_falso' && getRespuestaVF(b.id!, p.id) === p.respuestaCorrecta)"
     [class.incorrecta]="(p.tipo === 'opcion_multiple' && getRespuestaOpcion(b.id!, p.id) !== p.respuestaCorrecta) || (p.tipo === 'verdadero_falso' && getRespuestaVF(b.id!, p.id) !== p.respuestaCorrecta)"
-    [name]="((p.tipo === 'opcion_multiple' && getRespuestaOpcion(b.id!, p.id) === p.respuestaCorrecta) || (p.tipo === 'verdadero_falso' && getRespuestaVF(b.id!, p.id) === p.respuestaCorrecta)) ? 'checkmark-circle' : 'close-circle'">
+    [name]="((p.tipo === 'opcion_multiple' && getRespuestaOpcion(b.id!, p.id) === p.respuestaCorrecta) || (p.tipo === 'verdadero_falso' && getRespuestaVF(b.id!, p.id) === p.respuestaCorrecta)) ? 'checkmark-circle' : 'close-circle'"
+    [attr.aria-label]="((p.tipo === 'opcion_multiple' && getRespuestaOpcion(b.id!, p.id) === p.respuestaCorrecta) || (p.tipo === 'verdadero_falso' && getRespuestaVF(b.id!, p.id) === p.respuestaCorrecta)) ? 'Respuesta correcta' : 'Respuesta incorrecta'">
   </ion-icon>
 </div>
                 <p class="pregunta-texto">{{ p.pregunta }}</p>
@@ -180,8 +184,9 @@
                     <input type="radio" [name]="'resp_' + b.id + '_' + p.id"
                       [checked]="getRespuestaOpcion(b.id!, p.id) === oi"
                       [disabled]="actividadesEnviadas[b.id!]"
+                      [attr.aria-label]="op"
                       (change)="setRespuestaOpcion(b.id!, p.id, oi)" />
-                    <span class="opcion-letra">{{ ['A','B','C','D','E','F'][oi] }}</span>
+                    <span class="opcion-letra" aria-hidden="true">{{ ['A','B','C','D','E','F'][oi] }}</span>
                     <span>{{ op }}</span>
                   </label>
                 </div>
@@ -193,54 +198,58 @@
                     <input type="radio" [name]="'resp_' + b.id + '_' + p.id"
                       [checked]="getRespuestaVF(b.id!, p.id) === true"
                       [disabled]="actividadesEnviadas[b.id!]"
+                      aria-label="Verdadero"
                       (change)="setRespuestaVF(b.id!, p.id, true)" />
-                    <span class="opcion-letra">V</span> Verdadero
+                    <span class="opcion-letra" aria-hidden="true">V</span> Verdadero
                   </label>
                   <label class="opcion-item opcion-item-alumno"
   [class.seleccionada]="getRespuestaVF(b.id!, p.id) === false">
                     <input type="radio" [name]="'resp_' + b.id + '_' + p.id"
                       [checked]="getRespuestaVF(b.id!, p.id) === false"
                       [disabled]="actividadesEnviadas[b.id!]"
+                      aria-label="Falso"
                       (change)="setRespuestaVF(b.id!, p.id, false)" />
-                    <span class="opcion-letra">F</span> Falso
+                    <span class="opcion-letra" aria-hidden="true">F</span> Falso
                   </label>
                 </div>
 
                 <!-- Respuesta corta: campo de texto libre, no autocalifica -->
                 <div class="pregunta-respuesta-corta-input" *ngIf="p.tipo === 'respuesta_corta'">
-                  <textarea rows="2" placeholder="Escribe tu respuesta..."
+                  <label [attr.for]="'resp_texto_' + b.id + '_' + p.id" class="ion-sr-only">Tu respuesta</label>
+                  <textarea [id]="'resp_texto_' + b.id + '_' + p.id" rows="2" placeholder="Escribe tu respuesta..."
                     [value]="getRespuestaTexto(b.id!, p.id)"
                     [disabled]="actividadesEnviadas[b.id!]"
                     (input)="setRespuestaTexto(b.id!, p.id, $any($event.target).value)"></textarea>
                 </div>
-              </div>
+              </fieldset>
 
              <!-- Botón de envío / resumen de resultado -->
 <div class="actividad-envio" *ngIf="!actividadesEnviadas[b.id!] && !sesionFinalizada && !actividadVencida(b)">
   <button type="button" class="btn-enviar-actividad"
     [disabled]="!actividadListaParaEnviar(b) || enviandoActividad[b.id!]"
+    [attr.aria-busy]="enviandoActividad[b.id!]"
     (click)="enviarActividad(b)">
-    <ion-spinner *ngIf="enviandoActividad[b.id!]" name="crescent"></ion-spinner>
-    <ion-icon *ngIf="!enviandoActividad[b.id!]" name="checkmark-done-outline"></ion-icon>
+    <ion-spinner *ngIf="enviandoActividad[b.id!]" name="crescent" aria-hidden="true"></ion-spinner>
+    <ion-icon *ngIf="!enviandoActividad[b.id!]" name="checkmark-done-outline" aria-hidden="true"></ion-icon>
     {{ enviandoActividad[b.id!] ? 'Enviando...' : 'Enviar respuestas' }}
   </button>
-  <p class="actividad-envio-hint" *ngIf="!actividadListaParaEnviar(b) && !enviandoActividad[b.id!]">
+  <p class="actividad-envio-hint" *ngIf="!actividadListaParaEnviar(b) && !enviandoActividad[b.id!]" role="status">
     Responde todas las preguntas para poder enviar.
   </p>
-  <p class="actividad-tiempo-restante" *ngIf="b.publicado_en">
-    <ion-icon name="time-outline"></ion-icon> {{ tiempoRestanteActividad(b) }}
+  <p class="actividad-tiempo-restante" role="status">
+    <ion-icon name="time-outline" aria-hidden="true"></ion-icon> {{ tiempoRestanteActividad(b) }}
   </p>
 </div>
 
 <!-- Clase finalizada o tiempo agotado -->
-<div class="actividad-cerrada" *ngIf="!actividadesEnviadas[b.id!] && (sesionFinalizada || actividadVencida(b))">
-  <ion-icon name="lock-closed-outline"></ion-icon>
+<div class="actividad-cerrada" *ngIf="!actividadesEnviadas[b.id!] && (sesionFinalizada || actividadVencida(b))" role="status">
+  <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
   <span *ngIf="sesionFinalizada">Esta clase ya finalizó — no puedes enviar esta actividad.</span>
   <span *ngIf="!sesionFinalizada && actividadVencida(b)">Se acabó el tiempo (24 horas) para responder esta actividad.</span>
 </div>
 
-              <div class="actividad-resultado" *ngIf="actividadesEnviadas[b.id!] && resultadosActividad[b.id!] as res">
-                <ion-icon name="ribbon-outline"></ion-icon>
+              <div class="actividad-resultado" *ngIf="actividadesEnviadas[b.id!] && resultadosActividad[b.id!] as res" role="status">
+                <ion-icon name="ribbon-outline" aria-hidden="true"></ion-icon>
                 <span *ngIf="res.calificables > 0">
                   Obtuviste {{ res.correctas }} de {{ res.calificables }} correctas
                 </span>
@@ -258,13 +267,13 @@
     </div>
   </ng-template>
 
-  <div class="loading-overlay" *ngIf="cargando">
-    <ion-spinner name="crescent"></ion-spinner>
+  <div class="loading-overlay" *ngIf="cargando" role="status" aria-live="polite">
+    <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
     <p>Conectando...</p>
   </div>
 
   <div class="error-banner" *ngIf="!cargando && error" role="alert">
-    <ion-icon name="alert-circle-outline"></ion-icon>
+    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
     <span>{{ error }}</span>
   </div>
 
@@ -276,7 +285,7 @@
     <ng-container *ngIf="esDocente && !sesionActiva">
 
       <div class="section-hero">
-        <div class="hero-icon-wrap">
+        <div class="hero-icon-wrap" aria-hidden="true">
           <ion-icon name="radio-outline"></ion-icon>
         </div>
         <div>
@@ -290,7 +299,7 @@
         <div class="form-group">
           <label for="tituloSesion">Título de la sesión</label>
           <div class="input-wrap">
-            <ion-icon name="create-outline" class="field-icon"></ion-icon>
+            <ion-icon name="create-outline" class="field-icon" aria-hidden="true"></ion-icon>
             <input id="tituloSesion" type="text" name="tituloSesion" [(ngModel)]="tituloSesion"
               placeholder="Ej: Álgebra — Ecuaciones lineales" />
           </div>
@@ -299,7 +308,7 @@
         <div class="form-group">
           <label for="grupoSeleccionado">Grupo</label>
           <div class="select-wrap">
-            <ion-icon name="people-outline" class="field-icon"></ion-icon>
+            <ion-icon name="people-outline" class="field-icon" aria-hidden="true"></ion-icon>
             <select id="grupoSeleccionado" name="grupoSeleccionado" [(ngModel)]="grupoSeleccionado" (ngModelChange)="onGrupoChange()">
               <option [ngValue]="null" disabled>Selecciona un grupo</option>
               <option *ngFor="let g of misGrupos" [ngValue]="g.id">
@@ -312,7 +321,7 @@
         <div class="form-group" *ngIf="grupoSeleccionado">
           <label for="asignaturaSeleccionada">Materia</label>
           <div class="select-wrap">
-            <ion-icon name="book-outline" class="field-icon"></ion-icon>
+            <ion-icon name="book-outline" class="field-icon" aria-hidden="true"></ion-icon>
             <select id="asignaturaSeleccionada" name="asignaturaSeleccionada" [(ngModel)]="asignaturaSeleccionada"
               [disabled]="misAsignaturas.length === 0">
               <option [ngValue]="null" disabled>
@@ -325,8 +334,8 @@
               </option>
             </select>
           </div>
-          <p class="no-materias-hint" *ngIf="misAsignaturas.length === 0">
-            <ion-icon name="information-circle-outline"></ion-icon>
+          <p class="no-materias-hint" *ngIf="misAsignaturas.length === 0" role="status">
+            <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
             No tienes materias asignadas en este grupo. Contacta al administrador.
           </p>
         </div>
@@ -337,7 +346,7 @@
             class="btn-iniciar"
             [disabled]="!grupoSeleccionado || !asignaturaSeleccionada || !tituloSesion.trim()"
           >
-            <ion-icon name="radio-outline"></ion-icon>
+            <ion-icon name="radio-outline" aria-hidden="true"></ion-icon>
             Iniciar clase ahora
           </button>
 
@@ -346,9 +355,10 @@
             class="btn-borrador"
             (click)="guardarBorrador()"
             [disabled]="!grupoSeleccionado || !asignaturaSeleccionada || !tituloSesion.trim() || guardandoBorrador"
+            [attr.aria-busy]="guardandoBorrador"
           >
-            <ion-spinner *ngIf="guardandoBorrador" name="crescent"></ion-spinner>
-            <ion-icon *ngIf="!guardandoBorrador" name="save-outline"></ion-icon>
+            <ion-spinner *ngIf="guardandoBorrador" name="crescent" aria-hidden="true"></ion-spinner>
+            <ion-icon *ngIf="!guardandoBorrador" name="save-outline" aria-hidden="true"></ion-icon>
             {{ guardandoBorrador ? 'Guardando...' : 'Guardar como borrador' }}
           </button>
         </div>
@@ -356,30 +366,30 @@
       </form>
 
       <div class="empty-state" *ngIf="misGrupos.length === 0">
-        <ion-icon name="people-circle-outline"></ion-icon>
+        <ion-icon name="people-circle-outline" aria-hidden="true"></ion-icon>
         <h3>Sin grupos asignados</h3>
         <p>Solicita al administrador que te asigne grupos.</p>
       </div>
 
       <div class="borradores-section" *ngIf="misBorradores.length > 0">
-        <h3 class="borradores-title">
-          <ion-icon name="document-text-outline"></ion-icon>
+        <h3 class="borradores-title" id="borradoresLabel">
+          <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
           Borradores guardados
         </h3>
 
-        <div class="borrador-card" *ngFor="let b of misBorradores; trackBy: trackBorrador">
-          <div class="borrador-info">
-            <span class="borrador-badge">BORRADOR</span>
+        <div class="borrador-card" role="list" aria-labelledby="borradoresLabel" *ngFor="let b of misBorradores; trackBy: trackBorrador">
+          <div class="borrador-info" role="listitem">
+            <span class="borrador-badge" aria-hidden="true">BORRADOR</span>
             <h4 class="borrador-titulo">{{ b.titulo }}</h4>
             <p class="borrador-meta">{{ b.grupo_nombre }} — {{ b.asignatura_nombre }}</p>
           </div>
           <div class="borrador-actions">
             <button type="button" class="btn-borrador-iniciar" (click)="abrirBorrador(b)">
-              <ion-icon name="create-outline"></ion-icon>
+              <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
               Abrir
             </button>
             <button type="button" class="btn-borrador-eliminar" (click)="eliminarBorrador(b)" aria-label="Eliminar borrador">
-              <ion-icon name="trash-outline"></ion-icon>
+              <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
             </button>
           </div>
         </div>
@@ -392,68 +402,69 @@
          ============================================================ -->
     <ng-container *ngIf="esDocente && sesionActiva">
 
-      <div class="control-bar" [class.control-bar-borrador]="esBorradorEnEdicion">
+      <div class="control-bar" [class.control-bar-borrador]="esBorradorEnEdicion" role="status">
         <div class="control-bar-info">
-          <ion-icon [name]="esBorradorEnEdicion ? 'create-outline' : 'people-outline'"></ion-icon>
+          <ion-icon [name]="esBorradorEnEdicion ? 'create-outline' : 'people-outline'" aria-hidden="true"></ion-icon>
           <span *ngIf="claseEnVivo">Sesión activa para el grupo</span>
           <span *ngIf="esBorradorEnEdicion">Editando borrador — los alumnos aún no ven esto</span>
         </div>
 
         <button *ngIf="claseEnVivo" type="button" class="btn-terminar" (click)="terminarSesion()">
-          <ion-icon name="stop-circle-outline"></ion-icon>
+          <ion-icon name="stop-circle-outline" aria-hidden="true"></ion-icon>
           Terminar
         </button>
 
         <div class="control-bar-borrador-actions" *ngIf="esBorradorEnEdicion">
           <button type="button" class="btn-salir-borrador" (click)="salirDeBorrador()">
-            <ion-icon name="arrow-back-outline"></ion-icon>
+            <ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon>
             Guardar y salir
           </button>
-          <button type="button" class="btn-publicar" [disabled]="publicandoBorrador" (click)="publicarBorrador()">
-            <ion-spinner *ngIf="publicandoBorrador" name="crescent"></ion-spinner>
-            <ion-icon *ngIf="!publicandoBorrador" name="radio-outline"></ion-icon>
+          <button type="button" class="btn-publicar" [disabled]="publicandoBorrador" [attr.aria-busy]="publicandoBorrador" (click)="publicarBorrador()">
+            <ion-spinner *ngIf="publicandoBorrador" name="crescent" aria-hidden="true"></ion-spinner>
+            <ion-icon *ngIf="!publicandoBorrador" name="radio-outline" aria-hidden="true"></ion-icon>
             {{ publicandoBorrador ? 'Publicando...' : 'Publicar clase ahora' }}
           </button>
         </div>
       </div>
 
       <button type="button" class="btn-reutilizar" *ngIf="bloques.length === 0" [disabled]="cargandoReutilizar"
+        [attr.aria-busy]="cargandoReutilizar"
         (click)="reutilizarUltimaClase()">
-        <ion-spinner *ngIf="cargandoReutilizar" name="crescent"></ion-spinner>
-        <ion-icon *ngIf="!cargandoReutilizar" name="copy-outline"></ion-icon>
+        <ion-spinner *ngIf="cargandoReutilizar" name="crescent" aria-hidden="true"></ion-spinner>
+        <ion-icon *ngIf="!cargandoReutilizar" name="copy-outline" aria-hidden="true"></ion-icon>
         {{ cargandoReutilizar ? 'Cargando...' : 'Reutilizar última clase de este grupo' }}
       </button>
 
       <div class="tipo-btns-row" role="group" aria-label="Agregar bloque de contenido">
         <button type="button" class="tipo-btn" (click)="abrirModalBloque('texto')">
-          <ion-icon name="document-text-outline"></ion-icon>
+          <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
           <span>Texto</span>
         </button>
         <button type="button" class="tipo-btn" (click)="abrirModalBloque('pdf')">
-          <ion-icon name="document-outline"></ion-icon>
+          <ion-icon name="document-outline" aria-hidden="true"></ion-icon>
           <span>PDF</span>
         </button>
         <button type="button" class="tipo-btn" (click)="abrirModalBloque('video')">
-          <ion-icon name="videocam-outline"></ion-icon>
+          <ion-icon name="videocam-outline" aria-hidden="true"></ion-icon>
           <span>Video</span>
         </button>
         <button type="button" class="tipo-btn" (click)="abrirModalBloque('imagen')">
-          <ion-icon name="image-outline"></ion-icon>
+          <ion-icon name="image-outline" aria-hidden="true"></ion-icon>
           <span>Imagen</span>
         </button>
         <button type="button" class="tipo-btn" (click)="abrirModalBloque('link')">
-          <ion-icon name="link-outline"></ion-icon>
+          <ion-icon name="link-outline" aria-hidden="true"></ion-icon>
           <span>Enlace</span>
         </button>
         <button type="button" class="tipo-btn actividad-btn" (click)="abrirModalBloque('actividad')">
-          <ion-icon name="checkmark-done-outline"></ion-icon>
+          <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
           <span>Actividad</span>
         </button>
       </div>
 
-      <div class="bloques-container">
+      <div class="bloques-container" role="list" aria-label="Bloques de contenido de la clase">
         <div class="empty-bloques" *ngIf="bloques.length === 0">
-          <ion-icon [name]="claseEnVivo ? 'radio-outline' : 'create-outline'"></ion-icon>
+          <ion-icon [name]="claseEnVivo ? 'radio-outline' : 'create-outline'" aria-hidden="true"></ion-icon>
           <p *ngIf="claseEnVivo">La sesión está activa. Agrega contenido para que los alumnos lo vean.</p>
           <p *ngIf="esBorradorEnEdicion">Estás preparando este borrador. Los alumnos no verán nada hasta que publiques la clase.</p>
         </div>
@@ -471,7 +482,7 @@
          ============================================================ -->
     <ng-container *ngIf="esAlumno && !sesionActiva">
       <div class="section-hero">
-        <div class="hero-icon-wrap waiting-icon">
+        <div class="hero-icon-wrap waiting-icon" aria-hidden="true">
           <ion-icon name="time-outline"></ion-icon>
         </div>
         <div>
@@ -480,8 +491,8 @@
         </div>
       </div>
 
-      <div class="waiting-card" *ngIf="!error && materiasFinalizadasSecciones.length === 0">
-        <div class="pulse-wrap">
+      <div class="waiting-card" *ngIf="!error && materiasFinalizadasSecciones.length === 0" role="status" aria-live="polite">
+        <div class="pulse-wrap" aria-hidden="true">
           <div class="pulse-ring"></div>
           <ion-icon name="radio-outline" class="pulse-icon"></ion-icon>
         </div>
@@ -490,20 +501,24 @@
 
       <div class="finalizadas-secciones" *ngIf="materiasFinalizadasSecciones.length > 0">
         <div class="materia-seccion" *ngFor="let sec of materiasFinalizadasSecciones">
-          <h3 class="materia-seccion-titulo">
-            <ion-icon name="book-outline"></ion-icon>
+          <h3 class="materia-seccion-titulo" [id]="'materiaSeccion_' + sec.asignatura_nombre">
+            <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
             {{ sec.asignatura_nombre }}
           </h3>
 
-          <div class="finalizada-card" *ngFor="let s of sec.sesiones" (click)="abrirClaseFinalizada(s)">
-            <div class="finalizada-card-icon">
+          <div class="finalizada-card" role="button" tabindex="0"
+            [attr.aria-label]="'Ver clase finalizada: ' + s.titulo + ', ' + s.fecha"
+            *ngFor="let s of sec.sesiones"
+            (click)="abrirClaseFinalizada(s)"
+            (keyup.enter)="abrirClaseFinalizada(s)">
+            <div class="finalizada-card-icon" aria-hidden="true">
               <ion-icon name="checkmark-done-outline"></ion-icon>
             </div>
             <div class="finalizada-card-info">
               <h4>{{ s.titulo }}</h4>
               <p>{{ s.fecha }}</p>
             </div>
-            <ion-icon name="chevron-forward-outline" class="finalizada-card-arrow"></ion-icon>
+            <ion-icon name="chevron-forward-outline" class="finalizada-card-arrow" aria-hidden="true"></ion-icon>
           </div>
         </div>
       </div>
@@ -515,19 +530,19 @@
     <ng-container *ngIf="esAlumno && sesionActiva">
       <div class="volver-bar" *ngIf="sesionFinalizada">
         <button type="button" class="btn-volver-finalizadas" (click)="volverAListaFinalizadas()">
-          <ion-icon name="arrow-back-outline"></ion-icon>
+          <ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon>
           Volver a mis clases
         </button>
       </div>
 
       <div class="alumno-hero">
         <div class="alumno-hero-left">
-          <span class="live-chip" *ngIf="claseEnVivo">
-            <span class="live-dot"></span>
+          <span class="live-chip" *ngIf="claseEnVivo" role="status" aria-label="Clase en vivo">
+            <span class="live-dot" aria-hidden="true"></span>
             EN VIVO
           </span>
-          <span class="finalizada-chip" *ngIf="sesionFinalizada">
-            <ion-icon name="checkmark-done-outline"></ion-icon>
+          <span class="finalizada-chip" *ngIf="sesionFinalizada" role="status" aria-label="Clase finalizada">
+            <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
             Clase finalizada
           </span>
           <h2 class="alumno-titulo">{{ sesionActiva.titulo }}</h2>
@@ -536,9 +551,9 @@
           </p>
         </div>
       </div>
-      <div class="bloques-container">
+      <div class="bloques-container" role="list" aria-label="Contenido de la clase">
         <div class="empty-bloques" *ngIf="bloques.length === 0">
-          <ion-icon name="hourglass-outline"></ion-icon>
+          <ion-icon name="hourglass-outline" aria-hidden="true"></ion-icon>
           <p>El docente está preparando el contenido...</p>
         </div>
 
@@ -557,11 +572,11 @@
     <div class="modal-card" role="dialog" aria-modal="true" [attr.aria-label]="(editandoBloque ? 'Editar ' : 'Agregar ') + etiquetaTipo(nuevoBloque.tipo!)" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <div class="modal-header-left">
-          <ion-icon [name]="iconoBloque(nuevoBloque.tipo!)"></ion-icon>
+          <ion-icon [name]="iconoBloque(nuevoBloque.tipo!)" aria-hidden="true"></ion-icon>
           <h3>{{ editandoBloque ? 'Editar' : 'Agregar' }} {{ etiquetaTipo(nuevoBloque.tipo!) }}</h3>
         </div>
         <button type="button" class="modal-close" (click)="cerrarModal()" aria-label="Cerrar">
-          <ion-icon name="close-outline"></ion-icon>
+          <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
         </button>
       </div>
 
@@ -571,7 +586,7 @@
         <div class="form-group" *ngIf="nuevoBloque.tipo !== 'actividad'">
           <label for="bloqueTitulo">Título (opcional)</label>
           <div class="input-wrap">
-            <ion-icon name="text-outline" class="field-icon"></ion-icon>
+            <ion-icon name="text-outline" class="field-icon" aria-hidden="true"></ion-icon>
             <input id="bloqueTitulo" type="text" [(ngModel)]="nuevoBloque.titulo" placeholder="Título del bloque" />
           </div>
         </div>
@@ -589,7 +604,7 @@
         <div class="form-group" *ngIf="nuevoBloque.tipo === 'link'">
           <label for="bloqueUrlLink">URL del enlace</label>
           <div class="input-wrap">
-            <ion-icon name="link-outline" class="field-icon"></ion-icon>
+            <ion-icon name="link-outline" class="field-icon" aria-hidden="true"></ion-icon>
             <input id="bloqueUrlLink" type="url" [(ngModel)]="nuevoBloque.contenido" placeholder="https://..." />
           </div>
         </div>
@@ -597,21 +612,23 @@
         <!-- PDF / VIDEO / IMAGEN: subir archivo o pegar URL -->
         <div class="form-group" *ngIf="['pdf','video','imagen'].includes(nuevoBloque.tipo!)">
           <div class="modo-toggle-row" role="group" aria-label="Origen del archivo">
-            <button type="button" class="modo-toggle-btn" [class.active]="!modoUrlExterna" (click)="modoUrlExterna && toggleModoUrl()">
-              <ion-icon name="cloud-upload-outline"></ion-icon> Subir archivo
+            <button type="button" class="modo-toggle-btn" [class.active]="!modoUrlExterna" [attr.aria-pressed]="!modoUrlExterna" (click)="modoUrlExterna && toggleModoUrl()">
+              <ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon> Subir archivo
             </button>
-            <button type="button" class="modo-toggle-btn" [class.active]="modoUrlExterna" (click)="!modoUrlExterna && toggleModoUrl()">
-              <ion-icon name="link-outline"></ion-icon> Usar URL
+            <button type="button" class="modo-toggle-btn" [class.active]="modoUrlExterna" [attr.aria-pressed]="modoUrlExterna" (click)="!modoUrlExterna && toggleModoUrl()">
+              <ion-icon name="link-outline" aria-hidden="true"></ion-icon> Usar URL
             </button>
           </div>
 
           <!-- Modo: subir archivo -->
           <ng-container *ngIf="!modoUrlExterna">
-            <div class="file-upload-zone" (click)="archivoInput.click()">
+            <div class="file-upload-zone" role="button" tabindex="0" aria-label="Elegir archivo para subir"
+              (click)="archivoInput.click()" (keyup.enter)="archivoInput.click()">
               <input #archivoInput type="file" hidden
                 [accept]="nuevoBloque.tipo === 'pdf' ? 'application/pdf' : (nuevoBloque.tipo === 'video' ? 'video/*' : 'image/*')"
+                aria-label="Archivo a subir"
                 (change)="onArchivoSeleccionado($event)" />
-              <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+              <ion-icon name="cloud-upload-outline" class="upload-icon" aria-hidden="true"></ion-icon>
               <p class="upload-text" *ngIf="!archivoSeleccionado">Toca para elegir tu archivo</p>
               <p class="upload-text" *ngIf="archivoSeleccionado">{{ archivoSeleccionado.name }}</p>
               <p class="upload-hint">Máximo {{ nuevoBloque.tipo === 'video' ? '100MB' : '20MB' }}</p>
@@ -621,20 +638,20 @@
               Ya hay un archivo guardado. Elige uno nuevo solo si quieres reemplazarlo.
             </p>
 
-            <div class="file-progress-bar" *ngIf="subiendoArchivo">
+            <div class="file-progress-bar" *ngIf="subiendoArchivo" role="progressbar" [attr.aria-valuenow]="progresoArchivo" aria-valuemin="0" aria-valuemax="100" aria-label="Progreso de subida">
               <div class="file-progress-fill" [style.width.%]="progresoArchivo"></div>
             </div>
           </ng-container>
 
           <!-- Modo: URL externa -->
           <div class="input-wrap" *ngIf="modoUrlExterna">
-            <ion-icon name="link-outline" class="field-icon"></ion-icon>
-            <input type="url" [(ngModel)]="nuevoBloque.contenido"
+            <ion-icon name="link-outline" class="field-icon" aria-hidden="true"></ion-icon>
+            <input type="url" [(ngModel)]="nuevoBloque.contenido" aria-label="URL del archivo"
               [placeholder]="nuevoBloque.tipo === 'video' ? 'https://youtube.com/... o URL directa' : 'https://...'" />
           </div>
 
           <div class="opciones-error" *ngIf="errorArchivo" role="alert">
-            <ion-icon name="alert-circle-outline"></ion-icon>
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
             <span>{{ errorArchivo }}</span>
           </div>
         </div>
@@ -642,7 +659,7 @@
         <!-- ACTIVIDAD -->
         <div class="form-group" *ngIf="nuevoBloque.tipo === 'actividad'">
           <div class="input-wrap" style="margin-bottom: 8px;">
-            <ion-icon name="create-outline" class="field-icon"></ion-icon>
+            <ion-icon name="create-outline" class="field-icon" aria-hidden="true"></ion-icon>
             <input type="text" [(ngModel)]="nuevoBloque.titulo" placeholder="Título de la actividad (requerido)" aria-label="Título de la actividad" />
           </div>
 
@@ -652,12 +669,12 @@
               placeholder="Ej: Resuelve las siguientes preguntas..."></textarea>
           </div>
 
-          <div class="preguntas-lista">
-            <div class="pregunta-form-card" *ngFor="let p of preguntasActividad; let i = index; trackBy: trackPregunta">
+          <div class="preguntas-lista" role="list" aria-label="Preguntas de la actividad">
+            <div class="pregunta-form-card" role="listitem" *ngFor="let p of preguntasActividad; let i = index; trackBy: trackPregunta">
               <div class="pregunta-form-header">
                 <span class="pregunta-tipo-tag">{{ etiquetaTipoPregunta(p.tipo) }}</span>
                 <button type="button" class="quitar-pregunta-btn" (click)="quitarPregunta(i)" aria-label="Quitar pregunta">
-                  <ion-icon name="close-circle-outline"></ion-icon>
+                  <ion-icon name="close-circle-outline" aria-hidden="true"></ion-icon>
                 </button>
               </div>
 
@@ -670,14 +687,14 @@
                 <div class="opcion-editor-row" *ngFor="let op of p.opciones; let oi = index; trackBy: trackByIndex">
                   <input type="radio" [name]="'correcta_' + p.id" [checked]="p.respuestaCorrecta === oi"
                     (change)="p.respuestaCorrecta = oi" [attr.aria-label]="'Marcar opción ' + (oi+1) + ' como correcta'" />
-                  <input type="text" [(ngModel)]="p.opciones![oi]" [placeholder]="'Opción ' + (oi+1)" />
+                  <input type="text" [(ngModel)]="p.opciones![oi]" [placeholder]="'Opción ' + (oi+1)" [attr.aria-label]="'Texto de opción ' + (oi+1)" />
                   <button type="button" class="quitar-opcion-btn" (click)="quitarOpcion(p, oi)" *ngIf="p.opciones!.length > 2"
                     aria-label="Quitar opción">
-                    <ion-icon name="close-outline"></ion-icon>
+                    <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
                   </button>
                 </div>
                 <button type="button" class="agregar-opcion-btn" (click)="agregarOpcion(p)">
-                  <ion-icon name="add-outline"></ion-icon> Agregar opción
+                  <ion-icon name="add-outline" aria-hidden="true"></ion-icon> Agregar opción
                 </button>
                 <p class="input-hint">Marca con el círculo cuál es la respuesta correcta</p>
               </div>
@@ -700,13 +717,13 @@
 
           <div class="agregar-pregunta-row" role="group" aria-label="Agregar pregunta">
             <button type="button" class="agregar-pregunta-btn" (click)="agregarPregunta('opcion_multiple')">
-              <ion-icon name="list-outline"></ion-icon> Opción múltiple
+              <ion-icon name="list-outline" aria-hidden="true"></ion-icon> Opción múltiple
             </button>
             <button type="button" class="agregar-pregunta-btn" (click)="agregarPregunta('verdadero_falso')">
-              <ion-icon name="checkmark-circle-outline"></ion-icon> Verdadero/Falso
+              <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon> Verdadero/Falso
             </button>
             <button type="button" class="agregar-pregunta-btn" (click)="agregarPregunta('respuesta_corta')">
-              <ion-icon name="chatbox-outline"></ion-icon> Respuesta corta
+              <ion-icon name="chatbox-outline" aria-hidden="true"></ion-icon> Respuesta corta
             </button>
           </div>
         </div>
@@ -715,12 +732,12 @@
 
       <div class="modal-footer">
         <button type="button" class="btn-cancel" (click)="cerrarModal()">
-          <ion-icon name="close-outline"></ion-icon>
+          <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
           Cancelar
         </button>
-        <button type="button" class="btn-save" (click)="guardarBloque()" [disabled]="guardandoBloque">
-          <ion-spinner *ngIf="guardandoBloque" name="crescent" class="btn-spinner"></ion-spinner>
-          <ion-icon *ngIf="!guardandoBloque" name="send-outline"></ion-icon>
+        <button type="button" class="btn-save" (click)="guardarBloque()" [disabled]="guardandoBloque" [attr.aria-busy]="guardandoBloque">
+          <ion-spinner *ngIf="guardandoBloque" name="crescent" class="btn-spinner" aria-hidden="true"></ion-spinner>
+          <ion-icon *ngIf="!guardandoBloque" name="send-outline" aria-hidden="true"></ion-icon>
           {{ guardandoBloque ? (subiendoArchivo ? progresoArchivo + '%' : 'Guardando...') : (editandoBloque ? 'Guardar cambios' : 'Publicar') }}
         </button>
       </div>
@@ -730,9 +747,9 @@
   <!-- ============================================================
        VISOR DE MEDIA — imagen o video a pantalla completa
        ============================================================ -->
-  <div class="media-visor-overlay" *ngIf="mediaVisorAbierto" (click)="cerrarMedia()">
+  <div class="media-visor-overlay" *ngIf="mediaVisorAbierto" role="dialog" aria-modal="true" aria-label="Visor de contenido a pantalla completa" (click)="cerrarMedia()">
     <button type="button" class="media-visor-close" (click)="cerrarMedia()" aria-label="Cerrar visor">
-      <ion-icon name="close-outline"></ion-icon>
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
     </button>
     <div class="media-visor-content" (click)="$event.stopPropagation()">
      <img *ngIf="mediaVisorTipo === 'imagen'" [src]="imagenOptimizada(mediaVisorUrl, 1600)" alt="Contenido de la clase a pantalla completa" class="media-visor-imagen" />
@@ -740,7 +757,7 @@
         <div class="video-wrap" *ngIf="esYoutube(mediaVisorUrl)">
           <iframe [src]="youtubeEmbed(mediaVisorUrl)" frameborder="0" allowfullscreen class="video-iframe" title="Video a pantalla completa"></iframe>
         </div>
-        <video *ngIf="!esYoutube(mediaVisorUrl)" controls autoplay class="media-visor-video">
+        <video *ngIf="!esYoutube(mediaVisorUrl)" controls autoplay class="media-visor-video" aria-label="Video a pantalla completa">
           <source [src]="mediaVisorUrl" />
         </video>
       </div>

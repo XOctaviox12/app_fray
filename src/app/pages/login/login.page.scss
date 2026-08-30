@@ -1,8 +1,8 @@
 @import "src/theme/variables";
 
-// ─────────────────────────────────────────────────────────────
-// PALETA — Universidad Lisboa (alineada al mock)
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// PALETA — Universidad Lisboa
+// ═══════════════════════════════════════════════════════════════════════════
 $primary:               #964900;
 $primary-container:     #F57C00;
 $primary-container-end: #EF6C00;
@@ -16,6 +16,7 @@ $cool-grey:             #EDF0F5;
 $text-main:             #1A1C1E;
 $text-sec:              #574235;
 
+// Border radius (iOS friendly)
 $radius-card:     22px;
 $radius-tile:     22px;
 $radius-btn:      12px;
@@ -23,11 +24,14 @@ $radius-input:    12px;
 $radius-selector: 12px;
 $radius-glider:   8px;
 
+// Sombras (Soft UI)
 $shadow-soft:      0 20px 50px rgba(0,0,0,0.06), 0 4px 10px rgba(0,0,0,0.02);
 $shadow-btn:       0 8px 20px rgba(245,124,0,0.3);
 $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
 
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// CONTENEDOR PRINCIPAL
+// ═══════════════════════════════════════════════════════════════════════════
 .login-content {
   --background: #{$bg};
   --padding-top: 0;
@@ -40,40 +44,52 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 40px 24px;
+  width: 100%;
+  padding: 24px;
   overflow: hidden;
   background: $bg;
+
+  @media (min-width: 390px) {
+    padding: 32px 24px;
+  }
+
+  @media (min-width: 768px) {
+    padding: 40px 24px;
+  }
 }
 
-// Blobs decorativos difuminados, igual que el mock
+// ───────────────────────────────────────────────────────────────────────────
+// FONDOS DECORATIVOS (Blobs + Wave)
+// ───────────────────────────────────────────────────────────────────────────
 .bg-blob {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
+  will-change: filter; // Performance hint
+}
 
-  &.blob-top {
-    top: -10%;
-    left: -10%;
-    width: 42vw;
-    height: 42vw;
-    max-width: 420px;
-    max-height: 420px;
-    background: $primary;
-    opacity: 0.15;
-    filter: blur(110px);
-  }
+.blob-top {
+  top: -10%;
+  left: -10%;
+  width: 42vw;
+  height: 42vw;
+  max-width: 420px;
+  max-height: 420px;
+  background: $primary;
+  opacity: 0.15;
+  filter: blur(110px);
+}
 
-  &.blob-bottom {
-    bottom: -6%;
-    right: -6%;
-    width: 32vw;
-    height: 32vw;
-    max-width: 340px;
-    max-height: 340px;
-    background: $secondary;
-    opacity: 0.08;
-    filter: blur(90px);
-  }
+.blob-bottom {
+  bottom: -6%;
+  right: -6%;
+  width: 32vw;
+  height: 32vw;
+  max-width: 340px;
+  max-height: 340px;
+  background: $secondary;
+  opacity: 0.08;
+  filter: blur(90px);
 }
 
 .bg-wave {
@@ -85,10 +101,17 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   opacity: 0.05;
   pointer-events: none;
 
-  svg { width: 100%; height: 100%; fill: $primary; display: block; }
+  svg {
+    width: 100%;
+    height: 100%;
+    fill: $primary;
+    display: block;
+  }
 }
 
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// CARD PRINCIPAL
+// ═══════════════════════════════════════════════════════════════════════════
 .login-card {
   position: relative;
   z-index: 1;
@@ -96,25 +119,52 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   max-width: 420px;
   background: $surface-lowest;
   border-radius: $radius-card;
-  padding: 40px 32px 32px;
+  padding: 32px 24px;
   box-shadow: $shadow-soft;
   border: 1px solid rgba(15, 23, 42, 0.04);
   animation: cardIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (min-width: 390px) {
+    padding: 36px 28px 28px;
+  }
+
+  @media (min-width: 480px) {
+    padding: 40px 32px 32px;
+  }
+
+  @media (min-width: 768px) {
+    max-width: 460px;
+    padding: 48px 40px 36px;
+  }
+
+  @media (min-width: 1024px) {
+    max-width: 480px;
+  }
 }
 
 @keyframes cardIn {
-  from { opacity: 0; transform: translateY(8px) scale(0.99); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-// ─────────────────────────────────────────────────────────────
-// LOGO
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// SECCIÓN DE LOGO
+// ═══════════════════════════════════════════════════════════════════════════
 .logo-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
+
+  @media (min-width: 768px) {
+    margin-bottom: 28px;
+  }
 }
 
 .logo-tile {
@@ -126,45 +176,75 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 
-  ion-icon { font-size: 36px; color: $primary; }
+  @media (min-width: 768px) {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 16px;
+  }
+
+  ion-icon {
+    font-size: 36px;
+    color: $primary;
+
+    @media (min-width: 768px) {
+      font-size: 40px;
+    }
+  }
 }
 
 .logo {
   width: 42px;
   height: 42px;
   object-fit: contain;
+
+  @media (min-width: 768px) {
+    width: 48px;
+    height: 48px;
+  }
 }
 
 .app-title {
-  margin: 0 0 4px;
-  font-size: 22px;
+  margin: 0 0 3px;
+  font-size: 20px;
   font-weight: 700;
   color: $text-main;
   letter-spacing: -0.3px;
   text-align: center;
   font-family: -apple-system, "SF Pro Display", "Inter", sans-serif;
+
+  @media (min-width: 768px) {
+    font-size: 24px;
+  }
 }
 
 .app-subtitle {
   margin: 0;
-  font-size: 14px;
+  font-size: 12px;
   color: $secondary;
   opacity: 0.7;
   text-align: center;
+
+  @media (min-width: 768px) {
+    font-size: 14px;
+  }
 }
 
-// ─────────────────────────────────────────────────────────────
-// SELECTOR DE MODO (segmented control con glider)
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// SELECTOR DE MODO (Segmented Control con Glider)
+// ═══════════════════════════════════════════════════════════════════════════
 .mode-selector {
   position: relative;
   display: flex;
   background: $cool-grey;
   border-radius: $radius-selector;
   padding: 4px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+
+  @media (min-width: 768px) {
+    margin-bottom: 24px;
+  }
 }
 
 .mode-selector-glider {
@@ -177,6 +257,7 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   border-radius: $radius-glider;
   box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
 
   &.glider-tutor {
     transform: translateX(100%);
@@ -190,95 +271,189 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 6px;
   padding: 10px 8px;
   border-radius: $radius-glider;
   border: none;
   background: transparent;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: $text-sec;
   cursor: pointer;
   transition: color 0.2s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 
-  ion-icon { font-size: 16px; }
-  &:active { transform: scale(0.97); }
-  &.active { color: $primary; }
+  @media (min-width: 768px) {
+    font-size: 13px;
+    gap: 7px;
+  }
+
+  ion-icon {
+    font-size: 16px;
+
+    @media (min-width: 768px) {
+      font-size: 18px;
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  &.active {
+    color: $primary;
+  }
 }
 
-// ─────────────────────────────────────────────────────────────
-// FORMULARIO
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// SECCIÓN DE FORMULARIO
+// ═══════════════════════════════════════════════════════════════════════════
 .form-section {
   display: flex;
   flex-direction: column;
+  gap: 0; // Control explícito del spacing
 }
 
-// ── Banners ──────────────────────────────────────────────────
-.lockout-banner, .error-banner, .warn-banner {
+// ───────────────────────────────────────────────────────────────────────────
+// BANNERS (Error, Bloqueo, Advertencia)
+// ───────────────────────────────────────────────────────────────────────────
+.banner-base {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   border-radius: 14px;
-  padding: 13px 14px;
-  margin-bottom: 16px;
-  font-size: 12.5px;
+  padding: 12px 13px;
+  margin-bottom: 14px;
+  font-size: 12px;
   line-height: 1.45;
-  ion-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  @media (min-width: 768px) {
+    padding: 13px 14px;
+    margin-bottom: 16px;
+    font-size: 12.5px;
+  }
+
+  ion-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .lockout-banner {
+  @extend .banner-base;
   background: rgba(74, 89, 161, 0.06);
   border: 1px solid rgba(74, 89, 161, 0.15);
   color: $on-secondary-container;
 }
+
 .lockout-text {
-  display: flex; flex-direction: column; gap: 2px;
-  strong { font-weight: 700; font-size: 12.5px; }
-  span   { font-size: 11.5px; color: rgba(48, 64, 134, 0.7); }
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-weight: 700;
+    font-size: 12px;
+
+    @media (min-width: 768px) {
+      font-size: 12.5px;
+    }
+  }
+
+  span {
+    font-size: 11px;
+    color: rgba(48, 64, 134, 0.7);
+
+    @media (min-width: 768px) {
+      font-size: 11.5px;
+    }
+  }
 }
 
 .error-banner {
+  @extend .banner-base;
   background: rgba(186, 26, 26, 0.06);
   border: 1px solid rgba(186, 26, 26, 0.15);
   color: $error;
 }
 
 .warn-banner {
+  @extend .banner-base;
   background: rgba(245, 124, 0, 0.06);
   border: 1px solid rgba(245, 124, 0, 0.18);
   color: #9A4D00;
 }
 
-// ── Hint tutor ───────────────────────────────────────────────
+// ───────────────────────────────────────────────────────────────────────────
+// HINT TUTOR
+// ───────────────────────────────────────────────────────────────────────────
 .tutor-hint {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: 13px 14px;
+  padding: 12px 13px;
   background: rgba(245, 124, 0, 0.05);
   border: 1px solid rgba(245, 124, 0, 0.15);
   border-radius: 14px;
-  font-size: 12.5px;
+  font-size: 12px;
   color: $text-sec;
   line-height: 1.45;
-  margin-bottom: 18px;
-  ion-icon { font-size: 16px; color: $primary; flex-shrink: 0; margin-top: 1px; }
+  margin-bottom: 16px;
+
+  @media (min-width: 768px) {
+    padding: 13px 14px;
+    margin-bottom: 18px;
+    font-size: 12.5px;
+  }
+
+  ion-icon {
+    font-size: 16px;
+    color: $primary;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
 }
 
-// ── Inputs ───────────────────────────────────────────────────
+// ───────────────────────────────────────────────────────────────────────────
+// INPUTS
+// ───────────────────────────────────────────────────────────────────────────
 .input-group {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+
+  @media (min-width: 768px) {
+    margin-bottom: 16px;
+  }
 }
 
 .input-label {
   display: block;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
   color: $text-sec;
-  margin-bottom: 7px;
+  margin-bottom: 6px;
+
+  @media (min-width: 768px) {
+    font-size: 11px;
+    letter-spacing: 0.6px;
+    margin-bottom: 7px;
+  }
 }
 
 .input-wrapper {
@@ -288,8 +463,13 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   background: $cool-grey;
   border: 1.5px solid transparent;
   border-radius: $radius-input;
-  padding: 14px;
+  padding: 12px 13px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  -webkit-appearance: none;
+
+  @media (min-width: 768px) {
+    padding: 14px;
+  }
 
   &:focus-within {
     border-color: rgba(245, 124, 0, 0.45);
@@ -310,13 +490,19 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
 }
 
 .input-icon-right {
-  font-size: 19px;
+  font-size: 18px;
   color: $text-sec;
   flex-shrink: 0;
   cursor: pointer;
   padding: 2px;
   transition: color 0.15s ease;
-  &:hover { color: $primary; }
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    color: $primary;
+  }
 }
 
 .custom-input {
@@ -325,32 +511,50 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   background: transparent;
   border: none;
   outline: none;
-  font-size: 15.5px;
+  font-size: 14px;
   color: $text-main;
   font-family: -apple-system, "SF Pro Display", "Inter", sans-serif;
   letter-spacing: 0.1px;
+  -webkit-appearance: none;
+  -webkit-user-select: text;
 
-  &::placeholder { color: #9CA3AF; }
-  &:disabled { cursor: not-allowed; }
+  @media (min-width: 768px) {
+    font-size: 15.5px;
+  }
+
+  &::placeholder {
+    color: #9CA3AF;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
 }
 
 .codigo-input {
   text-transform: uppercase;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
+
+  @media (min-width: 768px) {
+    font-size: 17px;
+    letter-spacing: 3px;
+  }
 }
 
-// ── Botón login ────────────────────────────────────────────
+// ───────────────────────────────────────────────────────────────────────────
+// BOTÓN LOGIN
+// ───────────────────────────────────────────────────────────────────────────
 .btn-login {
   width: 100%;
-  height: 56px;
+  height: 48px;
   margin-top: 10px;
   border: none;
   border-radius: $radius-btn;
   background: linear-gradient(180deg, $primary-container, $primary-container-end);
   color: $surface-lowest;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.2px;
   cursor: pointer;
@@ -360,15 +564,34 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   gap: 8px;
   box-shadow: $shadow-btn;
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
+  -webkit-appearance: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 
-  ion-icon { font-size: 20px; }
+  @media (min-width: 768px) {
+    height: 56px;
+    font-size: 16px;
+  }
+
+  ion-icon {
+    font-size: 18px;
+
+    @media (min-width: 768px) {
+      font-size: 20px;
+    }
+  }
 
   &:active:not(:disabled) {
     transform: scale(0.98);
     box-shadow: 0 4px 14px rgba(245, 124, 0, 0.22);
   }
 
-  &:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
 
   &.btn-bloqueado {
     background: rgba(74, 89, 161, 0.08);
@@ -379,66 +602,215 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
 
 .spinner {
   --color: #{$surface-lowest};
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
+
+  @media (min-width: 768px) {
+    width: 22px;
+    height: 22px;
+  }
 }
 
-// ── Link "olvidé mi contraseña" ─────────────────────────────
+// ───────────────────────────────────────────────────────────────────────────
+// LINK "OLVIDÉ MI CONTRASEÑA"
+// ───────────────────────────────────────────────────────────────────────────
 .forgot-link {
   display: block;
   text-align: center;
-  margin-top: 20px;
-  font-size: 13px;
+  margin-top: 16px;
+  font-size: 12px;
   font-weight: 600;
   color: $primary;
   text-decoration: none;
-  &:active { opacity: 0.7; }
+  transition: opacity 0.2s ease;
+  user-select: none;
+  -webkit-user-select: none;
+
+  @media (min-width: 768px) {
+    margin-top: 20px;
+    font-size: 13px;
+  }
+
+  &:active {
+    opacity: 0.7;
+  }
 }
 
-// ── Badges de seguridad ──────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// BADGES DE SEGURIDAD
+// ═══════════════════════════════════════════════════════════════════════════
 .security-badges {
   display: flex;
   justify-content: center;
-  gap: 16px;
-  margin-top: 24px;
+  gap: 12px;
+  margin-top: 18px;
   flex-wrap: wrap;
+
+  @media (min-width: 768px) {
+    gap: 16px;
+    margin-top: 24px;
+  }
 }
 
 .badge {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
+  gap: 6px;
+  padding: 5px 10px;
   background: rgba(255, 255, 255, 0.6);
   border-radius: 999px;
-  font-size: 10.5px;
+  font-size: 9px;
   font-weight: 600;
   color: $text-sec;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
+  user-select: none;
+  -webkit-user-select: none;
+
+  @media (min-width: 768px) {
+    gap: 8px;
+    padding: 6px 12px;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+  }
 }
 
 .dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: $success;
+  flex-shrink: 0;
   box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
-}
 
-// ─────────────────────────────────────────────────────────────
-// RESPONSIVE — iPad
-// ─────────────────────────────────────────────────────────────
-@media (min-width: 768px) {
-  .login-card {
-    max-width: 460px;
-    padding: 48px 40px 36px;
+  @media (min-width: 768px) {
+    width: 8px;
+    height: 8px;
   }
-  .app-title { font-size: 24px; }
 }
 
-@media (min-width: 1024px) {
+// ═══════════════════════════════════════════════════════════════════════════
+// MEDIA QUERIES ADICIONALES
+// ═══════════════════════════════════════════════════════════════════════════
+
+// iPad en split view (≈ 450-500px)
+@media (max-width: 600px) and (min-width: 480px) {
+  .login-wrapper {
+    padding: 24px;
+  }
+
   .login-card {
-    max-width: 480px;
+    padding: 40px 32px;
+  }
+}
+
+// Dark mode (opcional)
+@media (prefers-color-scheme: dark) {
+  .login-content {
+    --background: #0A0E1A;
+  }
+
+  .login-wrapper {
+    background: #0A0E1A;
+  }
+
+  .login-card {
+    background: #1A1F2E;
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .custom-input,
+  .app-title {
+    color: #E8E8E8;
+  }
+
+  .input-wrapper {
+    background: #2A2F3E;
+
+    &:focus-within {
+      background: #1A1F2E;
+    }
+  }
+}
+
+// Orientación landscape
+@media (orientation: landscape) and (max-height: 600px) {
+  .login-wrapper {
+    min-height: auto;
+    padding: 16px;
+  }
+
+  .login-card {
+    padding: 24px 20px;
+  }
+
+  .logo-section {
+    margin-bottom: 16px;
+  }
+
+  .logo-tile {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 8px;
+
+    ion-icon {
+      font-size: 28px;
+    }
+  }
+
+  .app-title {
+    font-size: 16px;
+  }
+
+  .app-subtitle {
+    font-size: 11px;
+  }
+
+  .input-group {
+    margin-bottom: 10px;
+  }
+
+  .btn-login {
+    height: 44px;
+    margin-top: 8px;
+  }
+
+  .forgot-link {
+    margin-top: 12px;
+    font-size: 11px;
+  }
+
+  .security-badges {
+    margin-top: 12px;
+    gap: 8px;
+  }
+
+  .badge {
+    font-size: 8px;
+    padding: 4px 8px;
+  }
+}
+
+// Reducir movimiento
+@media (prefers-reduced-motion: reduce) {
+  .login-card,
+  .mode-selector-glider,
+  .banner-base,
+  .custom-input,
+  .mode-btn,
+  .input-wrapper,
+  .btn-login {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+// Safe area (iPhone X+)
+@supports (padding: max(0px)) {
+  .login-wrapper {
+    padding-left: max(env(safe-area-inset-left), 24px);
+    padding-right: max(env(safe-area-inset-right), 24px);
+    padding-top: max(env(safe-area-inset-top), 24px);
+    padding-bottom: max(env(safe-area-inset-bottom), 24px);
   }
 }

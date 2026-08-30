@@ -1,7 +1,7 @@
 @import "src/theme/variables";
 
 // ─────────────────────────────────────────────────────────────
-// OVERRIDE LOCAL DE PALETA (solo este archivo, no toca variables.scss)
+// PALETA LOCAL — Soft UI (navío oscuro fondo claro)
 // ─────────────────────────────────────────────────────────────
 $navy:          #F8F9FB;
 $navy-2:        #FFFFFF;
@@ -15,9 +15,6 @@ $orange-subtle: rgba(245, 124, 0, 0.08);
 $card-bg:       #FFFFFF;
 $card-border:   #E5E7EB;
 
-// Este archivo también usa var(--...) directamente en .promedio-card
-// (mezcla de los dos sistemas). Este :host cubre esos casos puntuales
-// sin afectar otras vistas, igual que las $variables de arriba.
 :host {
   --navy:         #F8F9FB;
   --navy-2:       #FFFFFF;
@@ -29,101 +26,404 @@ $card-border:   #E5E7EB;
   --font-display: -apple-system, "SF Pro Display", "Inter", sans-serif;
 }
 
-// ── HEADER ──────────────────────────────────────────────
-.detalle-toolbar      { --background: #{$navy-2}; --border-style: none; --min-height: 60px; border-bottom: 1px solid $card-border; }
-.detalle-header-title { font-size: 17px; font-weight: 700; color: $white; letter-spacing: -0.2px; }
-.back-btn             { --color: #{$orange}; }
-.header-accent-bar    { height: 3px; background: linear-gradient(90deg, $orange, transparent); }
-
-// ── CONTENT ─────────────────────────────────────────────
-.detalle-content { --background: #{$navy}; }
-
-// ── LOADING / ERROR ─────────────────────────────────────
-.loading-overlay {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; padding: 64px 24px; gap: 16px;
+// ─────────────────────────────────────────────────────────────
+// HEADER
+// ─────────────────────────────────────────────────────────────
+.detalle-toolbar {
+  --background: #{$navy-2};
+  --border-style: none;
+  --min-height: 56px;
+  border-bottom: 1px solid $card-border;
+  
+  @media (min-width: 768px) {
+    --min-height: 64px;
+  }
 }
-.loading-spinner { color: $orange; width: 40px; height: 40px; }
-.loading-text    { font-size: 14px; color: $white-35; margin: 0; }
+
+.detalle-header-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: $white;
+  letter-spacing: -0.2px;
+  
+  @media (min-width: 768px) {
+    font-size: 18px;
+  }
+}
+
+.back-btn {
+  --color: #{$orange};
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --min-height: 44px;
+}
+
+.header-accent-bar {
+  height: 3px;
+  background: linear-gradient(90deg, $orange, transparent);
+}
+
+// ─────────────────────────────────────────────────────────────
+// CONTENT
+// ─────────────────────────────────────────────────────────────
+.detalle-content {
+  --background: #{$navy};
+  --padding: 12px;
+  
+  @media (min-width: 390px) {
+    --padding: 16px;
+  }
+  
+  @media (min-width: 768px) {
+    --padding: 24px;
+  }
+  
+  @media (min-width: 1024px) {
+    --padding: 32px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// LOADING & ERROR
+// ─────────────────────────────────────────────────────────────
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  gap: 16px;
+}
+
+.loading-spinner {
+  color: $orange;
+  width: 40px;
+  height: 40px;
+}
+
+.loading-text {
+  font-size: 14px;
+  color: $white-35;
+  margin: 0;
+  text-align: center;
+}
 
 .error-state {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; padding: 64px 24px; text-align: center; gap: 12px;
-  ion-icon { font-size: 44px; color: #D1D5DB; }
-  p        { font-size: 13.5px; color: $white-35; margin: 0; }
-}
-.retry-btn {
-  display: flex; align-items: center; gap: 6px;
-  background: $orange-subtle; border: 1px solid $orange-glow;
-  border-radius: 14px; padding: 11px 20px;
-  color: $orange; font-size: 13px; font-weight: 700; cursor: pointer;
-  transition: background 0.15s ease;
-  &:hover { background: rgba(245, 124, 0, 0.12); }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+  gap: 12px;
+  
+  ion-icon {
+    font-size: 44px;
+    color: #D1D5DB;
+  }
+  
+  p {
+    font-size: 13.5px;
+    color: $white-35;
+    margin: 0;
+  }
 }
 
-// ── HERO ────────────────────────────────────────────────
+.retry-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: $orange-subtle;
+  border: 1px solid $orange-glow;
+  border-radius: 14px;
+  padding: 11px 20px;
+  color: $orange;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  
+  &:active {
+    background: rgba(245, 124, 0, 0.12);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// HERO SECTION
+// ─────────────────────────────────────────────────────────────
 .grupo-hero {
-  display: flex; align-items: center; gap: 15px;
-  padding: 24px 20px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px 16px 16px;
   background: $navy-2;
   border-bottom: 1px solid $card-border;
+  border-radius: 16px 16px 0 0;
+  margin-bottom: 12px;
+  
+  @media (min-width: 390px) {
+    gap: 15px;
+    padding: 24px 20px 20px;
+  }
+  
+  @media (min-width: 768px) {
+    padding: 28px 24px 24px;
+    gap: 18px;
+    margin: 0 auto 16px;
+    max-width: 780px;
+  }
+  
+  @media (min-width: 1024px) {
+    max-width: 1200px;
+  }
 }
+
 .grupo-hero-icon {
-  width: 54px; height: 54px; border-radius: 17px; flex-shrink: 0;
-  background: $orange-subtle; border: 2px solid $orange-glow;
-  display: flex; align-items: center; justify-content: center;
-  ion-icon { font-size: 26px; color: $orange; }
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  flex-shrink: 0;
+  background: $orange-subtle;
+  border: 2px solid $orange-glow;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  @media (min-width: 768px) {
+    width: 54px;
+    height: 54px;
+    border-radius: 17px;
+  }
+  
+  ion-icon {
+    font-size: 22px;
+    color: $orange;
+    
+    @media (min-width: 768px) {
+      font-size: 26px;
+    }
+  }
 }
-.grupo-nombre { font-size: 21px; font-weight: 700; color: $white; margin: 0 0 9px; letter-spacing: -0.3px; }
-.grupo-tags   { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.grupo-hero-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.grupo-nombre {
+  font-size: 20px;
+  font-weight: 700;
+  color: $white;
+  margin: 0 0 8px;
+  letter-spacing: -0.3px;
+  word-break: break-word;
+  
+  @media (min-width: 390px) {
+    font-size: 21px;
+    margin-bottom: 9px;
+  }
+  
+  @media (min-width: 768px) {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+}
+
+.grupo-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .grupo-tag {
-  padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700;
-  &.orange { background: rgba(245, 124, 0, 0.1);  color: $orange; }
-  &.blue   { background: rgba(13, 71, 161, 0.08); color: #0D47A1; }
-  &.gray   { background: #EEF2F7;                  color: $white-60; }
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  
+  &.orange {
+    background: rgba(245, 124, 0, 0.1);
+    color: $orange;
+  }
+  
+  &.blue {
+    background: rgba(13, 71, 161, 0.08);
+    color: #0D47A1;
+  }
+  
+  &.gray {
+    background: #EEF2F7;
+    color: $white-60;
+  }
 }
 
-// ── MÉTRICAS RÁPIDAS ────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// MÉTRICAS RÁPIDAS
+// ─────────────────────────────────────────────────────────────
 .metrics-row {
-  display: flex; gap: 10px; padding: 16px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 12px 16px;
+  
+  @media (min-width: 390px) {
+    gap: 12px;
+    padding: 16px 20px;
+  }
+  
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    padding: 20px 24px;
+    margin: 0 auto;
+    max-width: 780px;
+  }
+  
+  @media (min-width: 1024px) {
+    max-width: 1200px;
+  }
 }
+
 .metric-card {
-  flex: 1; background: $card-bg; border: 1px solid $card-border;
-  border-radius: 16px; padding: 15px 10px; text-align: center; position: relative;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  background: $card-bg;
+  border: 1px solid $card-border;
+  border-radius: 14px;
+  padding: 12px 10px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.15s ease;
+  
+  @media (min-width: 768px) {
+    border-radius: 16px;
+    padding: 15px 10px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  }
+  
+  &:active {
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+  }
 }
-.metric-num  { display: block; font-size: 22px; font-weight: 700; color: $white; }
-.metric-lbl  { display: block; font-size: 10px; color: $white-35; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
-.metric-icon { position: absolute; top: 9px; right: 9px; font-size: 14px; color: $card-border; }
 
-// ── SECCIÓN GENERAL ─────────────────────────────────────
-.section-block  { padding: 0 20px 22px; }
+.metric-num {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  color: $white;
+  
+  @media (min-width: 768px) {
+    font-size: 22px;
+  }
+}
+
+.metric-lbl {
+  display: block;
+  font-size: 9px;
+  color: $white-35;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  
+  @media (min-width: 768px) {
+    font-size: 10px;
+    margin-top: 3px;
+    letter-spacing: 0.5px;
+  }
+}
+
+.metric-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 12px;
+  color: $card-border;
+  
+  @media (min-width: 768px) {
+    font-size: 14px;
+    top: 9px;
+    right: 9px;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// SECTION BLOCK BASE
+// ─────────────────────────────────────────────────────────────
+.section-block {
+  padding: 12px 16px 16px;
+  
+  @media (min-width: 390px) {
+    padding: 16px 20px 22px;
+  }
+  
+  @media (min-width: 768px) {
+    padding: 20px 24px 28px;
+    margin: 0 auto;
+    max-width: 780px;
+  }
+  
+  @media (min-width: 1024px) {
+    max-width: 1200px;
+  }
+}
+
 .section-label {
-  font-size: 10.5px; font-weight: 700; letter-spacing: 1.6px;
-  text-transform: uppercase; color: $white-35; margin: 0 0 11px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: $white-35;
+  margin: 0 0 10px;
+  
+  @media (min-width: 768px) {
+    font-size: 10.5px;
+    letter-spacing: 1.6px;
+    margin-bottom: 11px;
+  }
 }
 
-// ── LISTA DE ALUMNOS DEL GRUPO ──────────────────────────
+// ─────────────────────────────────────────────────────────────
+// LISTA DE ALUMNOS
+// ─────────────────────────────────────────────────────────────
 .alumnos-lista {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 8px;
+  
+  @media (min-width: 768px) {
+    gap: 9px;
+  }
 }
 
 .alumno-item {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   background: $card-bg;
   border: 1px solid $card-border;
-  border-radius: 14px;
-  padding: 11px 13px;
-  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.03);
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+  transition: box-shadow 0.15s ease;
+  
+  @media (min-width: 768px) {
+    gap: 11px;
+    border-radius: 14px;
+    padding: 11px 13px;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.03);
+  }
+  
+  &:active {
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  }
 }
 
 .alumno-item-avatar {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   flex-shrink: 0;
   overflow: hidden;
@@ -132,7 +432,12 @@ $card-border:   #E5E7EB;
   display: flex;
   align-items: center;
   justify-content: center;
-
+  
+  @media (min-width: 768px) {
+    width: 36px;
+    height: 36px;
+  }
+  
   img {
     width: 100%;
     height: 100%;
@@ -141,173 +446,484 @@ $card-border:   #E5E7EB;
 }
 
 .avatar-initials {
-  font-size: 12.5px;
+  font-size: 11px;
   font-weight: 700;
   color: $orange;
+  
+  @media (min-width: 768px) {
+    font-size: 12.5px;
+  }
 }
 
 .alumno-item-num {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   color: $white-35;
-  width: 20px;
+  width: 18px;
   flex-shrink: 0;
   text-align: center;
+  
+  @media (min-width: 768px) {
+    font-size: 10px;
+    width: 20px;
+  }
 }
 
 .alumno-item-nombre {
   flex: 1;
   min-width: 0;
-  font-size: 13.5px;
+  font-size: 12px;
   font-weight: 600;
   color: $white;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  
+  @media (min-width: 768px) {
+    font-size: 13.5px;
+  }
 }
 
-// ── TARJETA DE ASISTENCIA ───────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// TARJETA DE ASISTENCIA
+// ─────────────────────────────────────────────────────────────
 .asistencia-card {
-  display: flex; gap: 18px; align-items: center;
-  background: $card-bg; border: 1px solid $card-border;
-  border-radius: 18px; padding: 18px;
-  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: $card-bg;
+  border: 1px solid $card-border;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  
+  @media (min-width: 480px) {
+    flex-direction: row;
+    align-items: center;
+    gap: 18px;
+    padding: 18px;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+  }
+  
+  @media (min-width: 768px) {
+    border-radius: 18px;
+    gap: 20px;
+  }
 }
 
-// Gauge SVG circular
-.asist-gauge-wrap { text-align: center; flex-shrink: 0; }
-.asist-gauge      { width: 80px; height: 80px; position: relative; }
-.gauge-svg        { width: 100%; height: 100%; transform: rotate(-90deg); }
-.gauge-bg   { fill: none; stroke: $card-border; stroke-width: 3; }
-.gauge-fill {
-  fill: none; stroke-width: 3; stroke-linecap: round;
-  transition: stroke-dasharray 0.6s ease;
-  stroke: $orange; // default
+.asist-gauge-wrap {
+  text-align: center;
+  flex-shrink: 0;
 }
-.asist-gauge.verde   .gauge-fill { stroke: #16A34A; }
-.asist-gauge.naranja .gauge-fill { stroke: $orange; }
-.asist-gauge.rojo    .gauge-fill { stroke: #D32F2F; }
+
+.asist-gauge {
+  width: 72px;
+  height: 72px;
+  position: relative;
+  margin: 0 auto;
+  
+  @media (min-width: 480px) {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+.gauge-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.gauge-bg {
+  fill: none;
+  stroke: $card-border;
+  stroke-width: 3;
+}
+
+.gauge-fill {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.6s ease;
+  stroke: $orange;
+  
+  .asist-gauge.verde & {
+    stroke: #16A34A;
+  }
+  
+  .asist-gauge.naranja & {
+    stroke: $orange;
+  }
+  
+  .asist-gauge.rojo & {
+    stroke: #D32F2F;
+  }
+}
 
 .gauge-label {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   text-align: center;
 }
-.gauge-num { font-size: 18px; font-weight: 700; color: $white; }
-.gauge-pct { font-size: 10px; color: $white-35; }
-.gauge-sub { font-size: 11px; color: $white-35; margin: 5px 0 0; }
 
-// Desglose
-.asist-breakdown { flex: 1; display: flex; flex-direction: column; gap: 9px; }
-.asist-row {
-  display: flex; align-items: center; gap: 8px;
-  &.total-row { border-top: 1px solid $card-border; padding-top: 9px; margin-top: 2px; }
+.gauge-num {
+  font-size: 16px;
+  font-weight: 700;
+  color: $white;
+  
+  @media (min-width: 480px) {
+    font-size: 18px;
+  }
 }
-.asist-dot {
-  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-  &.verde   { background: #16A34A; }
-  &.naranja { background: $orange; }
-  &.rojo    { background: #D32F2F; }
-}
-.asist-tipo { font-size: 12px; color: $white-60; flex: 1; }
-.asist-num  { font-size: 13px; font-weight: 700; color: $white; }
 
-// Barra horizontal
-.asist-bar-wrap { margin-top: 13px; }
-.asist-bar {
-  display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: $card-border;
-}
-.asist-bar-fill {
-  height: 100%; transition: width 0.5s ease;
-  &.verde   { background: #16A34A; }
-  &.naranja { background: $orange; }
-  &.rojo    { background: #D32F2F; }
-}
-.asist-bar-leyenda {
-  display: flex; gap: 12px; margin-top: 7px;
+.gauge-pct {
   font-size: 10px;
-  .verde   { color: #16A34A; }
-  .naranja { color: $orange; }
-  .rojo    { color: #D32F2F; }
+  color: $white-35;
 }
 
-// ── TAREAS ──────────────────────────────────────────────
-.tareas-card {
-  display: flex; gap: 18px; align-items: center;
-  background: $card-bg; border: 1px solid $card-border;
-  border-radius: 18px; padding: 18px;
-  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
-}
-.tareas-circle { width: 80px; height: 80px; position: relative; flex-shrink: 0; }
-.gauge-fill.naranja { stroke: $orange; }
-.tareas-detalle { flex: 1; display: flex; gap: 0; }
-.tareas-stat {
-  flex: 1; text-align: center;
-  display: flex; flex-direction: column; gap: 3px;
-}
-.ts-num  { font-size: 20px; font-weight: 700; color: $white; }
-.ts-lbl  { font-size: 10px; color: $white-35; text-transform: uppercase; letter-spacing: 0.5px; }
-.tareas-divider { width: 1px; background: $card-border; margin: 4px 0; }
-
-// ── OCUPACIÓN ───────────────────────────────────────────
-.ocupacion-card {
-  background: $card-bg; border: 1px solid $card-border;
-  border-radius: 18px; padding: 18px;
-  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
-}
-.ocupacion-nums {
-  display: flex; align-items: baseline; gap: 4px; margin-bottom: 13px;
-}
-.ocup-current { font-size: 28px; font-weight: 700; color: $white; }
-.ocup-sep     { font-size: 20px; color: $white-35; }
-.ocup-max     { font-size: 20px; font-weight: 600; color: $white-60; }
-.ocup-lbl     { font-size: 12px; color: $white-35; margin-left: 6px; }
-
-.ocupacion-bar-outer {
-  height: 8px; border-radius: 4px; background: $card-border; overflow: hidden; margin-bottom: 9px;
-}
-.ocupacion-bar-inner {
-  height: 100%; border-radius: 4px; transition: width 0.5s ease;
-  &.ocup-ok   { background: #16A34A; }
-  &.ocup-warn { background: $orange; }
-  &.ocup-full { background: #D32F2F; }
-}
-.ocupacion-pct { font-size: 12px; color: $white-35; margin: 0; }
-
-// ── CARD PRESIONABLE (lista) ─────────────────────────────
-// Estos estilos aplican también en aula.page.html
-.pressable { cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
-.pressable:active { transform: scale(0.98); box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.18); }
-
-.card-tap-hint {
-  display: flex; align-items: center; gap: 6px;
-  padding: 10px 18px;
-  border-top: 1px solid $card-border;
-  font-size: 11.5px; color: $orange;
-  ion-icon:first-child { font-size: 14px; }
-  span { flex: 1; font-weight: 600; }
-  ion-icon:last-child  { font-size: 14px; color: $white-35; }
+.gauge-sub {
+  font-size: 10px;
+  color: $white-35;
+  margin: 6px 0 0;
+  
+  @media (min-width: 768px) {
+    font-size: 11px;
+    margin-top: 5px;
+  }
 }
 
-// ── EMPTY METRIC ────────────────────────────────────────
-.empty-metric {
-  display: flex; flex-direction: column; align-items: center;
-  padding: 32px 18px; text-align: center; gap: 9px;
-  background: $card-bg; border: 1px solid $card-border; border-radius: 16px;
-  ion-icon { font-size: 36px; color: #D1D5DB; }
-  p        { font-size: 13px; color: $white-35; margin: 0; }
+.asist-breakdown {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  
+  @media (min-width: 768px) {
+    gap: 9px;
+  }
 }
 
-// ── PROMEDIO CARD ─────────────────────────────
-// (usa var(--...) directo en el original; cubierto por el :host de arriba)
-.promedio-card {
+.asist-row {
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 18px;
+  gap: 8px;
+  
+  &.total-row {
+    border-top: 1px solid $card-border;
+    padding-top: 9px;
+    margin-top: 2px;
+  }
+}
+
+.asist-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  
+  &.verde {
+    background: #16A34A;
+  }
+  
+  &.naranja {
+    background: $orange;
+  }
+  
+  &.rojo {
+    background: #D32F2F;
+  }
+}
+
+.asist-tipo {
+  font-size: 11px;
+  color: $white-60;
+  flex: 1;
+  
+  @media (min-width: 768px) {
+    font-size: 12px;
+  }
+}
+
+.asist-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: $white;
+  
+  @media (min-width: 768px) {
+    font-size: 13px;
+  }
+}
+
+.asist-bar-wrap {
+  margin-top: 12px;
+}
+
+.asist-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: $card-border;
+  gap: 0;
+}
+
+.asist-bar-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+  
+  &.verde {
+    background: #16A34A;
+  }
+  
+  &.naranja {
+    background: $orange;
+  }
+  
+  &.rojo {
+    background: #D32F2F;
+  }
+}
+
+.asist-bar-leyenda {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 10px;
+  
+  .verde {
+    color: #16A34A;
+  }
+  
+  .naranja {
+    color: $orange;
+  }
+  
+  .rojo {
+    color: #D32F2F;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// TARJETA DE TAREAS
+// ─────────────────────────────────────────────────────────────
+.tareas-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: $card-bg;
+  border: 1px solid $card-border;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  
+  @media (min-width: 480px) {
+    flex-direction: row;
+    align-items: center;
+    gap: 18px;
+    padding: 18px;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+  }
+  
+  @media (min-width: 768px) {
+    border-radius: 18px;
+    gap: 20px;
+  }
+}
+
+.tareas-progress-wrap {
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.tareas-circle {
+  width: 72px;
+  height: 72px;
+  position: relative;
+  margin: 0 auto;
+  
+  @media (min-width: 480px) {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+.tareas-detalle {
+  flex: 1;
+  display: flex;
+  gap: 0;
+  justify-content: space-around;
+}
+
+.tareas-stat {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  
+  @media (min-width: 768px) {
+    gap: 3px;
+  }
+}
+
+.ts-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: $white;
+  
+  @media (min-width: 768px) {
+    font-size: 20px;
+  }
+}
+
+.ts-lbl {
+  font-size: 9px;
+  color: $white-35;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  
+  @media (min-width: 768px) {
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+}
+
+.tareas-divider {
+  width: 1px;
+  background: $card-border;
+  margin: 4px 8px;
+  
+  @media (min-width: 768px) {
+    margin: 4px 0;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// OCUPACIÓN
+// ─────────────────────────────────────────────────────────────
+.ocupacion-card {
+  background: $card-bg;
+  border: 1px solid $card-border;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  
+  @media (min-width: 768px) {
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+  }
+}
+
+.ocupacion-nums {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 12px;
+  
+  @media (min-width: 768px) {
+    margin-bottom: 13px;
+  }
+}
+
+.ocup-current {
+  font-size: 26px;
+  font-weight: 700;
+  color: $white;
+  
+  @media (min-width: 768px) {
+    font-size: 28px;
+  }
+}
+
+.ocup-sep {
+  font-size: 18px;
+  color: $white-35;
+  
+  @media (min-width: 768px) {
+    font-size: 20px;
+  }
+}
+
+.ocup-max {
+  font-size: 18px;
+  font-weight: 600;
+  color: $white-60;
+  
+  @media (min-width: 768px) {
+    font-size: 20px;
+  }
+}
+
+.ocup-lbl {
+  font-size: 12px;
+  color: $white-35;
+  margin-left: 6px;
+}
+
+.ocupacion-bar-outer {
+  height: 8px;
+  border-radius: 4px;
+  background: $card-border;
+  overflow: hidden;
+  margin-bottom: 8px;
+  
+  @media (min-width: 768px) {
+    margin-bottom: 9px;
+  }
+}
+
+.ocupacion-bar-inner {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  
+  &.ocup-ok {
+    background: #16A34A;
+  }
+  
+  &.ocup-warn {
+    background: $orange;
+  }
+  
+  &.ocup-full {
+    background: #D32F2F;
+  }
+}
+
+.ocupacion-pct {
+  font-size: 12px;
+  color: $white-35;
+  margin: 0;
+}
+
+// ─────────────────────────────────────────────────────────────
+// PROMEDIO CARD
+// ─────────────────────────────────────────────────────────────
+.promedio-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 18px;
-  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  
+  @media (min-width: 480px) {
+    flex-direction: row;
+    align-items: center;
+    gap: 18px;
+    padding: 18px;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+  }
+  
+  @media (min-width: 768px) {
+    border-radius: 18px;
+    gap: 20px;
+  }
 }
 
 .promedio-circle {
@@ -315,41 +931,85 @@ $card-border:   #E5E7EB;
   align-items: baseline;
   gap: 2px;
   flex-shrink: 0;
-  padding: 11px 15px;
-  border-radius: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
   background: #EEF2F7;
   border: 1px solid $card-border;
-
-  &.verde  { border-color: rgba(22,163,74,0.25);  background: rgba(22,163,74,0.06); }
-  &.naranja{ border-color: rgba(245,124,0,0.25);  background: rgba(245,124,0,0.06); }
-  &.rojo   { border-color: rgba(211,47,47,0.25);  background: rgba(211,47,47,0.06); }
+  width: fit-content;
+  
+  @media (min-width: 480px) {
+    padding: 11px 15px;
+    border-radius: 14px;
+  }
+  
+  &.verde {
+    border-color: rgba(22, 163, 74, 0.25);
+    background: rgba(22, 163, 74, 0.06);
+  }
+  
+  &.naranja {
+    border-color: rgba(245, 124, 0, 0.25);
+    background: rgba(245, 124, 0, 0.06);
+  }
+  
+  &.rojo {
+    border-color: rgba(211, 47, 47, 0.25);
+    background: rgba(211, 47, 47, 0.06);
+  }
 }
 
 .promedio-num {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--white);
-
-  .verde  & { color: #16A34A; }
-  .naranja & { color: $orange; }
-  .rojo   & { color: #D32F2F; }
+  
+  @media (min-width: 480px) {
+    font-size: 28px;
+  }
+  
+  .verde & {
+    color: #16A34A;
+  }
+  
+  .naranja & {
+    color: $orange;
+  }
+  
+  .rojo & {
+    color: #D32F2F;
+  }
 }
 
 .promedio-lbl {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--white-35);
   font-weight: 600;
+  
+  @media (min-width: 768px) {
+    font-size: 12px;
+  }
 }
 
-.promedio-info { flex: 1; min-width: 0; }
+.promedio-info {
+  flex: 1;
+  min-width: 0;
+}
 
 .promedio-desc {
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--white-35);
-  margin: 0 0 11px;
+  margin: 0 0 10px;
   line-height: 1.5;
-  strong { color: var(--white); }
+  
+  @media (min-width: 768px) {
+    font-size: 11.5px;
+    margin-bottom: 11px;
+  }
+  
+  strong {
+    color: var(--white);
+  }
 }
 
 .promedio-barra-wrap {
@@ -363,44 +1023,236 @@ $card-border:   #E5E7EB;
   height: 100%;
   border-radius: 5px;
   transition: width 0.5s ease;
-  &.verde  { background: #16A34A; }
-  &.naranja{ background: $orange; }
-  &.rojo   { background: #D32F2F; }
-}
-
-// Color helpers para metric-num
-.verde   { color: #16A34A !important; }
-.naranja { color: $orange !important; }
-.rojo    { color: #D32F2F !important; }
-
-// ─────────────────────────────────────────────────────────
-// RESPONSIVE — iPad: contenido centrado, más aire
-// ─────────────────────────────────────────────────────────
-@media (min-width: 768px) {
-  .grupo-hero,
-  .metrics-row,
-  .section-block {
-    max-width: 780px;
-    margin-left: auto;
-    margin-right: auto;
+  
+  &.verde {
+    background: #16A34A;
   }
-
-  .grupo-nombre { font-size: 24px; }
+  
+  &.naranja {
+    background: $orange;
+  }
+  
+  &.rojo {
+    background: #D32F2F;
+  }
 }
 
+// ─────────────────────────────────────────────────────────────
+// EMPTY STATE
+// ─────────────────────────────────────────────────────────────
+.empty-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 16px;
+  text-align: center;
+  gap: 9px;
+  background: $card-bg;
+  border: 1px solid $card-border;
+  border-radius: 14px;
+  
+  @media (min-width: 768px) {
+    padding: 32px 18px;
+    border-radius: 16px;
+  }
+  
+  ion-icon {
+    font-size: 32px;
+    color: #D1D5DB;
+    
+    @media (min-width: 768px) {
+      font-size: 36px;
+    }
+  }
+  
+  p {
+    font-size: 12px;
+    color: $white-35;
+    margin: 0;
+    
+    @media (min-width: 768px) {
+      font-size: 13px;
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// COLOR HELPERS
+// ─────────────────────────────────────────────────────────────
+.verde {
+  color: #16A34A !important;
+}
+
+.naranja {
+  color: $orange !important;
+}
+
+.rojo {
+  color: #D32F2F !important;
+}
+
+// ─────────────────────────────────────────────────────────────
+// PRESSABLE STATES (Touch feedback)
+// ─────────────────────────────────────────────────────────────
+.pressable {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.18);
+  }
+}
+
+.card-tap-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-top: 1px solid $card-border;
+  font-size: 11px;
+  color: $orange;
+  
+  @media (min-width: 768px) {
+    font-size: 11.5px;
+  }
+  
+  ion-icon:first-child {
+    font-size: 12px;
+    
+    @media (min-width: 768px) {
+      font-size: 14px;
+    }
+  }
+  
+  span {
+    flex: 1;
+    font-weight: 600;
+  }
+  
+  ion-icon:last-child {
+    font-size: 12px;
+    color: $white-35;
+    
+    @media (min-width: 768px) {
+      font-size: 14px;
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// iPad Layout: 2 columnas para cards grandes lado a lado
+// ─────────────────────────────────────────────────────────────
 @media (min-width: 1024px) {
-  .grupo-hero,
-  .metrics-row,
   .section-block {
-    max-width: 920px;
+    &:has(.asistencia-card),
+    &:has(.tareas-card) {
+      display: inline-block;
+      width: calc(50% - 8px);
+      vertical-align: top;
+      padding-right: 12px;
+    }
+    
+    &:has(.asistencia-card) {
+      margin-right: 8px;
+    }
   }
+}
 
-  // Dos columnas para asistencia + tareas lado a lado en pantallas grandes
-  .section-block:has(.asistencia-card),
-  .section-block:has(.tareas-card) {
-    display: inline-block;
-    width: calc(50% - 8px);
-    vertical-align: top;
+// ─────────────────────────────────────────────────────────────
+// SAFE AREA (iPhone X+)
+// ─────────────────────────────────────────────────────────────
+@supports (padding: max(0px)) {
+  ion-header {
+    padding-top: max(env(safe-area-inset-top), 0);
   }
-  .section-block:has(.asistencia-card) { margin-right: 8px; }
+  
+  ion-footer {
+    padding-bottom: max(env(safe-area-inset-bottom), 0);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// ORIENTACIÓN LANDSCAPE
+// ─────────────────────────────────────────────────────────────
+@media (orientation: landscape) and (max-height: 600px) {
+  .detalle-toolbar {
+    --min-height: 48px;
+  }
+  
+  .detalle-content {
+    --padding: 8px;
+  }
+  
+  .grupo-hero {
+    padding: 12px 16px;
+    margin-bottom: 8px;
+  }
+  
+  .metrics-row {
+    padding: 8px 16px;
+  }
+  
+  .section-block {
+    padding: 8px 16px 12px;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// ACCESIBILIDAD
+// ─────────────────────────────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// DARK MODE
+// ─────────────────────────────────────────────────────────────
+@media (prefers-color-scheme: dark) {
+  $navy: #0A0E1A;
+  $navy-2: #1A1F2E;
+  $white: #E8E8E8;
+  $white-60: #A8A8A8;
+  $white-35: #808080;
+  $white-08: #333333;
+  $card-bg: #1A1F2E;
+  $card-border: #2A2F3E;
+  
+  :host {
+    --navy: #0A0E1A;
+    --navy-2: #1A1F2E;
+    --white: #E8E8E8;
+    --white-60: #A8A8A8;
+    --white-35: #808080;
+    --card-bg: #1A1F2E;
+    --card-border: #2A2F3E;
+  }
+  
+  .detalle-content {
+    --background: #{$navy};
+  }
+  
+  .detalle-toolbar {
+    --background: #{$navy-2};
+    border-bottom-color: $card-border;
+  }
+  
+  .detalle-header-title {
+    color: $white;
+  }
+  
+  .grupo-hero,
+  .metric-card,
+  .alumno-item,
+  .asistencia-card,
+  .tareas-card,
+  .ocupacion-card,
+  .promedio-card,
+  .empty-metric {
+    background: $card-bg;
+    border-color: $card-border;
+  }
 }

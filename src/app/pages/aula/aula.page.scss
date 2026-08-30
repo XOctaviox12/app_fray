@@ -15,13 +15,40 @@ $orange-subtle:rgba(245, 124, 0, 0.08);
 $card-bg:      #FFFFFF;
 $card-border:  #E5E7EB;
 
+// ── Reducir movimiento si el sistema lo pide (accesibilidad) ──
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 // ── HEADER ──────────────────────────────────────
-.header-toolbar    { --background: #{$navy-2}; --border-style: none; --min-height: 60px; border-bottom: 1px solid $card-border; }
+.header-toolbar {
+  --background: #{$navy-2};
+  --border-style: none;
+  --min-height: 60px;
+  border-bottom: 1px solid $card-border;
+
+  // Safe area: notch / Dynamic Island (iPhone X+ / 14+)
+  padding-left: max(env(safe-area-inset-left), 0);
+  padding-right: max(env(safe-area-inset-right), 0);
+  padding-top: env(safe-area-inset-top);
+}
 .header-title      { font-size: 19px; font-weight: 700; color: $white; letter-spacing: -0.3px; }
 .header-accent-bar { height: 3px; background: linear-gradient(90deg, $orange, transparent); }
 
+@media (min-width: 768px) {
+  .header-toolbar { --min-height: 64px; }
+  .header-title    { font-size: 21px; }
+}
+
 // ── CONTENT ─────────────────────────────────────
-.aula-content { --background: #{$navy}; }
+.aula-content {
+  --background: #{$navy};
+  // iOS momentum scroll
+  -webkit-overflow-scrolling: touch;
+}
 
 // ── LOADING ─────────────────────────────────────
 .loading-overlay {
@@ -43,10 +70,17 @@ $card-border:  #E5E7EB;
 
 // ── HERO ─────────────────────────────────────────
 .section-hero {
-  padding: 24px 20px 18px;
+  padding: 22px 20px 16px;
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
   background: transparent;
 }
-.section-title { font-size: 22px; font-weight: 700; color: $white; letter-spacing: -0.4px; margin: 0 0 5px; }
+
+@media (min-width: 375px) {
+  .section-hero { padding-top: 24px; padding-bottom: 18px; }
+}
+
+.section-title { font-size: clamp(19px, 4.5vw, 22px); font-weight: 700; color: $white; letter-spacing: -0.4px; margin: 0 0 5px; }
 .section-sub   { font-size: 13px; color: $white-35; margin: 0; }
 
 // ── EMPTY STATE ──────────────────────────────────
@@ -60,7 +94,11 @@ $card-border:  #E5E7EB;
 }
 
 // ── GRUPOS CONTAINER ─────────────────────────────
-.grupos-container { padding: 12px 20px; }
+.grupos-container {
+  padding: 12px 20px;
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
+}
 
 // ══════════════════════════════════════════════════
 //  VISTA DOCENTE — grupo bloque + materias
@@ -73,6 +111,8 @@ $card-border:  #E5E7EB;
   margin-bottom: 16px;
   overflow: hidden;
   box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+  // Perf: aisla repaint/reflow de cada bloque en listas largas de grupos
+  contain: layout style paint;
 }
 
 // Encabezado del bloque de grupo
@@ -182,6 +222,7 @@ $card-border:  #E5E7EB;
   justify-content: space-between;
   gap: 10px;
   padding: 13px 15px;
+  min-height: 44px;
   background: #EEF2F7;
   border: 1px solid $card-border;
   border-left: 3px solid $orange;
@@ -189,6 +230,8 @@ $card-border:  #E5E7EB;
   margin-bottom: 9px;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  contain: layout style paint;
 
   &:last-child { margin-bottom: 0; }
 
@@ -196,6 +239,11 @@ $card-border:  #E5E7EB;
     background: rgba(245, 124, 0, 0.06);
     border-color: rgba(245, 124, 0, 0.25);
     transform: scale(0.99);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $orange;
+    outline-offset: 2px;
   }
 }
 
@@ -269,12 +317,18 @@ $card-border:  #E5E7EB;
   overflow: hidden;
   box-shadow: 0 8px 26px rgba(15, 23, 42, 0.06);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  contain: layout style paint;
 
   &.pressable {
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
     &:active {
       transform: scale(0.99);
       box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+    }
+    &:focus-visible {
+      outline: 2px solid $orange;
+      outline-offset: 2px;
     }
   }
 }
@@ -337,6 +391,7 @@ $card-border:  #E5E7EB;
 .card-tap-hint {
   display: flex; align-items: center; gap: 8px;
   padding: 12px 18px;
+  min-height: 44px;
   background: rgba(245, 124, 0, 0.05);
   border-top: 1px solid rgba(245, 124, 0, 0.14);
 
@@ -353,6 +408,10 @@ $card-border:  #E5E7EB;
   border: 1px solid rgba(245, 124, 0, 0.2);
   border-radius: 20px;
   box-shadow: 0 8px 24px rgba(245, 124, 0, 0.1), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+@media (min-width: 768px) {
+  .hijo-card { margin-left: auto; margin-right: auto; }
 }
 
 .hijo-card-avatar {
@@ -377,11 +436,14 @@ $card-border:  #E5E7EB;
 .tutor-quick-card {
   display: flex; align-items: center; gap: 12px;
   padding: 15px 17px; margin-bottom: 11px;
+  min-height: 44px;
   background: $card-bg; border: 1px solid $card-border;
   border-radius: 16px; cursor: pointer;
   position: relative; overflow: hidden;
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  contain: layout style paint;
 
   &::before {
     content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
@@ -389,6 +451,11 @@ $card-border:  #E5E7EB;
   }
 
   &:active { transform: scale(0.99); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05); }
+
+  &:focus-visible {
+    outline: 2px solid $orange;
+    outline-offset: 2px;
+  }
 }
 
 .tutor-quick-icon {
@@ -448,4 +515,38 @@ $card-border:  #E5E7EB;
   .grupos-container {
     grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
   }
+}
+
+// iPad Pro 12.9": mismo criterio de grid flexible, con más aire
+@media (min-width: 1366px) {
+  .section-hero,
+  .grupos-container,
+  .hijo-card,
+  .subsection-label {
+    max-width: 1100px;
+  }
+
+  .grupos-container {
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 20px;
+  }
+}
+
+// iPad en Split View / Slide Over (~450-500px de ancho aunque el
+// dispositivo sea tablet): forzar 1 columna en el grid de grupos
+@media (max-width: 600px) and (min-width: 768px) {
+  .grupos-container {
+    display: block;
+    max-width: 100%;
+  }
+
+  .grupo-bloque,
+  .aula-card {
+    margin-bottom: 16px;
+  }
+}
+
+// Landscape: hero más compacto
+@media (orientation: landscape) {
+  .section-hero { padding-top: 14px; padding-bottom: 12px; }
 }

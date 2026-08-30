@@ -18,8 +18,26 @@ $verde:   #16A34A;
 $naranja: #F57C00;
 $rojo:    #D32F2F;
 
+// ── Reducir movimiento si el sistema lo pide (accesibilidad) ──
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 // ── HEADER ──────────────────────────────────────────────
-.asist-toolbar      { --background: #{$navy-2}; --border-style: none; --min-height: 60px; border-bottom: 1px solid $card-border; }
+.asist-toolbar {
+  --background: #{$navy-2};
+  --border-style: none;
+  --min-height: 60px;
+  border-bottom: 1px solid $card-border;
+
+  // Safe area: notch / Dynamic Island (iPhone X+ / 14+)
+  padding-left: max(env(safe-area-inset-left), 0);
+  padding-right: max(env(safe-area-inset-right), 0);
+  padding-top: env(safe-area-inset-top);
+}
 .asist-header-title { font-size: 16px; font-weight: 700; color: $white; letter-spacing: -0.2px; }
 
 .asist-header-title-stacked {
@@ -41,15 +59,22 @@ $rojo:    #D32F2F;
   }
 }
 
-.back-btn  { --color: #{$orange}; }
-.save-btn  { --color: #{$verde}; font-size: 22px; }
+.back-btn  { --color: #{$orange}; min-width: 44px; min-height: 44px; }
+.save-btn  { --color: #{$verde}; font-size: 22px; min-width: 44px; min-height: 44px; }
 .header-accent-bar { height: 3px; background: linear-gradient(90deg, $orange, transparent); }
+
+@media (min-width: 768px) {
+  .asist-toolbar { --min-height: 64px; }
+  .asist-header-title { font-size: 18px; }
+}
 
 // ── SEGMENTO ────────────────────────────────────────────
 .segment-wrap {
   background: $navy-2;
   padding: 0 20px 14px;
   border-bottom: 1px solid $card-border;
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
 }
 .asist-segment {
   --background: #EEF2F7;
@@ -61,8 +86,9 @@ $rojo:    #D32F2F;
     --indicator-color: #{$card-bg};
     --indicator-box-shadow: 0 2px 8px rgba(15,23,42,0.08);
     --border-radius: 12px;
+    --min-height: 44px;
     font-size: 12.5px; font-weight: 600;
-    min-height: 40px;
+    min-height: 44px;
     ion-icon { font-size: 15px; margin-right: 4px; }
   }
 }
@@ -78,7 +104,11 @@ $rojo:    #D32F2F;
 }
 
 // ── CONTENT ─────────────────────────────────────────────
-.asist-content { --background: #{$navy}; }
+.asist-content {
+  --background: #{$navy};
+  // iOS momentum scroll
+  -webkit-overflow-scrolling: touch;
+}
 
 // ── LOADING / ERROR ─────────────────────────────────────
 .loading-overlay {
@@ -97,9 +127,13 @@ $rojo:    #D32F2F;
   display: flex; align-items: center; gap: 6px;
   background: rgba(245,124,0,0.07); border: 1px solid rgba(245,124,0,0.25);
   border-radius: 14px; padding: 11px 20px;
+  min-height: 44px;
   color: $orange; font-size: 13px; font-weight: 700; cursor: pointer;
   transition: background 0.15s ease;
-  &:hover { background: rgba(245,124,0,0.12); }
+  -webkit-tap-highlight-color: transparent;
+  @media (hover: hover) {
+    &:hover { background: rgba(245,124,0,0.12); }
+  }
 }
 
 // ── BANNER GUARDADA ─────────────────────────────────────
@@ -157,10 +191,12 @@ $rojo:    #D32F2F;
   border: 1px solid $card-border;
   border-radius: 20px;
   padding: 8px 13px;
+  min-height: 44px;
   cursor: pointer;
   width: fit-content;
   font-family: inherit;
   box-shadow: 0 3px 10px rgba(15,23,42,0.04);
+  -webkit-tap-highlight-color: transparent;
   ion-icon { font-size: 15px; color: $orange; }
 }
 .fecha-pill-chevron {
@@ -174,6 +210,7 @@ $rojo:    #D32F2F;
   border: 1px solid rgba(245, 124, 0, 0.18);
   border-radius: 20px;
   padding: 8px 13px;
+  min-height: 44px;
   width: fit-content;
   ion-icon { font-size: 14px; color: $orange; }
 }
@@ -213,6 +250,7 @@ $rojo:    #D32F2F;
   display: flex; align-items: center; gap: 8px;
   margin: 0 20px 14px;
   padding: 0 14px;
+  min-height: 44px;
   background: $card-bg;
   border: 1px solid $card-border;
   border-radius: 16px;
@@ -229,6 +267,13 @@ $rojo:    #D32F2F;
 }
 .buscador-clear {
   font-size: 16px; color: $white-35; cursor: pointer; flex-shrink: 0;
+  position: relative;
+  // Área de toque ampliada a 44px sin agrandar el ícono visualmente
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -14px;
+  }
 }
 
 .filtro-activo-hint {
@@ -246,9 +291,11 @@ $rojo:    #D32F2F;
 .accion-btn {
   flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
   padding: 11px; border-radius: 14px; border: 1px solid;
+  min-height: 44px;
   font-size: 12px; font-weight: 700; cursor: pointer;
   background: $card-bg;
   transition: transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
   ion-icon { font-size: 16px; }
 
   &.verde {
@@ -273,7 +320,12 @@ $rojo:    #D32F2F;
 }
 
 // ── LISTA DE ALUMNOS ────────────────────────────────────
-.alumnos-list { padding: 0 20px; padding-bottom: 110px; }
+.alumnos-list {
+  padding: 0 20px;
+  padding-bottom: 110px;
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
+}
 
 .alumno-card {
   display: flex; align-items: center; gap: 12px;
@@ -285,6 +337,8 @@ $rojo:    #D32F2F;
   transition: border-color 0.15s ease;
   position: relative; overflow: hidden;
   box-shadow: 0 4px 14px rgba(15,23,42,0.04);
+  // Perf: aisla repaint/reflow de cada tarjeta en listas largas de alumnos
+  contain: layout style paint;
 
   // Línea izquierda de color por estado
   &::before {
@@ -347,6 +401,17 @@ $rojo:    #D32F2F;
   border: 1.5px solid; transition: all 0.15s ease;
   display: flex; align-items: center; justify-content: center;
   background: $card-bg;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+
+  // Área de toque ampliada a 44px sin agrandar el botón visualmente
+  // (3 botones + avatar ya ocupan la fila; agrandarlos de verdad
+  // rompería la densidad de la lista, así que solo se agranda el hit-area)
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+  }
 
   &.P {
     border-color: rgba(22,163,74,0.28); color: rgba(22,163,74,0.55);
@@ -365,7 +430,10 @@ $rojo:    #D32F2F;
 
 // ── FAB GUARDAR (Neumorphism permitido: botón principal) ─
 .fab-guardar-wrap {
-  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  position: fixed;
+  // Respeta el home indicator (iPhone X+) sin perder el offset visual de 28px
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  left: 50%; transform: translateX(-50%);
   z-index: 100; width: calc(100% - 40px); max-width: 460px;
 }
 .fab-guardar {
@@ -377,6 +445,7 @@ $rojo:    #D32F2F;
   cursor: pointer;
   box-shadow: 0 10px 28px rgba(22,163,74,0.32), inset 0 1px 0 rgba(255,255,255,0.15);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
   ion-icon { font-size: 20px; }
 
   &:active  { transform: scale(0.98); box-shadow: 0 4px 14px rgba(22,163,74,0.22); }
@@ -384,7 +453,12 @@ $rojo:    #D32F2F;
 }
 
 // ── HISTORIAL ───────────────────────────────────────────
-.historial-list { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+.historial-list {
+  padding: 16px 20px;
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
+  display: flex; flex-direction: column; gap: 10px;
+}
 
 .historial-card {
   display: flex; align-items: center; gap: 12px;
@@ -396,6 +470,8 @@ $rojo:    #D32F2F;
   font-family: inherit;
   box-shadow: 0 4px 14px rgba(15,23,42,0.04);
   transition: box-shadow 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  contain: layout style paint;
   &:active { opacity: 0.9; }
 }
 
@@ -448,6 +524,8 @@ $rojo:    #D32F2F;
 
 .selector-intro {
   padding: 20px 20px 8px;
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -471,6 +549,13 @@ $rojo:    #D32F2F;
   color: $orange;
   cursor: pointer;
   font-family: inherit;
+  position: relative;
+  // Área de toque ampliada a ~44px de alto sin cambiar el estilo de "link" plano
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -12px -6px;
+  }
 }
 
 .grupo-selector-list {
@@ -478,6 +563,8 @@ $rojo:    #D32F2F;
   flex-direction: column;
   gap: 12px;
   padding: 10px 20px 26px;
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
 }
 
 .materia-section {
@@ -510,6 +597,8 @@ $rojo:    #D32F2F;
   text-align: left;
   font-family: inherit;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  contain: layout style paint;
 
   &:active { transform: scale(0.99); box-shadow: 0 3px 10px rgba(15,23,42,0.05); }
 }
@@ -595,6 +684,8 @@ $rojo:    #D32F2F;
   &::part(content) {
     background: $navy-2;
     box-shadow: 0 -8px 30px rgba(15,23,42,0.12);
+    // Respeta el home indicator en la hoja modal
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
@@ -623,6 +714,7 @@ $rojo:    #D32F2F;
   width: 100%;
   margin-top: 8px;
   padding: 13px;
+  min-height: 44px;
   border: none;
   border-radius: 14px;
   background: #EEF2F7;
@@ -631,7 +723,9 @@ $rojo:    #D32F2F;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
+
 // ─────────────────────────────────────────────────────────
 // RESPONSIVE — iPad: contenido centrado, grid flexible en selector
 // ─────────────────────────────────────────────────────────
@@ -674,4 +768,37 @@ $rojo:    #D32F2F;
   .grupo-selector-list {
     grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   }
+}
+
+// iPad Pro 12.9": mismo criterio de grid flexible, con un poco más de aire
+@media (min-width: 1366px) {
+  .selector-intro,
+  .asist-header-info,
+  .buscador-wrap,
+  .acciones-rapidas,
+  .alumnos-list,
+  .historial-list,
+  .materia-section {
+    max-width: 1040px;
+  }
+
+  .grupo-selector-list {
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 16px;
+  }
+}
+
+// iPad en Split View / Slide Over (~450-500px de ancho aunque el
+// dispositivo sea tablet): forzar 1 columna en el grid del selector
+@media (max-width: 600px) and (min-width: 768px) {
+  .grupo-selector-list {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+// Landscape: header y segmento más compactos
+@media (orientation: landscape) {
+  .asist-header-info { padding-top: 12px; }
+  .segment-wrap { padding-bottom: 10px; }
 }

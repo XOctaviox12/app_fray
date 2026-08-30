@@ -86,7 +86,12 @@
           <div
             class="materia-card pressable"
             *ngFor="let m of g.materias"
+            role="button"
+            tabindex="0"
+            [attr.aria-label]="'Ver métricas de ' + m.nombre"
             (click)="verDetalle(g.id, m.asignaturaId)"
+            (keydown.enter)="verDetalle(g.id, m.asignaturaId)"
+            (keydown.space)="$event.preventDefault(); verDetalle(g.id, m.asignaturaId)"
           >
             <div class="materia-card-left">
               <div class="materia-icon-wrap">
@@ -126,7 +131,15 @@
     </div>
 
     <div class="grupos-container" *ngIf="grupoAlumno">
-      <div class="aula-card pressable" (click)="verDetalle(grupoAlumno.id)">
+      <div
+        class="aula-card pressable"
+        role="button"
+        tabindex="0"
+        aria-label="Ver métricas del grupo"
+        (click)="verDetalle(grupoAlumno.id)"
+        (keydown.enter)="verDetalle(grupoAlumno.id)"
+        (keydown.space)="$event.preventDefault(); verDetalle(grupoAlumno.id)"
+      >
         <div class="aula-card-header">
           <div class="aula-badge-row">
             <span class="grado-badge">
@@ -191,7 +204,15 @@
     </div>
 
     <div class="grupos-container" *ngIf="grupoHijo">
-      <div class="aula-card tutor-card pressable" (click)="verDetalle(grupoHijo.id)">
+      <div
+        class="aula-card tutor-card pressable"
+        role="button"
+        tabindex="0"
+        aria-label="Ver métricas del grupo"
+        (click)="verDetalle(grupoHijo.id)"
+        (keydown.enter)="verDetalle(grupoHijo.id)"
+        (keydown.space)="$event.preventDefault(); verDetalle(grupoHijo.id)"
+      >
         <div class="aula-card-header">
           <div class="aula-badge-row">
             <span class="grado-badge">
@@ -230,7 +251,15 @@
 
       <p class="subsection-label">Seguimiento</p>
 
-      <div class="tutor-quick-card" routerLink="/mi-hijo">
+      <div
+        class="tutor-quick-card"
+        role="button"
+        tabindex="0"
+        aria-label="Calificaciones y asistencia"
+        routerLink="/mi-hijo"
+        (keydown.enter)="$event.preventDefault(); $any($event.currentTarget).click()"
+        (keydown.space)="$event.preventDefault(); $any($event.currentTarget).click()"
+      >
         <div class="tutor-quick-icon"><ion-icon name="ribbon-outline"></ion-icon></div>
         <div class="tutor-quick-text">
           <h4>Calificaciones y asistencia</h4>
@@ -239,7 +268,15 @@
         <ion-icon name="chevron-forward-outline" class="tutor-quick-arrow"></ion-icon>
       </div>
 
-      <div class="tutor-quick-card" routerLink="/tareas-hijo">
+      <div
+        class="tutor-quick-card"
+        role="button"
+        tabindex="0"
+        aria-label="Tareas pendientes"
+        routerLink="/tareas-hijo"
+        (keydown.enter)="$event.preventDefault(); $any($event.currentTarget).click()"
+        (keydown.space)="$event.preventDefault(); $any($event.currentTarget).click()"
+      >
         <div class="tutor-quick-icon"><ion-icon name="document-text-outline"></ion-icon></div>
         <div class="tutor-quick-text">
           <h4>Tareas pendientes</h4>
@@ -248,7 +285,15 @@
         <ion-icon name="chevron-forward-outline" class="tutor-quick-arrow"></ion-icon>
       </div>
 
-      <div class="tutor-quick-card" routerLink="/comunidad">
+      <div
+        class="tutor-quick-card"
+        role="button"
+        tabindex="0"
+        aria-label="Comunicados"
+        routerLink="/comunidad"
+        (keydown.enter)="$event.preventDefault(); $any($event.currentTarget).click()"
+        (keydown.space)="$event.preventDefault(); $any($event.currentTarget).click()"
+      >
         <div class="tutor-quick-icon"><ion-icon name="megaphone-outline"></ion-icon></div>
         <div class="tutor-quick-text">
           <h4>Comunicados</h4>

@@ -57,7 +57,7 @@
     <div class="error-state" *ngIf="errorGrupos && !cargandoGrupos">
       <ion-icon name="cloud-offline-outline"></ion-icon>
       <p>{{ errorGrupos }}</p>
-      <button class="retry-btn" (click)="cargarGrupos()">
+      <button type="button" class="retry-btn" (click)="cargarGrupos()">
         <ion-icon name="refresh-outline"></ion-icon> Reintentar
       </button>
     </div>
@@ -66,12 +66,12 @@
 
       <div class="selector-intro">
         <p class="selector-hint">Elige la materia y el grupo al que le vas a pasar lista</p>
-        <button class="fecha-pill fecha-pill-selector" (click)="mostrarSelectorFecha = true">
+        <button type="button" class="fecha-pill fecha-pill-selector" (click)="mostrarSelectorFecha = true">
           <ion-icon name="calendar-outline"></ion-icon>
           {{ esHoy ? 'Hoy · ' : '' }}{{ fechaSeleccionadaDisplay }}
           <ion-icon name="chevron-down-outline" class="fecha-pill-chevron"></ion-icon>
         </button>
-        <button class="link-hoy" *ngIf="!esHoy" (click)="irAHoy()">Volver a hoy</button>
+        <button type="button" class="link-hoy" *ngIf="!esHoy" (click)="irAHoy()">Volver a hoy</button>
       </div>
 
       <div class="empty-state" *ngIf="materias.length === 0">
@@ -84,7 +84,7 @@
         <p class="materia-section-title">{{ materia.nombre }}</p>
 
         <div class="grupo-selector-list">
-          <button class="grupo-card" *ngFor="let g of materia.grupos" (click)="seleccionarGrupo(materia, g)">
+          <button type="button" class="grupo-card" *ngFor="let g of materia.grupos" (click)="seleccionarGrupo(materia, g)">
             <div class="grupo-card-icon" [ngClass]="{ tomada: g.tomada }">
               <ion-icon name="school-outline"></ion-icon>
             </div>
@@ -123,7 +123,7 @@
     <div class="error-state" *ngIf="error && !cargando">
       <ion-icon name="cloud-offline-outline"></ion-icon>
       <p>{{ error }}</p>
-      <button class="retry-btn" (click)="cargarAlumnos()">
+      <button type="button" class="retry-btn" (click)="cargarAlumnos()">
         <ion-icon name="refresh-outline"></ion-icon> Reintentar
       </button>
     </div>
@@ -151,7 +151,7 @@
       <!-- Fecha + contadores -->
       <div class="asist-header-info">
         <div class="header-info-row">
-          <button class="fecha-pill" (click)="mostrarSelectorFecha = true">
+          <button type="button" class="fecha-pill" (click)="mostrarSelectorFecha = true">
             <ion-icon name="calendar-outline"></ion-icon>
             {{ esHoy ? 'Hoy · ' : '' }}{{ fechaSeleccionadaDisplay }}
             <ion-icon name="chevron-down-outline" class="fecha-pill-chevron"></ion-icon>
@@ -196,25 +196,27 @@
           placeholder="Buscar alumno por nombre..."
           [(ngModel)]="filtroAlumno"
         />
-        <ion-icon
-          name="close-circle"
+        <button
+          type="button"
           class="buscador-clear"
           *ngIf="filtroAlumno"
           (click)="filtroAlumno = ''"
-        ></ion-icon>
+          aria-label="Limpiar búsqueda">
+          <ion-icon name="close-circle"></ion-icon>
+        </button>
       </div>
 
       <!-- Acciones rápidas globales (ocultas mientras hay un filtro activo,
            para no marcar por error solo a un subconjunto pensando que es
            el grupo completo) -->
       <div class="acciones-rapidas" *ngIf="!filtroAlumno">
-        <button class="accion-btn verde" (click)="confirmarMarcarTodos('P')">
+        <button type="button" class="accion-btn verde" (click)="confirmarMarcarTodos('P')">
           <ion-icon name="checkmark-circle-outline"></ion-icon> Todos presentes
         </button>
-        <button class="accion-btn naranja" (click)="confirmarMarcarTodos('R')">
+        <button type="button" class="accion-btn naranja" (click)="confirmarMarcarTodos('R')">
           <ion-icon name="time-outline"></ion-icon> Todos con retardo
         </button>
-        <button class="accion-btn rojo" (click)="confirmarMarcarTodos('A')">
+        <button type="button" class="accion-btn rojo" (click)="confirmarMarcarTodos('A')">
           <ion-icon name="close-circle-outline"></ion-icon> Todos ausentes
         </button>
       </div>
@@ -256,12 +258,12 @@
 
           <!-- Botones P / R / A -->
           <div class="estado-btns">
-            <button class="estado-btn P" [class.activo]="alumno.estado === 'P'"
-                    (click)="setEstado(alumno, 'P')">P</button>
-            <button class="estado-btn R" [class.activo]="alumno.estado === 'R'"
-                    (click)="setEstado(alumno, 'R')">R</button>
-            <button class="estado-btn A" [class.activo]="alumno.estado === 'A'"
-                    (click)="setEstado(alumno, 'A')">A</button>
+            <button type="button" class="estado-btn P" [class.activo]="alumno.estado === 'P'"
+                    aria-label="Presente" (click)="setEstado(alumno, 'P')">P</button>
+            <button type="button" class="estado-btn R" [class.activo]="alumno.estado === 'R'"
+                    aria-label="Retardo" (click)="setEstado(alumno, 'R')">R</button>
+            <button type="button" class="estado-btn A" [class.activo]="alumno.estado === 'A'"
+                    aria-label="Ausente" (click)="setEstado(alumno, 'A')">A</button>
           </div>
 
         </div>
@@ -269,7 +271,7 @@
 
       <!-- FAB Guardar -->
       <div class="fab-guardar-wrap" *ngIf="alumnos.length > 0">
-        <button class="fab-guardar" (click)="guardarLista()" [disabled]="guardando">
+        <button type="button" class="fab-guardar" (click)="guardarLista()" [disabled]="guardando">
           <ion-spinner *ngIf="guardando" name="crescent"></ion-spinner>
           <ion-icon *ngIf="!guardando" name="checkmark-done-outline"></ion-icon>
           {{ guardando ? 'Guardando...' : 'Guardar lista' }}
@@ -303,7 +305,7 @@
       <ng-container *ngFor="let grupo of historialPorParcial">
         <p class="historial-parcial-header">Parcial {{ grupo.parcial }}</p>
 
-        <button class="historial-card" *ngFor="let item of grupo.items" (click)="abrirDiaHistorial(item.fecha)">
+        <button type="button" class="historial-card" *ngFor="let item of grupo.items" (click)="abrirDiaHistorial(item.fecha)">
 
           <div class="hist-fecha-col">
             <span class="hist-dia">{{ item.fecha.split('-')[2] }}</span>
@@ -365,7 +367,7 @@
         (ionChange)="onFechaChange($event.detail.value)"
         class="fecha-datetime"
       ></ion-datetime>
-      <button class="fecha-modal-close" (click)="mostrarSelectorFecha = false">Cerrar</button>
+      <button type="button" class="fecha-modal-close" (click)="mostrarSelectorFecha = false">Cerrar</button>
     </div>
   </ng-template>
 </ion-modal>

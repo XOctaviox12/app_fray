@@ -2,6 +2,7 @@
 // PERFIL.PAGE.SCSS
 // Alineado a la paleta del mock — tarjetas grandes,
 // iconos alternados por color, halo tras el avatar.
+// + Ajustes responsivos iPad + patrones iOS (GUIA_DISENO_RESPONSIVO / PATRONES_IONIC_IOS_AVANZADO)
 // ============================================
 
 :host {
@@ -57,6 +58,14 @@
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
 
+@supports (padding: max(0px)) {
+  .header-toolbar {
+    padding-top: max(env(safe-area-inset-top), 0px);
+    padding-left: max(env(safe-area-inset-left), 0px);
+    padding-right: max(env(safe-area-inset-right), 0px);
+  }
+}
+
 .header-title {
   color: var(--p-text);
   font-family: var(--f-display);
@@ -67,6 +76,8 @@
 
 .header-back-btn {
   --color: var(--p-secondary);
+  --min-height: 44px;
+  --min-width: 44px;
 }
 
 .header-edit-btn {
@@ -76,6 +87,7 @@
   border: none;
   cursor: pointer;
   padding: 8px 16px;
+  min-height: 44px;
   border-radius: 999px;
   background: var(--p-cool-grey);
   color: var(--p-text-2);
@@ -83,6 +95,7 @@
   font-size: 13px;
   font-weight: 600;
   transition: background 200ms ease, color 200ms ease, transform 150ms ease;
+  -webkit-tap-highlight-color: transparent;
 
   ion-icon { font-size: 18px; }
   &:active { transform: scale(0.95); }
@@ -95,7 +108,9 @@
 
 .perfil-content {
   --background: var(--p-bg);
+  --padding-bottom: 32px;
   position: relative;
+  -webkit-overflow-scrolling: touch;
 }
 
 // ============================================
@@ -108,6 +123,14 @@
   padding-bottom: 40px;
   position: relative;
   z-index: 1;
+}
+
+@supports (padding: max(0px)) {
+  .page-shell {
+    // Margen extra de 24px sobre el safe area, sumado al padding base
+    // de 40px, para que "Cerrar sesión" no quede pegado al borde/home indicator
+    padding-bottom: calc(max(env(safe-area-inset-bottom), 24px) + 40px);
+  }
 }
 
 // ============================================
@@ -165,6 +188,7 @@
 
 .avatar-editable {
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   &:active .avatar-ring { transform: scale(0.97); }
 }
 
@@ -446,6 +470,7 @@ ion-datetime-button {
     font-family: var(--f-text);
     padding: 6px 12px;
     border-radius: 12px;
+    min-height: 32px;
   }
 }
 
@@ -522,6 +547,7 @@ ion-datetime-button {
   border: none;
   cursor: pointer;
   padding: 16px;
+  min-height: 44px;
   border-radius: var(--r-btn);
   background: linear-gradient(180deg, var(--p-primary-container), var(--p-primary-container-end));
   color: var(--p-white);
@@ -531,6 +557,7 @@ ion-datetime-button {
   box-shadow: var(--sh-btn);
   transition: transform 150ms ease, box-shadow 150ms ease;
   animation: fadeSlideIn 250ms ease;
+  -webkit-tap-highlight-color: transparent;
 
   ion-icon { font-size: 20px; }
   ion-spinner { width: 20px; height: 20px; --color: var(--p-white); }
@@ -552,6 +579,7 @@ ion-datetime-button {
   border: none;
   cursor: pointer;
   padding: 16px;
+  min-height: 44px;
   border-radius: var(--r-btn);
   background: var(--p-error-container);
   color: var(--p-on-error-container);
@@ -559,6 +587,7 @@ ion-datetime-button {
   font-size: 14.5px;
   font-weight: 700;
   transition: background 200ms ease, transform 150ms ease;
+  -webkit-tap-highlight-color: transparent;
 
   ion-icon { font-size: 18px; }
   ion-spinner { width: 17px; height: 17px; --color: var(--p-on-error-container); }
@@ -637,4 +666,19 @@ ion-datetime-button {
 @keyframes fadeSlideIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .error-banner,
+  .btn-guardar,
+  .empty-state {
+    animation: none;
+  }
+
+  .avatar-editable:active .avatar-ring,
+  .header-edit-btn:active,
+  .btn-guardar:active:not(:disabled),
+  .btn-logout:active {
+    transform: none;
+  }
 }

@@ -1,6 +1,7 @@
 // ============================================
 // APOYO.PAGE.SCSS — alineado con apoyo.page.html
 // Rediseño: Soft UI + Cupertino + Neumorphism ligero (tema claro, iPad)
+// Ajustado con GUIA_DISEN_O_RESPONSIVO_FRAYUB.md + PATRONES_IONIC_IOS_AVANZADO.md
 // ============================================
 
 // ── Override de paleta SOLO dentro de esta página ──
@@ -17,30 +18,57 @@
   --orange-glow:   rgba(245, 124, 0, 0.22);
   --card-bg:       #FFFFFF;
   --card-border:   #E5E7EB;
+
+  // Sombras Soft UI (mismo criterio que la guía, aplicadas al tema claro local)
+  --shadow-light:  0 4px 14px rgba(15, 23, 42, 0.05);
+  --shadow-medium: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --shadow-heavy:  0 10px 30px rgba(15, 23, 42, 0.12);
 }
 
+// ── Reducir movimiento si el sistema lo pide (accesibilidad) ──
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+// ── Header ────────────────────────────────
 .header-toolbar {
   --background: var(--navy-2);
   --color: var(--white);
   --border-style: none;
-  --min-height: 60px;
+  --min-height: 56px;
   border-bottom: 1px solid var(--card-border);
+
+  // Safe area: notch / Dynamic Island (iPhone X+ / 14+)
+  padding-left: max(env(safe-area-inset-left), 0);
+  padding-right: max(env(safe-area-inset-right), 0);
+  padding-top: env(safe-area-inset-top);
 }
 
 .header-title {
   color: var(--white);
   font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   letter-spacing: -0.2px;
 }
 
 .header-action-btn {
   --color: #{rgba(31, 41, 55, 0.55)};
+  // Área táctil mínima 44x44 (checklist de accesibilidad)
+  --padding-start: 10px;
+  --padding-end: 10px;
+  min-width: 44px;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .back-btn {
   --color: var(--orange);
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .header-accent-bar {
@@ -48,20 +76,40 @@
   background: linear-gradient(90deg, var(--orange), transparent);
 }
 
+@media (min-width: 390px) {
+  .header-toolbar { --min-height: 60px; }
+}
+
+@media (min-width: 768px) {
+  .header-toolbar { --min-height: 64px; }
+  .header-title   { font-size: 1.2rem; }
+}
+
 .apoyo-content {
   --background: var(--navy);
+  // iOS momentum scroll + perf
+  -webkit-overflow-scrolling: touch;
 }
 
 // ── Hero ──────────────────────────────────
 .section-hero {
   background: transparent;
-  padding: 24px 20px 20px;
+  padding: 20px 16px 16px;
+}
+
+@media (min-width: 375px) {
+  .section-hero { padding: 22px 18px 18px; }
+}
+
+@media (min-width: 768px) {
+  .section-hero { padding: 24px 20px 20px; }
 }
 
 .section-title {
   margin: 0;
   font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
-  font-size: 22px;
+  // clamp: escala con el tamaño de fuente del sistema sin romper el layout
+  font-size: clamp(19px, 4.5vw, 24px);
   font-weight: 700;
   color: var(--white);
   letter-spacing: -0.4px;
@@ -75,30 +123,50 @@
 
 // ── Buscador ──────────────────────────────
 .search-bar-wrap {
-  padding: 0 20px 12px;
+  padding: 0 16px 12px;
   animation: fade-in-up 0.2s ease both;
+}
+
+@media (min-width: 768px) {
+  .search-bar-wrap { padding: 0 20px 12px; }
 }
 
 .apoyo-searchbar {
   --background: var(--card-bg);
   --border-radius: 16px;
-  --box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+  --box-shadow: var(--shadow-light);
   --color: var(--white);
   --placeholder-color: #9CA3AF;
   --icon-color: var(--white-35);
+  --min-height: 44px;
   padding: 0;
 }
 
 // ── Formulario docente: publicar material ─
 .upload-form-card {
-  margin: 0 20px 20px;
+  margin: 0 16px 20px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-top: 3px solid var(--orange);
   border-radius: 22px;
-  padding: 20px;
-  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+  padding: 18px;
+  box-shadow: var(--shadow-medium);
   animation: fade-in-up 0.25s ease both;
+}
+
+@media (min-width: 768px) {
+  .upload-form-card {
+    margin: 0 auto 20px;
+    max-width: 620px;
+    padding: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .upload-form-card {
+    max-width: 680px;
+    padding: 28px;
+  }
 }
 
 .upload-form-title {
@@ -114,6 +182,7 @@
   --border-radius: 16px;
   --padding-start: 14px;
   --inner-padding-end: 14px;
+  --min-height: 44px;
   --highlight-color-focused: var(--orange);
   --color: var(--white);
   border-radius: 16px;
@@ -135,6 +204,7 @@
   align-items: center;
   gap: 8px;
   padding: 14px;
+  min-height: 44px;
   border: 1.5px dashed var(--card-border);
   border-radius: 16px;
   background: #EEF2F7;
@@ -143,13 +213,19 @@
   font-weight: 600;
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 
   ion-icon { font-size: 18px; color: var(--orange); flex-shrink: 0; }
   span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  &:hover {
-    border-color: var(--orange);
-    background: rgba(245, 124, 0, 0.04);
+  @media (hover: hover) {
+    &:hover {
+      border-color: var(--orange);
+      background: rgba(245, 124, 0, 0.04);
+    }
+  }
+  &:active {
+    background: rgba(245, 124, 0, 0.07);
   }
 }
 
@@ -180,12 +256,15 @@
   justify-content: flex-end;
   gap: 8px;
   margin-top: 6px;
+  flex-wrap: wrap;
 
   ion-button {
     --border-radius: 14px;
+    --min-height: 44px;
     font-weight: 700;
     text-transform: none;
     letter-spacing: 0;
+    -webkit-tap-highlight-color: transparent;
 
     &[fill="clear"] { --color: var(--white-60); }
     &:not([fill="clear"]) {
@@ -205,12 +284,16 @@
   align-items: center;
   gap: 10px;
   text-align: center;
-  padding: 56px 24px;
+  padding: 48px 24px;
   color: var(--white-35);
 
   ion-icon { font-size: 32px; color: var(--orange); }
   ion-spinner { width: 26px; height: 26px; --color: var(--orange); }
   p { margin: 0; font-size: 13px; }
+}
+
+@media (min-width: 768px) {
+  .state-block { padding: 64px 24px; }
 }
 
 .error-block {
@@ -220,7 +303,16 @@
 
 // ── Cards container ───────────────────────
 .apoyo-cards-container {
-  padding: 12px 20px 100px;
+  padding: 12px 16px 100px;
+  // Safe area en landscape (notch lateral en iPhone)
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+
+@media (min-width: 768px) {
+  .apoyo-cards-container {
+    padding: 12px 20px 100px;
+  }
 }
 
 .apoyo-card {
@@ -229,8 +321,10 @@
   border-radius: 20px;
   margin-bottom: 14px;
   overflow: hidden;
-  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--shadow-light);
   animation: fade-in-up 0.3s ease both;
+  // Perf: aisla repaint/reflow de cada card en listas largas
+  contain: layout style paint;
 }
 
 @keyframes fade-in-up {
@@ -260,6 +354,10 @@
   padding: 16px 18px;
 }
 
+@media (min-width: 768px) {
+  .apoyo-card-body { padding: 18px 20px; }
+}
+
 .apoyo-card-header {
   margin-bottom: 6px;
 }
@@ -278,17 +376,9 @@
   }
 }
 
-.orange-cat {
-  color: var(--orange);
-}
-
-.blue-cat {
-  color: #0D47A1;
-}
-
-.red-cat {
-  color: #D32F2F;
-}
+.orange-cat { color: var(--orange); }
+.blue-cat   { color: #0D47A1; }
+.red-cat    { color: #D32F2F; }
 
 .apoyo-card-title {
   margin: 4px 0 0;
@@ -321,11 +411,15 @@
   border: 1px solid var(--card-border);
   border-radius: 14px;
   padding: 11px 14px;
+  min-height: 44px;
   cursor: pointer;
   transition: background 0.18s ease, border-color 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
 
-  &:hover {
-    border-color: rgba(245, 124, 0, 0.25);
+  @media (hover: hover) {
+    &:hover {
+      border-color: rgba(245, 124, 0, 0.25);
+    }
   }
   &:active {
     background: rgba(245, 124, 0, 0.05);
@@ -386,6 +480,9 @@
   font-size: 12.5px;
   font-weight: 600;
   color: var(--white);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .resource-meta {
@@ -398,26 +495,26 @@
   --color: var(--orange);
   --padding-start: 4px;
   --padding-end: 4px;
+  min-width: 44px;
+  min-height: 44px;
 
-  &.orange-action {
-    --color: var(--orange);
-  }
-  &.blue-action {
-    --color: #0D47A1;
-  }
-  &.red-action {
-    --color: #D32F2F;
-  }
+  &.orange-action { --color: var(--orange); }
+  &.blue-action   { --color: #0D47A1; }
+  &.red-action    { --color: #D32F2F; }
 }
 
 .resource-delete-btn {
   --color: #D32F2F;
   --padding-start: 4px;
   --padding-end: 4px;
+  min-width: 44px;
+  min-height: 44px;
   opacity: 0.7;
   transition: opacity 0.15s ease;
 
-  &:hover { opacity: 1; }
+  @media (hover: hover) {
+    &:hover { opacity: 1; }
+  }
 }
 
 // ─────────────────────────────────────────────────────────
@@ -426,7 +523,6 @@
 @media (min-width: 768px) {
   .section-hero,
   .search-bar-wrap,
-  .upload-form-card,
   .apoyo-cards-container {
     max-width: 760px;
     margin-left: auto;
@@ -439,7 +535,6 @@
 @media (min-width: 1024px) {
   .section-hero,
   .search-bar-wrap,
-  .upload-form-card,
   .apoyo-cards-container {
     max-width: 860px;
   }
@@ -454,5 +549,43 @@
 
   .apoyo-card {
     margin-bottom: 0;
+  }
+}
+
+// iPad Pro 12.9": mismo grid de 2 columnas, pero con más aire y
+// tope de ancho para que las cards no se estiren demasiado
+@media (min-width: 1366px) {
+  .section-hero,
+  .search-bar-wrap,
+  .apoyo-cards-container {
+    max-width: 1040px;
+  }
+
+  .apoyo-cards-container {
+    gap: 20px;
+  }
+
+  .apoyo-card-body { padding: 20px 22px; }
+}
+
+// iPad en Split View / Slide Over (~450-500px de ancho aunque el
+// dispositivo sea tablet): forzar layout de 1 columna
+@media (max-width: 600px) and (min-width: 768px) {
+  .apoyo-cards-container {
+    display: block;
+    max-width: 100%;
+  }
+
+  .apoyo-card { margin-bottom: 14px; }
+}
+
+// Landscape: menos padding vertical, header más compacto
+@media (orientation: landscape) {
+  .section-hero { padding-top: 14px; padding-bottom: 12px; }
+}
+
+@media (min-width: 1024px) and (orientation: landscape) {
+  .apoyo-cards-container {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
