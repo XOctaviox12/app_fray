@@ -98,68 +98,79 @@ async iniciarSesion(username: string, password: string): Promise<boolean> {
   } catch (e: any) { console.error(e.message); return false; }
 }
 
-  // ── Login tutor por código de acceso ─────────────────────
-  // users_tutor.codigo_acceso es un campo generado por Django en Tutor.save()
 // ── Login tutor por código de acceso ─────────────────────
-  // users_tutor.codigo_acceso es un campo generado por Django en Tutor.save()
-  async iniciarSesionTutor(codigo: string): Promise<boolean> {
-    try {
-      const { data, error } = await this.supabase
-        .rpc('verificar_codigo_tutor', { p_codigo: codigo })
-        .single<{ id: number; nombre: string; parentesco: string; correo: string | null; telefono: string; alumno_id: number }>();
-
-      if (error || !data) { console.error('Login tutor fallido:', error?.message); return false; }
-
-      // Tutor no tiene fila en users_user, así que se le pasa un flag propio a crear_sesion
-      const { data: token, error: eToken } = await this.supabase.rpc('crear_sesion_tutor', { p_tutor_id: data.id });
-      if (eToken) { console.error('No se pudo crear la sesion del tutor:', eToken.message); return false; }
-
+// users_tutor.codigo_acceso es un campo generado por Django en Tutor.save()
+async iniciarSesionTutor(codigo: string): Promise<boolean> {
+  try {
+    // ⭐ CÓDIGO ESPECIAL PARA REVISIÓN DE APPLE - REMOVE DESPUÉS DE APROBACIÓN
+    if (codigo === 'APPSTORETE') {
       const sesion: SesionTutor = {
-        _tipo: 'TUTOR', id: data.id, nombre: data.nombre, parentesco: data.parentesco,
-        correo: data.correo, telefono: data.telefono, alumno_id: data.alumno_id, rol: 'TUTOR',
-        token,
+        _tipo: 'TUTOR', id: 999, nombre: 'Tutor Demo', parentesco: 'Padre/Madre',
+        correo: 'tutordemo@frayhub.local', telefono: '4431234567', alumno_id: 271, rol: 'TUTOR',
+        token: 'demo-' + Date.now(),
       };
       this.tutor = sesion; this.usuario = null; this.loggedIn = true;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(sesion));
       return true;
-    } catch (e: any) { console.error(e.message); return false; }
-  }
+    }
+
+    // Validación normal con servidor
+    const { data, error } = await this.supabase
+      .rpc('verificar_codigo_tutor', { p_codigo: codigo })
+      .single<{ id: number; nombre: string; parentesco: string; correo: string | null; telefono: string; alumno_id: number }>();
+
+    if (error || !data) { console.error('Login tutor fallido:', error?.message); return false; }
+
+    // Tutor no tiene fila en users_user, así que se le pasa un flag propio a crear_sesion
+    const { data: token, error: eToken } = await this.supabase.rpc('crear_sesion_tutor', { p_tutor_id: data.id });
+    if (eToken) { console.error('No se pudo crear la sesion del tutor:', eToken.message); return false; }
+
+    const sesion: SesionTutor = {
+      _tipo: 'TUTOR', id: data.id, nombre: data.nombre, parentesco: data.parentesco,
+      correo: data.correo, telefono: data.telefono, alumno_id: data.alumno_id, rol: 'TUTOR',
+      token,
+    };
+    this.tutor = sesion; this.usuario = null; this.loggedIn = true;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sesion));
+    return true;
+  } catch (e: any) { console.error(e.message); return false; }
+}
 
 // ── Cerrar sesión ────────────────────────────────────────
-  async cerrarSesion(): Promise<void> {
-    const token = this.usuario?.token || this.tutor?.token;
-    if (token) {
-      try {
-        await this.supabase.rpc('cerrar_sesion', { p_token: token });
-      } catch {
-        // no crítico: si falla, el token simplemente expira solo por su expira_en
-      }
+async cerrarSesion(): Promise<void> {
+  const token = this.usuario?.token || this.tutor?.token;
+  if (token) {
+    try {
+      await this.supabase.rpc('cerrar_sesion', { p_token: token });
+    } catch {
+      // no crítico: si falla, el token simplemente expira solo por su expira_en
     }
-    this.usuario = null; this.tutor = null; this.loggedIn = false;
-    localStorage.removeItem(STORAGE_KEY);
   }
+  this.usuario = null; this.tutor = null; this.loggedIn = false;
+  localStorage.removeItem(STORAGE_KEY);
+}
 
-  // ── Rol ──────────────────────────────────────────────────
-  get rolActual(): string {
-    if (this.tutor) return 'TUTOR';
-    return (this.usuario?.rol || '').toUpperCase();
-  }
+// ── Rol ──────────────────────────────────────────────────
+get rolActual(): string {
+  if (this.tutor) return 'TUTOR';
+  return (this.usuario?.rol || '').toUpperCase();
+}
 
-  esDocente(): boolean { return ['DOCENTE','COORD','DIRECTOR'].includes(this.rolActual); }
-  esAlumno():  boolean { return this.rolActual === 'ALUMNO'; }
-  esTutor():   boolean { return this.rolActual === 'TUTOR'; }
+esDocente(): boolean { return ['DOCENTE','COORD','DIRECTOR'].includes(this.rolActual); }
+esAlumno():  boolean { return this.rolActual === 'ALUMNO'; }
+esTutor():   boolean { return this.rolActual === 'TUTOR'; }
 
-  // ── Display ──────────────────────────────────────────────
-  getNombreDisplay(): string {
-    if (this.tutor) return this.tutor.nombre;
-    if (!this.usuario) return '';
-    return `${this.usuario.first_name} ${this.usuario.last_name}`.trim() || this.usuario.username;
-  }
+// ── Display ──────────────────────────────────────────────
+getNombreDisplay(): string {
+  if (this.tutor) return this.tutor.nombre;
+  if (!this.usuario) return '';
+  return `${this.usuario.first_name} ${this.usuario.last_name}`.trim() || this.usuario.username;
+}
 
-  getAvatarUrl(): string {
-    if (this.tutor || !this.usuario?.foto_perfil) return 'assets/img/default-avatar.png';
-    if (this.usuario.foto_perfil.startsWith('http')) return this.usuario.foto_perfil;
-    const { data } = this.supabase.storage.from('avatars').getPublicUrl(this.usuario.foto_perfil);
-    return data.publicUrl;
-  }
+getAvatarUrl(): string {
+  if (this.tutor || !this.usuario?.foto_perfil) return 'assets/img/default-avatar.png';
+  if (this.usuario.foto_perfil.startsWith('http')) return this.usuario.foto_perfil;
+  const { data } = this.supabase.storage.from('avatars').getPublicUrl(this.usuario.foto_perfil);
+  return data.publicUrl;
+}
 }
