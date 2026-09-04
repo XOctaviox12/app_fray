@@ -1,8 +1,8 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="header-toolbar">
     <ion-buttons slot="start">
-      <ion-menu-button>
-        <ion-icon name="menu-outline"></ion-icon>
+      <ion-menu-button aria-label="Abrir menú">
+        <ion-icon name="menu-outline" aria-hidden="true"></ion-icon>
       </ion-menu-button>
     </ion-buttons>
     <ion-title class="header-title text-truncate">{{ esDocente ? 'Mis Tareas' : 'Tareas' }}</ion-title>
@@ -48,25 +48,27 @@
 
       <ng-container *ngIf="tareas.length > 0">
         <div class="search-wrap">
-          <ion-icon name="search-outline" class="field-icon"></ion-icon>
-          <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar por título o materia..." />
-          <ion-icon
+          <ion-icon name="search-outline" class="field-icon" aria-hidden="true"></ion-icon>
+          <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar por título o materia..." aria-label="Buscar tareas" />
+          <button
             *ngIf="searchTerm"
-            name="close-circle"
-            class="clear-search"
+            class="clear-search-btn"
             (click)="searchTerm = ''"
-          ></ion-icon>
+            aria-label="Limpiar búsqueda"
+          >
+            <ion-icon name="close-circle" aria-hidden="true"></ion-icon>
+          </button>
         </div>
 
-        <div class="filter-chips-row">
-          <button class="filter-chip" [class.active]="filtroEstado === 'todas'" (click)="filtroEstado = 'todas'">Todas</button>
-          <button class="filter-chip" [class.active]="filtroEstado === 'activas'" (click)="filtroEstado = 'activas'">Activas</button>
-          <button class="filter-chip" [class.active]="filtroEstado === 'vencidas'" (click)="filtroEstado = 'vencidas'">Vencidas</button>
+        <div class="filter-chips-row" role="tablist" aria-label="Filtrar por estado">
+          <button class="filter-chip" [class.active]="filtroEstado === 'todas'" (click)="filtroEstado = 'todas'" role="tab" [attr.aria-selected]="filtroEstado === 'todas'">Todas</button>
+          <button class="filter-chip" [class.active]="filtroEstado === 'activas'" (click)="filtroEstado = 'activas'" role="tab" [attr.aria-selected]="filtroEstado === 'activas'">Activas</button>
+          <button class="filter-chip" [class.active]="filtroEstado === 'vencidas'" (click)="filtroEstado = 'vencidas'" role="tab" [attr.aria-selected]="filtroEstado === 'vencidas'">Vencidas</button>
         </div>
 
         <div class="filter-selects-row">
           <div class="filter-select-wrap">
-            <select [(ngModel)]="filtroGrupoId" aria-label="Filtrar por grupo">
+            <select [(ngModel)]="filtroGrupoId" aria-label="Filtrar por materia">
               <option [ngValue]="null">Todas las materias</option>
               <option *ngFor="let m of materiasFiltro" [ngValue]="m.id">{{ m.nombre }}</option>
             </select>
@@ -78,13 +80,13 @@
             </select>
           </div>
           <button class="clear-filters-btn" *ngIf="hayFiltrosActivos" (click)="limpiarFiltros()" aria-label="Limpiar filtros">
-            <ion-icon name="refresh-outline"></ion-icon>
+            <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
           </button>
         </div>
       </ng-container>
 
       <button class="btn-nueva-tarea-inline" (click)="abrirFormularioNuevo()">
-        <ion-icon name="add-outline"></ion-icon>
+        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
         Nueva Tarea
       </button>
     </div>
@@ -94,25 +96,25 @@
       <div class="form-header">
         <h3 class="form-title text-truncate">{{ editingTarea ? 'Editar Tarea' : 'Nueva Tarea' }}</h3>
         <button class="form-close-btn" (click)="solicitarCierreFormulario()" aria-label="Cerrar formulario">
-          <ion-icon name="close-outline"></ion-icon>
+          <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
         </button>
       </div>
 
       <div class="form-grid">
 
         <div class="input-group">
-          <label class="input-label">Título</label>
+          <label class="input-label" for="tarea-titulo">Título</label>
           <div class="input-wrap">
-            <ion-icon name="create-outline" class="field-icon"></ion-icon>
-            <input type="text" [(ngModel)]="newTask.titulo" placeholder="Ej: Ensayo de historia" />
+            <ion-icon name="create-outline" class="field-icon" aria-hidden="true"></ion-icon>
+            <input id="tarea-titulo" type="text" [(ngModel)]="newTask.titulo" placeholder="Ej: Ensayo de historia" />
           </div>
         </div>
 
         <div class="input-group">
-          <label class="input-label">Materia</label>
+          <label class="input-label" for="tarea-materia">Materia</label>
           <div class="input-wrap select-wrap">
-            <ion-icon name="book-outline" class="field-icon"></ion-icon>
-            <select [(ngModel)]="newTask.materiaId" (ngModelChange)="onMateriaChange()" [disabled]="cargandoOpciones || materias.length === 0">
+            <ion-icon name="book-outline" class="field-icon" aria-hidden="true"></ion-icon>
+            <select id="tarea-materia" [(ngModel)]="newTask.materiaId" (ngModelChange)="onMateriaChange()" [disabled]="cargandoOpciones || materias.length === 0">
               <option [ngValue]="null" disabled>
                 {{ materias.length === 0 && !cargandoOpciones ? 'Sin materias asignadas' : 'Elige una materia' }}
               </option>
@@ -122,10 +124,10 @@
         </div>
 
         <div class="input-group">
-          <label class="input-label">Grupo</label>
+          <label class="input-label" for="tarea-grupo">Grupo</label>
           <div class="input-wrap select-wrap">
-            <ion-icon name="people-outline" class="field-icon"></ion-icon>
-            <select [(ngModel)]="newTask.grupoId" [disabled]="!newTask.materiaId || cargandoOpciones">
+            <ion-icon name="people-outline" class="field-icon" aria-hidden="true"></ion-icon>
+            <select id="tarea-grupo" [(ngModel)]="newTask.grupoId" [disabled]="!newTask.materiaId || cargandoOpciones">
               <option [ngValue]="null" disabled>
                 {{ !newTask.materiaId ? 'Primero elige la materia' :
                    (gruposDeMateria.length === 0 && !cargandoOpciones ? 'Sin grupos para esta materia' : 'Elige un grupo') }}
@@ -138,24 +140,24 @@
           </p>
         </div>
 
-        <div class="opciones-error" *ngIf="errorOpciones">
-          <ion-icon name="alert-circle-outline"></ion-icon>
+        <div class="opciones-error" *ngIf="errorOpciones" role="alert">
+          <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
           <span class="text-clamp-2">{{ errorOpciones }}</span>
         </div>
 
         <div class="input-group">
-          <label class="input-label">Fecha de entrega</label>
+          <label class="input-label" for="tarea-fecha">Fecha de entrega</label>
           <div class="input-wrap">
-            <ion-icon name="calendar-outline" class="field-icon"></ion-icon>
-            <input type="date" [(ngModel)]="newTask.fecha" [min]="fechaMinima" />
+            <ion-icon name="calendar-outline" class="field-icon" aria-hidden="true"></ion-icon>
+            <input id="tarea-fecha" type="date" [(ngModel)]="newTask.fecha" [min]="fechaMinima" />
           </div>
         </div>
 
         <div class="input-group span-2">
-          <label class="input-label">Descripción</label>
+          <label class="input-label" for="tarea-desc">Descripción</label>
           <div class="input-wrap textarea-wrap">
-            <ion-icon name="reader-outline" class="field-icon"></ion-icon>
-            <textarea [(ngModel)]="newTask.descripcion" placeholder="Detalles de la tarea..." rows="3"></textarea>
+            <ion-icon name="reader-outline" class="field-icon" aria-hidden="true"></ion-icon>
+            <textarea id="tarea-desc" [(ngModel)]="newTask.descripcion" placeholder="Detalles de la tarea..." rows="3"></textarea>
           </div>
         </div>
 
@@ -170,77 +172,87 @@
             {{ newTask.publicada ? 'Los alumnos la verán apenas la guardes.' : 'Los alumnos no la verán hasta que la publiques.' }}
           </span>
         </div>
-        <ion-toggle [(ngModel)]="newTask.publicada" color="warning"></ion-toggle>
+        <ion-toggle [(ngModel)]="newTask.publicada" color="warning" aria-label="Publicar de inmediato"></ion-toggle>
       </div>
 
       <div class="files-list" *ngIf="archivosExistentes.length > 0">
         <div class="file-chip" *ngFor="let file of archivosExistentes; let i = index">
-          <ion-icon [name]="getFileIcon(file.name)" class="file-type-icon"></ion-icon>
+          <ion-icon [name]="getFileIcon(file.name)" class="file-type-icon" aria-hidden="true"></ion-icon>
           <div class="file-chip-info">
             <span class="file-name text-wrap-anywhere" [title]="file.name">{{ file.name }}</span>
             <span class="file-size text-nowrap-number">Ya guardado</span>
           </div>
-          <ion-icon name="close-circle-outline" class="remove-file" (click)="removeArchivoExistente(i, $event)"></ion-icon>
+          <button class="remove-file-btn" (click)="removeArchivoExistente(i, $event)" aria-label="Quitar archivo">
+            <ion-icon name="close-circle-outline" aria-hidden="true"></ion-icon>
+          </button>
         </div>
       </div>
 
-      <div class="file-upload-zone" [class.dragging]="isDragging" (click)="fileInput.click()" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
-        <input #fileInput type="file" multiple hidden (change)="onFilesSelected($event)" />
-        <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+      <div class="file-upload-zone" [class.dragging]="isDragging" (click)="fileInput.click()"
+           (keydown.enter)="fileInput.click()" tabindex="0" role="button" aria-label="Seleccionar archivos"
+           (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+        <input #fileInput type="file" multiple hidden (change)="onFilesSelected($event)" aria-hidden="true" />
+        <ion-icon name="cloud-upload-outline" class="upload-icon" aria-hidden="true"></ion-icon>
         <p class="upload-text">Arrastra archivos aquí o <span>selecciona</span></p>
         <p class="upload-hint">PDF, Word, imágenes, video — máximo 20MB por archivo</p>
       </div>
 
       <div class="files-list" *ngIf="archivosEnProgreso.length > 0">
         <div class="file-chip" *ngFor="let item of archivosEnProgreso; let i = index" [class.error]="item.error">
-          <ion-icon [name]="getFileIcon(item.file.name)" class="file-type-icon"></ion-icon>
+          <ion-icon [name]="getFileIcon(item.file.name)" class="file-type-icon" aria-hidden="true"></ion-icon>
           <div class="file-chip-info">
             <span class="file-name text-wrap-anywhere" [title]="item.file.name">{{ item.file.name }}</span>
             <span class="file-size text-nowrap-number" *ngIf="!item.subiendo">{{ formatSize(item.file.size) }}</span>
             <span class="file-progress-text" *ngIf="item.subiendo">Subiendo... {{ item.progreso }}%</span>
             <span class="file-error-text" *ngIf="item.error">Error al subir</span>
-            <div class="file-progress-bar" *ngIf="item.subiendo">
+            <div class="file-progress-bar" *ngIf="item.subiendo" role="progressbar" [attr.aria-valuenow]="item.progreso" aria-valuemin="0" aria-valuemax="100">
               <div class="file-progress-fill" [style.width.%]="item.progreso"></div>
             </div>
           </div>
-          <ion-icon *ngIf="item.error" name="refresh-outline" class="retry-file" (click)="reintentarArchivo(i, $event)"></ion-icon>
-          <ion-icon name="close-circle-outline" class="remove-file" (click)="removeFile(i, $event)"></ion-icon>
+          <button *ngIf="item.error" class="retry-file-btn" (click)="reintentarArchivo(i, $event)" aria-label="Reintentar subida">
+            <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+          </button>
+          <button class="remove-file-btn" (click)="removeFile(i, $event)" aria-label="Quitar archivo">
+            <ion-icon name="close-circle-outline" aria-hidden="true"></ion-icon>
+          </button>
         </div>
       </div>
 
       <div class="form-actions">
         <button class="btn-cancel" (click)="solicitarCierreFormulario()">
-          <ion-icon name="close-outline"></ion-icon>
+          <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
           Cancelar
         </button>
         <button class="btn-save" (click)="guardarTarea()" [disabled]="guardando">
           <ion-spinner *ngIf="guardando" name="crescent"></ion-spinner>
-          <ion-icon *ngIf="!guardando" name="checkmark-outline"></ion-icon>
+          <ion-icon *ngIf="!guardando" name="checkmark-outline" aria-hidden="true"></ion-icon>
           {{ guardando ? 'Guardando...' : (editingTarea ? 'Guardar Cambios' : 'Guardar Tarea') }}
         </button>
       </div>
     </div>
 
     <div class="loading-tareas" *ngIf="cargandoTareas">
-      <ion-spinner name="crescent"></ion-spinner>
+      <ion-spinner name="crescent" aria-label="Cargando"></ion-spinner>
       <p>Cargando tus tareas...</p>
     </div>
 
-    <div class="error-tareas" *ngIf="errorTareas && !cargandoTareas">
-      <ion-icon name="cloud-offline-outline"></ion-icon>
+    <div class="error-tareas" *ngIf="errorTareas && !cargandoTareas" role="alert">
+      <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
       <p class="text-clamp-2">{{ errorTareas }}</p>
       <button class="retry-btn" (click)="cargarTareas()">
-        <ion-icon name="refresh-outline"></ion-icon> Reintentar
+        <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon> Reintentar
       </button>
     </div>
 
     <div class="tasks-list" *ngIf="!cargandoTareas && !errorTareas">
 
-      <div class="task-card" (click)="irADetalle(tarea)" *ngFor="let tarea of tareasFiltradas" [class.completed]="esVencida(tarea)" [class.draft]="!tarea.publicada">
+      <div class="task-card" (click)="irADetalle(tarea)" (keydown.enter)="irADetalle(tarea)"
+           tabindex="0" role="button" [attr.aria-label]="tarea.titulo"
+           *ngFor="let tarea of tareasFiltradas" [class.completed]="esVencida(tarea)" [class.draft]="!tarea.publicada">
         <div class="task-card-scroll">
         <div class="task-header">
           <div class="task-materia-badge">
-            <ion-icon name="book-outline"></ion-icon>
+            <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
           </div>
 
           <div class="task-info">
@@ -250,21 +262,21 @@
             </div>
             <div class="task-meta-row">
               <span class="task-materia text-truncate" [title]="tarea.materia_nombre">{{ tarea.materia_nombre }}</span>
-              <span class="task-meta-dot">·</span>
-              <ion-icon name="people-outline" class="meta-icon"></ion-icon>
+              <span class="task-meta-dot" aria-hidden="true">·</span>
+              <ion-icon name="people-outline" class="meta-icon" aria-hidden="true"></ion-icon>
               <span class="task-materia text-truncate" [title]="tarea.grupo_nombre">{{ tarea.grupo_nombre }}</span>
             </div>
           </div>
 
           <div class="task-actions" (click)="$event.stopPropagation()">
-            <button class="task-action-btn" (click)="abrirFormularioEditar(tarea)" title="Editar">
-              <ion-icon name="create-outline"></ion-icon>
+            <button class="task-action-btn" (click)="abrirFormularioEditar(tarea)" aria-label="Editar tarea">
+              <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
             </button>
-            <button class="task-action-btn" (click)="duplicarTarea(tarea)" title="Duplicar">
-              <ion-icon name="copy-outline"></ion-icon>
+            <button class="task-action-btn" (click)="duplicarTarea(tarea)" aria-label="Duplicar tarea">
+              <ion-icon name="copy-outline" aria-hidden="true"></ion-icon>
             </button>
-            <button class="task-delete-btn" (click)="deleteTask(tarea)" title="Eliminar">
-              <ion-icon name="trash-outline"></ion-icon>
+            <button class="task-delete-btn" (click)="deleteTask(tarea)" aria-label="Eliminar tarea">
+              <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
             </button>
           </div>
         </div>
@@ -285,7 +297,7 @@
         <div class="task-files" *ngIf="tarea.archivos && tarea.archivos.length > 0" (click)="$event.stopPropagation()">
           <span class="section-eyebrow">Archivos adjuntos</span>
           <a class="attached-file text-wrap-anywhere" *ngFor="let file of tarea.archivos | slice:0:2" [href]="file.url" target="_blank">
-            <ion-icon [name]="getFileIcon(file.name)" class="file-attach-icon"></ion-icon>
+            <ion-icon [name]="getFileIcon(file.name)" class="file-attach-icon" aria-hidden="true"></ion-icon>
             <span class="text-truncate">{{ file.name }}</span>
           </a>
           <span class="files-more-hint" *ngIf="tarea.archivos.length > 2">+{{ tarea.archivos.length - 2 }} más</span>
@@ -294,26 +306,27 @@
 
         <div class="task-footer">
           <span class="task-date text-nowrap-number">
-            <ion-icon name="calendar-outline"></ion-icon>
+            <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
             {{ tarea.fecha_entrega | date:'d MMM yyyy' }}
           </span>
 
           <div class="task-footer-right" (click)="$event.stopPropagation()">
             <button class="publish-mini-btn" [class.is-published]="tarea.publicada" (click)="togglePublicada(tarea, $event)">
-              <ion-icon [name]="tarea.publicada ? 'eye-outline' : 'eye-off-outline'"></ion-icon>
+              <ion-icon [name]="tarea.publicada ? 'eye-outline' : 'eye-off-outline'" aria-hidden="true"></ion-icon>
               {{ tarea.publicada ? 'Publicada' : 'Publicar' }}
             </button>
 
             <span class="task-status" [class.done]="!esVencida(tarea)" [class.vencida]="esVencida(tarea)">
-              <ion-icon [name]="esVencida(tarea) ? 'time-outline' : 'checkmark-circle'"></ion-icon>
+              <ion-icon [name]="esVencida(tarea) ? 'time-outline' : 'checkmark-circle'" aria-hidden="true"></ion-icon>
               {{ esVencida(tarea) ? 'Vencida' : 'Activa' }}
             </span>
           </div>
         </div>
 
         <!-- ── Botón ver/calificar entregas ── -->
-        <button class="btn-ver-entregas" (click)="togglePanelEntregas(tarea); $event.stopPropagation()">
-          <ion-icon [name]="tarea.panelAbierto ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        <button class="btn-ver-entregas" (click)="togglePanelEntregas(tarea); $event.stopPropagation()"
+                [attr.aria-expanded]="tarea.panelAbierto">
+          <ion-icon [name]="tarea.panelAbierto ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
           {{ tarea.panelAbierto ? 'Ocultar entregas' : 'Ver y calificar entregas' }}
         </button>
 
@@ -321,13 +334,13 @@
         <div class="panel-entregas" *ngIf="tarea.panelAbierto" (click)="$event.stopPropagation()">
 
           <div class="loading-entregas" *ngIf="tarea.cargandoEntregas">
-            <ion-spinner name="crescent"></ion-spinner>
+            <ion-spinner name="crescent" aria-label="Cargando entregas"></ion-spinner>
             <p>Cargando entregas...</p>
           </div>
 
           <ng-container *ngIf="!tarea.cargandoEntregas">
             <div class="empty-entregas" *ngIf="!tarea.entregasAlumnos || tarea.entregasAlumnos.length === 0">
-              <ion-icon name="people-outline"></ion-icon>
+              <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
               <p>No hay alumnos en este grupo.</p>
             </div>
 
@@ -341,7 +354,7 @@
 
               <ng-container *ngIf="row.entrega">
                 <a class="entrega-archivo-link text-wrap-anywhere" [href]="urlArchivo(row.entrega.archivo)" target="_blank" rel="noopener" [attr.aria-label]="'Ver archivo entregado de ' + row.alumno_nombre">
-                  <ion-icon [name]="getFileIcon(urlArchivo(row.entrega.archivo))"></ion-icon>
+                  <ion-icon [name]="getFileIcon(urlArchivo(row.entrega.archivo))" aria-hidden="true"></ion-icon>
                   Ver archivo entregado
                 </a>
                 <p class="entrega-comentario text-clamp-2" *ngIf="row.entrega.comentario" [title]="row.entrega.comentario">
@@ -353,16 +366,16 @@
 
                 <div class="calificar-row">
                   <div class="calificar-input-wrap">
-                    <label>Calificación</label>
-                    <input type="number" min="0" max="10" step="0.1" [(ngModel)]="row.calificacionEdit" placeholder="0-10" />
+                    <label [attr.for]="'calif-' + row.alumno_nombre">Calificación</label>
+                    <input [id]="'calif-' + row.alumno_nombre" type="number" min="0" max="10" step="0.1" [(ngModel)]="row.calificacionEdit" placeholder="0-10" />
                   </div>
                   <div class="calificar-feedback-wrap">
-                    <label>Retroalimentación</label>
-                    <textarea rows="2" [(ngModel)]="row.feedbackEdit" placeholder="Comentario para el alumno (opcional)"></textarea>
+                    <label [attr.for]="'fb-' + row.alumno_nombre">Retroalimentación</label>
+                    <textarea [id]="'fb-' + row.alumno_nombre" rows="2" [(ngModel)]="row.feedbackEdit" placeholder="Comentario para el alumno (opcional)"></textarea>
                   </div>
                   <button class="btn-guardar-calif" [disabled]="row.guardando" (click)="guardarCalificacion(tarea, row)">
                     <ion-spinner *ngIf="row.guardando" name="crescent"></ion-spinner>
-                    <ion-icon *ngIf="!row.guardando" name="checkmark-outline"></ion-icon>
+                    <ion-icon *ngIf="!row.guardando" name="checkmark-outline" aria-hidden="true"></ion-icon>
                     {{ row.guardando ? 'Guardando...' : 'Guardar calificación' }}
                   </button>
                 </div>
@@ -374,7 +387,7 @@
 
       <div class="empty-state" *ngIf="tareas.length === 0">
         <div class="empty-icon-wrap">
-          <ion-icon name="document-text-outline"></ion-icon>
+          <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
         </div>
         <h3 class="empty-title text-truncate">Sin tareas aún</h3>
         <p class="empty-sub text-clamp-2">Toca el botón <strong>+</strong> para agregar tu primera tarea</p>
@@ -382,12 +395,12 @@
 
       <div class="empty-state" *ngIf="tareas.length > 0 && tareasFiltradas.length === 0">
         <div class="empty-icon-wrap">
-          <ion-icon name="search-outline"></ion-icon>
+          <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
         </div>
         <h3 class="empty-title text-truncate">Sin resultados</h3>
         <p class="empty-sub text-clamp-2">Ninguna tarea coincide con estos filtros.</p>
         <button class="retry-btn" (click)="limpiarFiltros()">
-          <ion-icon name="refresh-outline"></ion-icon> Limpiar filtros
+          <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon> Limpiar filtros
         </button>
       </div>
 
@@ -395,7 +408,7 @@
 
     <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="fab-only-mobile">
      <ion-fab-button class="fab-agregar" (click)="abrirFormularioNuevo()" aria-label="Agregar nueva tarea">
-        <ion-icon name="add-outline"></ion-icon>
+        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
       </ion-fab-button>
     </ion-fab>
 
@@ -424,15 +437,15 @@
     </div>
 
     <div class="loading-tareas" *ngIf="cargandoTareasAlumno">
-      <ion-spinner name="crescent"></ion-spinner>
+      <ion-spinner name="crescent" aria-label="Cargando"></ion-spinner>
       <p>Cargando tus tareas...</p>
     </div>
 
-    <div class="error-tareas" *ngIf="errorTareasAlumno && !cargandoTareasAlumno">
-      <ion-icon name="cloud-offline-outline"></ion-icon>
+    <div class="error-tareas" *ngIf="errorTareasAlumno && !cargandoTareasAlumno" role="alert">
+      <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
       <p class="text-clamp-2">{{ errorTareasAlumno }}</p>
       <button class="retry-btn" (click)="cargarTareasAlumno()">
-        <ion-icon name="refresh-outline"></ion-icon> Reintentar
+        <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon> Reintentar
       </button>
     </div>
 
@@ -440,6 +453,8 @@
 
       <div class="task-card"
            (click)="irADetalle(tarea)"
+           (keydown.enter)="irADetalle(tarea)"
+           tabindex="0" role="button" [attr.aria-label]="tarea.titulo"
            *ngFor="let tarea of tareasAlumno"
            [class.completed]="esVencida(tarea)"
            [class.urgente]="!tarea.entregaPropia && !esVencida(tarea) && esProximaAVencer(tarea)">
@@ -449,7 +464,7 @@
 
         <div class="task-header">
           <div class="task-materia-badge">
-            <ion-icon name="book-outline"></ion-icon>
+            <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
           </div>
           <div class="task-info">
             <div class="task-title-row">
@@ -466,7 +481,7 @@
         <div class="task-files" *ngIf="tarea.archivos && tarea.archivos.length > 0" (click)="$event.stopPropagation()">
           <span class="section-eyebrow">Archivos adjuntos</span>
           <a class="attached-file text-wrap-anywhere" *ngFor="let file of tarea.archivos | slice:0:2" [href]="file.url" target="_blank">
-            <ion-icon [name]="getFileIcon(file.name)" class="file-attach-icon"></ion-icon>
+            <ion-icon [name]="getFileIcon(file.name)" class="file-attach-icon" aria-hidden="true"></ion-icon>
             <span class="text-truncate">{{ file.name }}</span>
           </a>
           <span class="files-more-hint" *ngIf="tarea.archivos.length > 2">+{{ tarea.archivos.length - 2 }} más</span>
@@ -475,11 +490,11 @@
 
         <div class="task-footer">
           <span class="task-date text-nowrap-number">
-            <ion-icon name="calendar-outline"></ion-icon>
+            <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
             {{ tarea.fecha_entrega | date:'d MMM yyyy' }}
           </span>
           <span class="task-status" [class.done]="!esVencida(tarea)" [class.vencida]="esVencida(tarea)">
-            <ion-icon [name]="esVencida(tarea) ? 'time-outline' : 'checkmark-circle'"></ion-icon>
+            <ion-icon [name]="esVencida(tarea) ? 'time-outline' : 'checkmark-circle'" aria-hidden="true"></ion-icon>
             {{ esVencida(tarea) ? 'Vencida' : 'Activa' }}
           </span>
         </div>
@@ -497,7 +512,7 @@
           </div>
 
           <a class="entrega-archivo-link text-wrap-anywhere" [href]="tarea.entregaPropia.archivo" target="_blank" rel="noopener">
-            <ion-icon [name]="getFileIcon(tarea.entregaPropia.archivo)"></ion-icon>
+            <ion-icon [name]="getFileIcon(tarea.entregaPropia.archivo)" aria-hidden="true"></ion-icon>
             Ver mi archivo entregado
           </a>
 
@@ -515,30 +530,31 @@
           </ng-container>
 
           <button class="btn-editar-entrega" *ngIf="!tareaBloqueada(tarea)" (click)="toggleFormEntrega(tarea)">
-            <ion-icon name="create-outline"></ion-icon>
+            <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
             Reemplazar entrega
           </button>
         </div>
 
         <!-- ── Botón entregar (si aún no ha entregado) ── -->
         <button class="btn-entregar" *ngIf="!tarea.entregaPropia && !tarea.mostrarFormEntrega" (click)="toggleFormEntrega(tarea); $event.stopPropagation()">
-          <ion-icon name="cloud-upload-outline"></ion-icon>
+          <ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon>
           Entregar tarea
         </button>
 
         <!-- ── Formulario de entrega ── -->
         <div class="form-entrega" *ngIf="tarea.mostrarFormEntrega" (click)="$event.stopPropagation()">
           <div class="input-group">
-            <label class="input-label">Comentario (opcional)</label>
+            <label class="input-label" [attr.for]="'comentario-' + tarea.id">Comentario (opcional)</label>
             <div class="input-wrap textarea-wrap">
-              <ion-icon name="reader-outline" class="field-icon"></ion-icon>
-              <textarea [(ngModel)]="tarea.comentarioEntrega" placeholder="Algo que quieras decirle al docente..." rows="2"></textarea>
+              <ion-icon name="reader-outline" class="field-icon" aria-hidden="true"></ion-icon>
+              <textarea [id]="'comentario-' + tarea.id" [(ngModel)]="tarea.comentarioEntrega" placeholder="Algo que quieras decirle al docente..." rows="2"></textarea>
             </div>
           </div>
 
-          <div class="file-upload-zone" (click)="entregaFileInput.click()">
-            <input #entregaFileInput type="file" hidden (change)="onArchivoEntregaSeleccionado(tarea, $event)" />
-            <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+          <div class="file-upload-zone" (click)="entregaFileInput.click()" (keydown.enter)="entregaFileInput.click()"
+               tabindex="0" role="button" aria-label="Elegir archivo de entrega">
+            <input #entregaFileInput type="file" hidden (change)="onArchivoEntregaSeleccionado(tarea, $event)" aria-hidden="true" />
+            <ion-icon name="cloud-upload-outline" class="upload-icon" aria-hidden="true"></ion-icon>
             <p class="upload-text" *ngIf="!tarea.archivoEntregaSeleccionado">
               Toca para elegir tu archivo
             </p>
@@ -548,23 +564,24 @@
             <p class="upload-hint">Máximo 20MB</p>
           </div>
 
-          <div class="file-progress-bar" *ngIf="tarea.subiendoEntrega">
+          <div class="file-progress-bar" *ngIf="tarea.subiendoEntrega" role="progressbar"
+               [attr.aria-valuenow]="tarea.progresoEntrega" aria-valuemin="0" aria-valuemax="100">
             <div class="file-progress-fill" [style.width.%]="tarea.progresoEntrega"></div>
           </div>
 
-          <div class="opciones-error" *ngIf="tarea.errorEntrega">
-            <ion-icon name="alert-circle-outline"></ion-icon>
+          <div class="opciones-error" *ngIf="tarea.errorEntrega" role="alert">
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
             <span class="text-clamp-2">{{ tarea.errorEntrega }}</span>
           </div>
 
           <div class="form-actions">
             <button class="btn-cancel" (click)="tarea.mostrarFormEntrega = false" [disabled]="tarea.subiendoEntrega">
-              <ion-icon name="close-outline"></ion-icon>
+              <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
               Cancelar
             </button>
             <button class="btn-save" (click)="enviarEntrega(tarea)" [disabled]="tarea.subiendoEntrega">
               <ion-spinner *ngIf="tarea.subiendoEntrega" name="crescent"></ion-spinner>
-              <ion-icon *ngIf="!tarea.subiendoEntrega" name="checkmark-outline"></ion-icon>
+              <ion-icon *ngIf="!tarea.subiendoEntrega" name="checkmark-outline" aria-hidden="true"></ion-icon>
               {{ tarea.subiendoEntrega ? (tarea.progresoEntrega + '%') : 'Enviar entrega' }}
             </button>
           </div>
@@ -574,7 +591,7 @@
 
       <div class="empty-state" *ngIf="tareasAlumno.length === 0">
         <div class="empty-icon-wrap">
-          <ion-icon name="document-text-outline"></ion-icon>
+          <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
         </div>
         <h3 class="empty-title text-truncate">Sin tareas por ahora</h3>
         <p class="empty-sub text-clamp-2">Cuando tu docente publique una tarea, aparecerá aquí</p>

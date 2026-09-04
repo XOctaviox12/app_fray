@@ -1,6 +1,19 @@
 // ============================================
 // MATERIAS.PAGE.SCSS
 // Alineado a la paleta del mock (Universidad Lisboa)
+// + Reglas de diseño responsivo FrayHub (GUIA_DISEÑO_RESPONSIVO_FRAYUB.md)
+//
+// AJUSTES aplicados en esta pasada según la guía (comentados con "// GUÍA:"):
+//   1) Font stack: -apple-system primero (Sección 2)
+//   2) Dark mode automático — no existía en este archivo (Sección 1 + checklist)
+//   3) Safe-area top/left/right en header, bottom en el content (Sección 7 y 12)
+//   4) Touch targets >= 44px en botones/segment (Sección 6, faltaban varios)
+//   5) -webkit-tap-highlight-color en elementos interactivos
+//   6) :focus-visible en botones y segment
+//   7) will-change en elementos con transition/transform (Sección 14)
+//   8) prefers-reduced-motion global — no existía en este archivo (Sección 9)
+//   9) Landscape: header y hero más compactos (Sección 11)
+// (Ninguna clase, evento o binding del HTML fue modificado)
 // ============================================
 
 :host {
@@ -32,7 +45,26 @@
   --fh-shadow-soft: 0 30px 60px -15px rgba(48, 64, 134, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
   --fh-shadow-lift: 0 40px 80px -20px rgba(0, 0, 0, 0.12);
 
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  // GUÍA Sección 2: font stack -apple-system → "SF Pro Display" → "Inter" → fallback
+  font-family: -apple-system, "SF Pro Display", "Inter", BlinkMacSystemFont, sans-serif;
+
+  // GUÍA Sección 1 + checklist: dark mode automático — faltaba por completo en este archivo
+  @media (prefers-color-scheme: dark) {
+    --fh-white: #1A1F2E;
+    --fh-bg: #0A0E1A;
+    --fh-bg-2: #13171F;
+    --fh-text: #E8EAED;
+    --fh-text-2: #B0B0B0;
+    --fh-border: rgba(255, 255, 255, 0.08);
+    --fh-outline-variant: rgba(222, 193, 175, 0.35);
+
+    --fh-success-soft: rgba(46, 125, 50, 0.18);
+    --fh-info-soft: rgba(74, 89, 161, 0.18);
+    --fh-purple-soft: rgba(139, 92, 246, 0.18);
+
+    --fh-shadow-soft: 0 30px 60px -15px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+    --fh-shadow-lift: 0 40px 80px -20px rgba(0, 0, 0, 0.65);
+  }
 }
 
 .header-toolbar {
@@ -40,6 +72,16 @@
   --color: var(--fh-text);
   --border-style: none;
   --min-height: 64px;
+
+  // GUÍA Sección 7: safe area — notch / Dynamic Island (faltaba en este archivo)
+  padding-top: max(env(safe-area-inset-top), 0px);
+  padding-left: max(env(safe-area-inset-left), 0px);
+  padding-right: max(env(safe-area-inset-right), 0px);
+}
+
+// GUÍA Sección 11: header más bajo en landscape
+@media (orientation: landscape) and (max-height: 500px) {
+  .header-toolbar { --min-height: 48px; }
 }
 
 .header-title {
@@ -49,20 +91,54 @@
   letter-spacing: -0.2px;
 }
 
-.header-action-btn { --color: var(--fh-primary); }
+.header-action-btn {
+  --color: var(--fh-primary);
+  // GUÍA Sección 6: icon buttons en header, mínimo 44x44
+  --min-width: 44px;
+  --min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus-visible {
+    outline: 2px solid var(--fh-primary);
+    outline-offset: 2px;
+  }
+}
 
 .header-accent-bar {
   height: 1px;
   background: var(--fh-border);
 }
 
-.materias-content { --background: var(--fh-bg); }
+.materias-content {
+  --background: var(--fh-bg);
+
+  // GUÍA Sección 12: safe-area bottom, mismo patrón que inicio.page/comunidad.page
+  --padding-bottom: max(env(safe-area-inset-bottom), 24px);
+
+  @media (min-width: 390px) {
+    --padding-bottom: max(env(safe-area-inset-bottom), 28px);
+  }
+
+  @media (min-width: 768px) {
+    --padding-bottom: max(env(safe-area-inset-bottom), 32px);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .materias-content {
+    --padding-bottom: max(env(safe-area-inset-bottom), 16px);
+  }
+}
 
 // ── Segment (Cupertino) ───────────────────
 .segment-wrapper {
   background: var(--fh-white);
   padding: 0 18px 14px;
   border-bottom: 1px solid var(--fh-border);
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .segment-wrapper { padding: 0 18px 10px; }
 }
 
 ion-segment {
@@ -83,7 +159,9 @@ ion-segment-button {
   font-weight: 700;
   letter-spacing: 0.2px;
   text-transform: none;
-  min-height: 38px;
+  // GUÍA Sección 6: "Mode Selector Buttons" min 40px, recomendado 44px — estaba en 38px
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
 
   ion-label {
     display: flex;
@@ -93,6 +171,15 @@ ion-segment-button {
   }
 
   &.segment-button-checked ion-label ion-icon { color: var(--fh-primary); }
+
+  &:focus-visible {
+    outline: 2px solid var(--fh-primary);
+    outline-offset: -2px;
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    min-height: 40px;
+  }
 }
 
 // ── Loading ───────────────────────────────
@@ -112,6 +199,10 @@ ion-segment-button {
   background: var(--fh-white);
   padding: 22px 18px 26px;
   border-bottom: 1px solid var(--fh-border);
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .section-hero { padding: 16px 18px 18px; }
 }
 
 .section-title {
@@ -169,6 +260,7 @@ ion-segment-button {
   margin: 16px 18px 0;
   overflow: hidden;
   box-shadow: var(--fh-shadow-soft);
+  will-change: box-shadow; // GUÍA Sección 14
   transition: box-shadow 0.3s ease;
 
   &:hover { box-shadow: var(--fh-shadow-lift); }
@@ -178,6 +270,10 @@ ion-segment-button {
   &.red-accent    .materia-top-bar { background: linear-gradient(135deg, var(--fh-error), #93000A); }
   &.green-accent  .materia-top-bar { background: linear-gradient(135deg, var(--fh-success), #1B5E20); }
   &.purple-accent .materia-top-bar { background: linear-gradient(135deg, var(--fh-purple), #6D28D9); }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
 .materia-top-bar {
@@ -298,8 +394,16 @@ ion-segment-button {
   --padding-start: 10px;
   --padding-end: 10px;
   --border-radius: 10px;
+  // GUÍA Sección 6: touch target mínimo 44px — faltaba
+  min-height: 44px;
   font-size: 11px;
   font-weight: 700;
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus-visible {
+    outline: 2px solid var(--fh-primary);
+    outline-offset: 2px;
+  }
 }
 
 // ── Pendientes ────────────────────────────
@@ -365,7 +469,20 @@ ion-segment-button {
 }
 
 .pendiente-footer { display: flex; justify-content: flex-end; }
-.btn-urgente { --color: var(--fh-primary); font-size: 12px; font-weight: 700; }
+
+.btn-urgente {
+  --color: var(--fh-primary);
+  // GUÍA Sección 6: touch target mínimo 44px — faltaba
+  min-height: 44px;
+  font-size: 12px;
+  font-weight: 700;
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus-visible {
+    outline: 2px solid var(--fh-primary);
+    outline-offset: 2px;
+  }
+}
 
 // ── Calificaciones (alumno y tutor) ───────
 .cal-card {
@@ -553,8 +670,16 @@ ion-segment-button {
   --padding-start: 10px;
   --padding-end: 10px;
   --border-radius: 10px;
+  // GUÍA Sección 6: touch target mínimo 44px — faltaba
+  min-height: 44px;
   font-size: 11px;
   font-weight: 700;
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus-visible {
+    outline: 2px solid var(--fh-primary);
+    outline-offset: 2px;
+  }
 }
 
 // ── Resumen docente — mismo tratamiento que las KPI del mock ──
@@ -574,6 +699,7 @@ ion-segment-button {
   padding: 22px 12px;
   background: var(--fh-white);
   box-shadow: var(--fh-shadow-soft);
+  will-change: transform; // GUÍA Sección 14
   transition: transform 0.3s ease;
 
   &:hover { transform: scale(1.02); }
@@ -604,6 +730,11 @@ ion-segment-button {
   &.blue   ion-icon { background: var(--fh-info-soft);   color: var(--fh-secondary); }
   &.green  ion-icon { background: var(--fh-success-soft); color: var(--fh-success); }
   &.purple ion-icon { background: var(--fh-purple-soft); color: var(--fh-purple); }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &:hover { transform: none; }
+  }
 }
 
 .resumen-row {
@@ -724,5 +855,15 @@ ion-segment-button {
     max-width: 720px;
     margin-left: auto;
     margin-right: auto;
+  }
+}
+
+// GUÍA Sección 9 + checklist a11y: reduced motion global — no existía en este archivo
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

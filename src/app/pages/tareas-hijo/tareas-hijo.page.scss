@@ -1,45 +1,63 @@
 // ============================================
 // TAREAS-HIJO.PAGE.SCSS
-// Alineado al mockup: hero con anillo de progreso,
-// chips tipo píldora, cards redondeadas 28px.
+// Adaptado a la Guía de Diseño Responsivo iOS/iPad — FrayHub (Sep 2026)
+// Hero con anillo de progreso, chips tipo píldora, cards redondeadas.
 // ============================================
 
 :host {
-  // ---- Paleta (igual a la del mockup) ----
-  --p-primary: #F57C00;
-  --p-primary-dark: #964900;
-  --p-primary-soft: rgba(245, 124, 0, 0.10);
+  // ---- Paleta (Sección 1 y 18 de la guía) ----
+  --p-primary: #F57C00;              // primary-container
+  --p-primary-dark: #964900;         // primary
+  --p-primary-soft: rgba(150, 73, 0, 0.08);
   --p-primary-glow: rgba(245, 124, 0, 0.28);
   --p-secondary: #4A59A1;
-  --p-secondary-soft: rgba(74, 89, 161, 0.12);
+  --p-secondary-dark: #304086;
+  --p-secondary-soft: rgba(74, 89, 161, 0.1);
   --p-error: #BA1A1A;
-  --p-error-soft: #FFDAD6;
+  --p-error-soft: rgba(186, 26, 26, 0.06);
+  --p-error-soft-strong: rgba(186, 26, 26, 0.16);
   --p-success: #2E7D32;
-  --p-success-soft: rgba(46, 125, 50, 0.10);
+  --p-success-soft: rgba(46, 125, 50, 0.1);
   --p-warning: #F97316;
   --p-warning-soft: rgba(249, 115, 22, 0.12);
+  --p-tertiary: #526069;
+  --p-tertiary-soft: rgba(82, 96, 105, 0.1);
   --p-dark: #574235;
   --p-white: #FFFFFF;
   --p-bg: #F8F9FA;
+  --p-surface-low: #F3F4F5;
   --p-cool-grey: #EDF0F5;
   --p-text: #1A1C1E;
   --p-text-2: #6B7280;
-  --p-border: #E1E3E4;
+  --p-border: #E5E7EB;
 
-  // ---- Radios ----
-  --r-card: 28px;
+  // ---- Border radius (Sección 4) ----
+  --r-card: 22px;
+  --r-card-stat: 18px;
   --r-chip: 9999px;
-  --r-input: 16px;
+  --r-input: 14px;
 
-  // ---- Sombras ----
-  --sh-soft: 0 20px 45px -15px rgba(48, 64, 134, 0.10), 0 4px 8px -4px rgba(0, 0, 0, 0.05);
+  // ---- Sombras Soft UI (Sección 5) ----
+  --sh-soft: 0 20px 50px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0, 0, 0, 0.02);
   --sh-soft-lg: 0 26px 55px -15px rgba(48, 64, 134, 0.14), 0 6px 10px -4px rgba(0, 0, 0, 0.06);
+  --sh-btn: 0 8px 20px rgba(245, 124, 0, 0.3);
 
-  // ---- Tipografía ----
-  --f-display: 'SF Pro Display', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --f-text: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+  // ---- Tipografía (Sección 2) ----
+  --f-display: -apple-system, "SF Pro Display", "Inter", BlinkMacSystemFont, sans-serif;
+  --f-text: -apple-system, "SF Pro Text", "Inter", BlinkMacSystemFont, sans-serif;
+
+  // ---- Touch targets (Sección 6) ----
+  --touch-min: 44px;
+  --touch-rec: 48px;
+
+  // ---- Safe area bottom (Sección 7 y 12) ----
+  --page-padding-bottom: 24px;
+  @supports (padding: max(0px)) {
+    --page-padding-bottom: max(env(safe-area-inset-bottom), 24px);
+  }
 
   display: block;
+  overflow-x: hidden; // Sección 13 — nunca scroll horizontal
 }
 
 // ============================================
@@ -47,12 +65,25 @@
 // ============================================
 
 .header-toolbar {
-  --background: rgba(248, 249, 250, 0.86);
+  --background: rgba(248, 249, 250, 0.88);
   --color: var(--p-text);
   --border-style: none;
-  --min-height: 60px;
+  --min-height: 56px;
+  --padding-start: max(env(safe-area-inset-left), 12px);
+  --padding-end: max(env(safe-area-inset-right), 12px);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+// Botón de menú: mínimo 44x44 (Sección 6)
+ion-menu-button {
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary);
+    outline-offset: 2px;
+  }
 }
 
 .header-title {
@@ -63,11 +94,16 @@
   letter-spacing: -0.2px;
 }
 
-.tareas-content { --background: var(--p-bg); }
+.tareas-content {
+  --background: var(--p-bg);
+  --overflow: auto; // Sección 13 — previene scroll-jump con teclado
+  --padding-bottom: var(--page-padding-bottom);
+}
 
 .page-shell {
   max-width: 1160px;
   margin: 0 auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 // ── Error ─────────────────────────────────────
@@ -75,30 +111,31 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 18px 20px;
+  margin: 18px 16px;
   padding: 13px 15px;
-  background: var(--p-error-soft);
+  background: var(--p-error-soft-strong);
   border: 1px solid rgba(186, 26, 26, 0.2);
   border-radius: var(--r-input);
   font-size: 13px;
   color: var(--p-error);
   font-family: var(--f-text);
 
+  @media (min-width: 390px) { margin: 18px 20px; }
+
   ion-icon { font-size: 17px; flex-shrink: 0; }
 }
 
 // ============================================
-// HERO
+// HERO — breakpoints: 320 / 390 / 768 / 1024 (Sección 3 y 17)
 // ============================================
 
 .tareas-hero {
   position: relative;
-  padding: 24px 20px 20px;
+  padding: 20px 16px 18px;
   overflow: hidden;
 
-  @media (min-width: 768px) {
-    padding: 28px 28px 22px;
-  }
+  @media (min-width: 390px) { padding: 24px 20px 20px; }
+  @media (min-width: 768px) { padding: 28px 0 22px; }
 
   &::before {
     content: '';
@@ -121,9 +158,9 @@
   margin: 0 0 6px;
   font-size: 11px;
   font-weight: 700;
-  color: var(--p-primary);
+  color: var(--p-primary-dark);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.6px;
   font-family: var(--f-text);
 
   ion-icon { font-size: 13px; }
@@ -140,40 +177,53 @@
 .hero-title {
   margin: 0;
   font-family: var(--f-display);
-  font-size: 26px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--p-text);
-  letter-spacing: -0.4px;
+  letter-spacing: -0.3px;
+  line-height: 1.15;
+
+  @media (min-width: 390px) { font-size: 22px; letter-spacing: -0.4px; }
+  @media (min-width: 768px) { font-size: 26px; }
 }
 
 .hero-sub {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--p-text-2);
   font-family: var(--f-text);
+
+  @media (min-width: 390px) { font-size: 13px; }
 }
 
 // ── Tarjeta de progreso circular ──────────────
 .progress-card {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   background: var(--p-white);
-  padding: 12px 18px 12px 12px;
-  border-radius: 20px;
+  padding: 10px 16px 10px 10px;
+  border-radius: var(--r-card-stat);
   box-shadow: var(--sh-soft);
+
+  @media (min-width: 390px) { gap: 14px; padding: 12px 18px 12px 12px; }
 }
 
 .progress-ring {
   position: relative;
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   flex-shrink: 0;
+
+  @media (min-width: 390px) { width: 56px; height: 56px; }
 
   svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 
   .ring-bg { stroke: var(--p-cool-grey); }
-  .ring-fg { stroke: var(--p-primary); transition: stroke-dasharray 400ms ease; }
+  .ring-fg {
+    stroke: var(--p-primary);
+    transition: stroke-dasharray 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
   .ring-label {
     position: absolute;
@@ -183,57 +233,90 @@
     justify-content: center;
     font-family: var(--f-text);
     font-weight: 700;
-    font-size: 12px;
-    color: var(--p-primary);
+    font-size: 11.5px;
+    color: var(--p-primary-dark);
+
+    @media (min-width: 390px) { font-size: 12px; }
   }
 }
 
 .progress-title {
   margin: 0;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--p-text);
   font-family: var(--f-text);
+
+  @media (min-width: 390px) { font-size: 13px; }
 }
 
 .progress-sub {
   margin: 2px 0 0;
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--p-text-2);
   font-family: var(--f-text);
+
+  @media (min-width: 390px) { font-size: 11.5px; }
 }
 
-// ── Chips de filtro tipo píldora ──────────────
+// ── Chips de filtro tipo píldora (Sección 6 — touch target 44px) ──
 .filter-row {
   display: flex;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 8px;
+  margin-top: 18px;
   overflow-x: auto;
   padding-bottom: 4px;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
   &::-webkit-scrollbar { display: none; }
+
+  @media (min-width: 390px) { gap: 10px; margin-top: 20px; }
 }
 
 .filter-chip {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   flex-shrink: 0;
-  padding: 11px 18px;
+  min-height: var(--touch-min);
+  padding: 10px 16px;
   border-radius: var(--r-chip);
   background: var(--p-white);
   color: var(--p-text-2);
   border: none;
   font-family: var(--f-text);
   font-weight: 600;
-  font-size: 12.5px;
+  font-size: 12px;
   box-shadow: var(--sh-soft);
-  transition: all 250ms ease;
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 150ms ease,
+              background 200ms ease,
+              color 150ms ease;
   cursor: pointer;
+  will-change: transform;
+  -webkit-tap-highlight-color: transparent;
 
-  ion-icon { font-size: 16px; color: var(--p-primary); }
+  @media (min-width: 390px) {
+    gap: 7px;
+    padding: 11px 18px;
+    font-size: 12.5px;
+  }
+
+  ion-icon { font-size: 15px; color: var(--p-primary); }
 
   &:active { transform: scale(0.96); }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    &:hover:not(.active) {
+      box-shadow: var(--sh-soft-lg);
+      transform: translateY(-1px);
+    }
+  }
 
   &.active {
     background: linear-gradient(to bottom, #F57C00, #EF6C00);
@@ -251,42 +334,48 @@
 
 // ── Skeleton ──────────────────────────────────
 .skeleton-list {
-  padding: 4px 20px 0;
+  padding: 4px 16px 0;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
+  gap: 14px;
+
+  @media (min-width: 390px) { padding: 4px 20px 0; gap: 16px; }
 
   @media (min-width: 768px) {
-    padding: 4px 28px 0;
+    padding: 4px 0 0;
     grid-template-columns: repeat(2, 1fr);
   }
 
-  @media (min-width: 1180px) {
+  @media (min-width: 1024px) {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
 .skeleton-card {
-  padding: 18px;
+  padding: 16px;
   background: var(--p-white);
   border-radius: var(--r-card);
   box-shadow: var(--sh-soft);
+
+  @media (min-width: 390px) { padding: 18px; }
 }
 
 // ── Lista ─────────────────────────────────────
 .tasks-list {
-  padding: 20px 20px 0;
+  padding: 18px 16px 0;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
+  gap: 16px;
   align-items: stretch; // filas de igual altura -> tarjetas parejas
 
+  @media (min-width: 390px) { padding: 20px 20px 0; gap: 20px; }
+
   @media (min-width: 768px) {
-    padding: 20px 28px 0;
+    padding: 20px 0 0;
     grid-template-columns: repeat(2, 1fr);
   }
 
-  @media (min-width: 1180px) {
+  @media (min-width: 1024px) {
     grid-template-columns: repeat(3, 1fr);
   }
 }
@@ -296,15 +385,20 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-width: 0; // ← CLAVE: permite que el ítem de grid se encoja
-                //   por debajo del ancho de su contenido, en vez de
-                //   forzar a toda la columna a agrandarse.
+  min-width: 0; // permite que el ítem de grid se encoja por debajo
+                // del ancho de su contenido, en vez de forzar la columna
   background: linear-gradient(145deg, #ffffff, #fdfdfd);
   border-radius: var(--r-card);
-  padding: 24px;
+  padding: 20px;
   box-shadow: var(--sh-soft);
   cursor: pointer;
-  transition: transform 300ms ease, box-shadow 300ms ease;
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 200ms ease;
+  will-change: transform;
+  backface-visibility: hidden;
+  animation: cardIn 250ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (min-width: 390px) { padding: 24px; }
 
   @media (hover: hover) {
     &:hover {
@@ -313,17 +407,24 @@
     }
   }
 
+  &:active { transform: scale(0.99); }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary);
+    outline-offset: 3px;
+  }
+
   &.vencida { opacity: 0.85; }
 }
+
 // ── Barra de acento (elemento real, no ::before) ──
-// Al ser un <div> normal dentro del flujo, no depende de
-// position:absolute ni de qué ancestro sea "positioned":
-// es imposible que se salga de su .task-card.
 .card-accent {
   height: 4px;
-  margin: 0 4px 18px;
+  margin: 0 4px 16px;
   border-radius: 4px;
   background: transparent;
+
+  @media (min-width: 390px) { margin: 0 4px 18px; }
 
   .task-card.critica & { background: var(--p-error); }
   .task-card.vencida &  { background: var(--p-text-2); }
@@ -334,24 +435,28 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
+
+  @media (min-width: 390px) { margin-bottom: 18px; }
 }
 
 .task-estado-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-card-stat);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 20px;
+  font-size: 19px;
 
-  &.estado-pendiente    { background: var(--p-primary-soft); ion-icon { color: var(--p-primary); } }
+  @media (min-width: 390px) { width: 46px; height: 46px; font-size: 20px; }
+
+  &.estado-pendiente    { background: var(--p-primary-soft); ion-icon { color: var(--p-primary-dark); } }
   &.estado-entregada    { background: var(--p-secondary-soft); ion-icon { color: var(--p-secondary); } }
   &.estado-calificada   { background: var(--p-success-soft); ion-icon { color: var(--p-success); } }
   &.estado-tarde        { background: var(--p-warning-soft); ion-icon { color: var(--p-warning); } }
-  &.estado-no-entregada { background: var(--p-error-soft);   ion-icon { color: var(--p-error); } }
+  &.estado-no-entregada { background: var(--p-error-soft-strong); ion-icon { color: var(--p-error); } }
 }
 
 .badge-slot { display: flex; flex-direction: column; align-items: flex-end; }
@@ -366,7 +471,7 @@
   font-family: var(--f-text);
   white-space: nowrap;
 
-  &.urgent  { background: var(--p-error-soft); color: var(--p-error); }
+  &.urgent  { background: var(--p-error-soft-strong); color: var(--p-error); }
   &.neutral { background: var(--p-cool-grey);  color: var(--p-text-2); }
 }
 
@@ -374,23 +479,25 @@
   padding: 6px 12px;
   border-radius: 12px;
   font-family: var(--f-display);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   text-align: center;
+
+  @media (min-width: 390px) { font-size: 16px; }
 
   small { font-size: 11px; font-weight: 600; font-family: var(--f-text); }
 
   &.nota-excelente { background: var(--p-success-soft); color: var(--p-success); }
   &.nota-bien      { background: var(--p-secondary-soft); color: var(--p-secondary); }
   &.nota-regular   { background: var(--p-warning-soft); color: var(--p-warning); }
-  &.nota-reprobado { background: var(--p-error-soft);   color: var(--p-error); }
+  &.nota-reprobado { background: var(--p-error-soft-strong); color: var(--p-error); }
 }
 
 // ── Título y meta ─────────────────────────────
 .task-title {
   margin: 0 0 6px;
   font-family: var(--f-display);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--p-text);
   line-height: 1.3;
@@ -398,6 +505,8 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+
+  @media (min-width: 390px) { font-size: 16px; }
 }
 
 .task-meta-row {
@@ -406,18 +515,17 @@
   gap: 5px;
   flex-wrap: wrap;
   margin: 0 0 14px;
-  min-width: 0; // ← permite que sus hijos con nowrap se recorten en vez
-                //   de forzar el ancho hacia afuera
+  min-width: 0; // permite que sus hijos con nowrap se recorten en vez
+                // de forzar el ancho hacia afuera
 }
 
-.meta-icon { font-size: 13px; color: var(--p-primary); flex-shrink: 0; }
+.meta-icon { font-size: 13px; color: var(--p-primary-dark); flex-shrink: 0; }
 .meta-sep  { color: var(--p-text-2); font-size: 11px; }
 
 .task-materia,
 .task-docente {
-  min-width: 0; // ← imprescindible para que text-overflow:ellipsis
-                //   funcione en un hijo flex — sin esto, el texto
-                //   nowrap simplemente empuja el ancho del padre
+  min-width: 0; // imprescindible para que text-overflow:ellipsis funcione
+                // en un hijo flex — sin esto, el texto nowrap empuja el ancho
   font-size: 12px;
   color: var(--p-text-2);
   font-family: var(--f-text);
@@ -431,7 +539,7 @@
   font-size: 13px;
   color: var(--p-text-2);
   margin: 0;
-  line-height: 1.55;
+  line-height: 1.5;
   font-family: var(--f-text);
 
   &.clamp {
@@ -445,17 +553,27 @@
 .ver-mas-btn {
   align-self: flex-start; // no se estira al ancho del card (contexto flex)
   width: fit-content;
-  text-align: left;       // anula el text-align:center por defecto del navegador
+  text-align: left;
   display: block;
-  margin: 6px 0 0;
-  padding: 0;
+  margin: 8px 0 0;
+  padding: 6px 2px; // amplía el área táctil sin alterar el layout visual
   background: none;
   border: none;
-  color: var(--p-primary);
+  color: var(--p-primary-dark);
   font-family: var(--f-text);
   font-weight: 700;
   font-size: 12px;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 150ms ease;
+
+  &:active { opacity: 0.6; }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
 // ── Alerta crítica ────────────────────────────
@@ -472,7 +590,7 @@
   color: var(--p-dark);
   font-family: var(--f-text);
 
-  ion-icon { font-size: 17px; flex-shrink: 0; color: var(--p-primary); }
+  ion-icon { font-size: 17px; flex-shrink: 0; color: var(--p-primary-dark); }
 }
 
 // ── Detalle expandido ─────────────────────────
@@ -485,7 +603,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  animation: fadeSlideIn 220ms ease;
+  animation: slideDown 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .detalle-row {
@@ -496,7 +614,7 @@
   color: var(--p-text-2);
   font-family: var(--f-text);
 
-  ion-icon { font-size: 15px; color: var(--p-primary); flex-shrink: 0; }
+  ion-icon { font-size: 15px; color: var(--p-primary-dark); flex-shrink: 0; }
 }
 
 // ── Feedback ──────────────────────────────────
@@ -582,7 +700,7 @@
 
   ion-icon { font-size: 15px; }
 
-  &.status-pendiente    { color: var(--p-primary); }
+  &.status-pendiente    { color: var(--p-primary-dark); }
   &.status-entregada    { color: var(--p-secondary); }
   &.status-calificada   { color: var(--p-success); }
   &.status-tarde        { color: var(--p-warning); }
@@ -596,12 +714,14 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 64px 24px;
+  padding: 56px 20px;
+
+  @media (min-width: 390px) { padding: 64px 24px; }
 }
 
 .empty-icon-wrap {
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   background: var(--p-primary-soft);
   display: flex;
@@ -610,28 +730,35 @@
   margin-bottom: 16px;
   box-shadow: var(--sh-soft);
 
-  ion-icon { font-size: 34px; color: var(--p-primary); }
+  @media (min-width: 390px) { width: 80px; height: 80px; }
+
+  ion-icon { font-size: 32px; color: var(--p-primary-dark); }
 }
 
 .empty-title {
   margin: 0 0 6px;
   font-family: var(--f-display);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--p-text);
+
+  @media (min-width: 390px) { font-size: 16px; }
 }
 
 .empty-sub {
   margin: 0;
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--p-text-2);
   font-family: var(--f-text);
+
+  @media (min-width: 390px) { font-size: 13px; }
 }
 
-// ── Cargar más ────────────────────────────────
+// ── Cargar más (Sección 6 — botón mínimo 44px) ──
 .cargar-mas-btn {
   grid-column: 1 / -1;
-  --color: var(--p-primary);
+  --color: var(--p-primary-dark);
+  --min-height: var(--touch-min);
   font-family: var(--f-display);
   font-weight: 700;
   font-size: 13px;
@@ -639,10 +766,72 @@
 }
 
 // ============================================
-// ANIMACIONES
+// ORIENTACIÓN LANDSCAPE (Sección 11)
 // ============================================
 
-@keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(6px); }
+@media (orientation: landscape) and (max-height: 500px) {
+  .tareas-hero { padding: 12px 16px 12px; }
+  .hero-title { font-size: 18px; }
+  .filter-row { margin-top: 12px; }
+  .filter-chip { min-height: 40px; padding: 8px 14px; }
+  .tasks-list { padding-top: 12px; gap: 12px; }
+  .task-card { padding: 16px; }
+  .task-card, .task-detalle { animation: none; }
+}
+
+// ============================================
+// ANIMACIONES (Sección 9)
+// ============================================
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+// Reducción de movimiento (accesibilidad)
+@media (prefers-reduced-motion: reduce) {
+  .task-card,
+  .task-detalle,
+  .filter-chip,
+  .ring-fg {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+// ============================================
+// DARK MODE (Sección 1)
+// ============================================
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --p-bg: #0A0E1A;
+    --p-surface-low: #13171F;
+    --p-white: #1A1F2E;
+    --p-cool-grey: #1F2433;
+    --p-text: #E8EAED;
+    --p-text-2: #B0B0B0;
+    --p-border: rgba(255, 255, 255, 0.08);
+  }
+
+  .header-toolbar { --background: rgba(10, 14, 26, 0.86); }
+
+  .task-card {
+    background: linear-gradient(145deg, #1A1F2E, #171B27);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35), 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  .filter-chip,
+  .progress-card,
+  .skeleton-card {
+    background: var(--p-white);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), 0 4px 10px rgba(0, 0, 0, 0.15);
+  }
+
+  .task-detalle { background: var(--p-surface-low); }
 }

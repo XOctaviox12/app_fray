@@ -27,21 +27,36 @@
   --p-text-2: #6B7280;
   --p-border: #E5E7EB;
 
-  // ---- Radios ----
+  // ---- Radios (GUIA_DISENO_RESPONSIVO Sección 4: input 12px, botón 12px, card 22px) ----
   --r-card: 22px;
-  --r-btn: 18px;
-  --r-input: 16px;
+  --r-btn: 12px;
+  --r-input: 12px;
   --r-modal: 24px;
 
   // ---- Sombras ----
   --sh-soft: 0 8px 30px rgba(15, 23, 42, 0.08);
   --sh-soft-lg: 0 16px 40px rgba(15, 23, 42, 0.10);
 
-  // ---- Tipografía ----
-  --f-display: 'SF Pro Display', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --f-text: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+  // ---- Tipografía (GUIA_DISENO_RESPONSIVO Sección 2 / 18: mismo stack que el resto de FrayHub) ----
+  --f-display: -apple-system, 'SF Pro Display', 'Inter', sans-serif;
+  --f-text: -apple-system, 'SF Pro Display', 'Inter', sans-serif;
 
   display: block;
+}
+
+// Dark mode (GUIA_DISENO_RESPONSIVO Sección 1): al ser variables, el resto
+// del componente hereda estos valores automáticamente sin tocar cada regla.
+@media (prefers-color-scheme: dark) {
+  :host {
+    --p-bg: #0A0E1A;
+    --p-bg-2: #13171F;
+    --p-white: #1A1F2E;
+    --p-text: #E8EAED;
+    --p-text-2: #B0B0B0;
+    --p-border: rgba(255, 255, 255, 0.08);
+    --sh-soft: 0 8px 30px rgba(0, 0, 0, 0.28);
+    --sh-soft-lg: 0 16px 40px rgba(0, 0, 0, 0.34);
+  }
 }
 
 // ── Utilidades de truncado/wrap (mismas que tareas, por si el
@@ -427,10 +442,15 @@
     border: none;
     background: transparent;
     outline: none;
-    font-size: 14px;
+    // CRÍTICO iOS (GUIA Sección 8): nunca bajar de 16px o Safari hace
+    // zoom automático al enfocar, incluso en iPad (768px+).
+    font-size: 16px;
     color: var(--p-text);
     padding: 12px 0;
     font-family: var(--f-text);
+    -webkit-appearance: none;
+    -webkit-user-select: text;
+    -webkit-tap-highlight-color: transparent;
 
     &::placeholder { color: var(--p-text-2); }
   }
@@ -527,9 +547,10 @@
   border-radius: 12px;
   padding: 10px 12px;
   color: var(--p-text);
-  font-size: 14px;
+  font-size: 16px; // evita zoom automático de iOS al enfocar
   font-weight: 500;
   font-family: var(--f-text);
+  -webkit-appearance: none;
 
   &::placeholder { color: var(--p-text-2); }
   &:focus {
@@ -540,17 +561,18 @@
 }
 
 .pregunta-puntos-input {
-  width: 58px;
+  width: 64px; // +6px para acomodar el font-size 16px sin recortar
   flex-shrink: 0;
   background: var(--p-white);
   border: 1px solid var(--p-border);
   border-radius: 12px;
   padding: 10px 8px;
   color: var(--p-primary);
-  font-size: 14px;
+  font-size: 16px; // evita zoom automático de iOS al enfocar
   font-weight: 700;
   text-align: center;
   font-family: var(--f-text);
+  -webkit-appearance: none;
 
   &:focus { outline: none; border-color: var(--p-primary); }
 }
@@ -596,8 +618,9 @@
   border-radius: 10px;
   padding: 8px 10px;
   color: var(--p-text);
-  font-size: 13px;
+  font-size: 16px; // evita zoom automático de iOS al enfocar
   font-family: var(--f-text);
+  -webkit-appearance: none;
 
   &::placeholder { color: var(--p-text-2); }
   &:focus { outline: none; border-color: rgba(245, 124, 0, 0.5); }
@@ -920,14 +943,43 @@
   // "align-items: stretch" y filas "auto", las cards de una misma
   // fila igual quedan parejas, pero según su contenido real.
 
+  // Home indicator (GUIA Sección 12): en iPhone X+ el safe-area-inset-bottom
+  // puede superar el padding base de 110px, así que usamos max().
+  @supports (padding: max(0px)) {
+    padding-bottom: max(env(safe-area-inset-bottom), 110px);
+  }
+
   @media (min-width: 768px) {
     padding: 4px 28px 120px;
     grid-template-columns: repeat(2, 1fr);
     gap: 18px;
+
+    @supports (padding: max(0px)) {
+      padding-bottom: max(env(safe-area-inset-bottom), 120px);
+    }
   }
 
   @media (min-width: 1180px) {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+// Landscape con poca altura (GUIA Sección 11): reajustar espaciados
+// y desactivar animaciones de entrada para ganar espacio vertical.
+@media (orientation: landscape) and (max-height: 500px) {
+  .header-toolbar { --min-height: 48px; }
+
+  .hero-section { padding: 12px 16px 10px; gap: 10px; }
+  .hero-title { font-size: 20px; }
+
+  .quick-stats { padding: 4px 16px 10px; gap: 8px; }
+  .stat-bubble { padding: 8px 10px; min-height: 40px; }
+
+  .activities-container { padding-top: 4px; gap: 10px; }
+  .activity-card { padding: 14px; animation: none; }
+
+  .btn-cancel, .btn-save, .btn-entregar, .fab-agregar {
+    min-height: 40px;
   }
 }
 

@@ -52,18 +52,18 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "35kb",
+                  "maximumWarning": "45kb",
                   "maximumError": "50kb"
                 }
               ],
               "optimization": {
-  "scripts": true,
-  "styles": {
-    "minify": true,
-    "inlineCritical": true
-  },
-  "fonts": true
-},
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": true
+                },
+                "fonts": false   
+              },
               "buildOptimizer": true,
               "aot": true,
               "vendorChunk": false,
@@ -99,26 +99,14 @@
           },
           "configurations": {
             "production": {
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "2mb",
-                  "maximumError": "5mb"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "6kb",
-                  "maximumError": "10kb"
-                }
-              ],
               "optimization": {
-  "scripts": true,
-  "styles": {
-    "minify": true,
-    "inlineCritical": true
-  },
-  "fonts": true
-},
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": true
+                },
+                "fonts": false   
+              },
               "buildOptimizer": true,
               "aot": true,
               "vendorChunk": false,

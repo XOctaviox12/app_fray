@@ -1,6 +1,17 @@
 // ============================================
 // HIJO.PAGE.SCSS
 // Adaptación visual iPad · alineada al diseño del mockup (Tailwind design tokens)
+// + Reglas de diseño responsivo FrayHub (GUIA_DISEÑO_RESPONSIVO_FRAYUB.md)
+//
+// AJUSTES aplicados en esta pasada según la guía (comentados con "// GUÍA:"):
+//   1) Font stack: -apple-system primero (Sección 2)
+//   2) Dark mode automático — no existía en este archivo (Sección 1 + checklist)
+//   3) Safe-area top/left/right en header, bottom en el content — no existían (Sección 7 y 12)
+//   4) Touch target del tab de materias, estaba por debajo de 44px (Sección 6)
+//   5) -webkit-tap-highlight-color + :focus-visible en el tab (checklist a11y)
+//   6) will-change en elementos con transform/transición (Sección 14)
+//   7) prefers-reduced-motion global — no existía en este archivo (Sección 9)
+//   8) Landscape: header y tarjetas más compactos (Sección 11)
 // (Solo se usan clases que ya existen en el HTML — ninguna clase, evento
 // o binding fue modificado.)
 // ============================================
@@ -42,7 +53,28 @@
   --fh-shadow-soft: 0 8px 30px rgba(26, 28, 30, 0.08);
   --fh-shadow-lift: 0 14px 40px rgba(26, 28, 30, 0.12);
 
-  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  // GUÍA Sección 2: font stack -apple-system → "SF Pro Display" → "Inter" → fallback
+  font-family: -apple-system, "SF Pro Display", "Inter", BlinkMacSystemFont, sans-serif;
+
+  // GUÍA Sección 1 + checklist: dark mode automático — faltaba por completo en este archivo
+  @media (prefers-color-scheme: dark) {
+    --fh-bg: #101214;
+    --fh-bg-2: #1C1F22;
+    --fh-white: #17191C;
+    --fh-surface-container: #1C1F22;
+
+    --fh-text: #ECEDEE;
+    --fh-text-2: #A7B0B6;
+    --fh-border: #2C3033;
+
+    --fh-primary-soft: rgba(245, 124, 0, 0.18);
+    --fh-secondary-container: rgba(74, 89, 161, 0.18);
+    --fh-error-soft: rgba(186, 26, 26, 0.2);
+    --fh-success-soft: rgba(46, 125, 50, 0.2);
+
+    --fh-shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.45);
+    --fh-shadow-lift: 0 14px 40px rgba(0, 0, 0, 0.55);
+  }
 }
 
 .header-toolbar {
@@ -50,6 +82,16 @@
   --color: var(--fh-text);
   --border-style: none;
   --min-height: 64px;
+
+  // GUÍA Sección 7: safe area — notch / Dynamic Island (faltaba en este archivo)
+  padding-top: max(env(safe-area-inset-top), 0px);
+  padding-left: max(env(safe-area-inset-left), 0px);
+  padding-right: max(env(safe-area-inset-right), 0px);
+}
+
+// GUÍA Sección 11: header más bajo en landscape
+@media (orientation: landscape) and (max-height: 500px) {
+  .header-toolbar { --min-height: 48px; }
 }
 
 .header-title {
@@ -64,7 +106,26 @@
   background: var(--fh-border);
 }
 
-.hijo-content { --background: var(--fh-bg); }
+.hijo-content {
+  --background: var(--fh-bg);
+
+  // GUÍA Sección 12: safe-area bottom, mismo patrón que en las demás páginas
+  --padding-bottom: max(env(safe-area-inset-bottom), 24px);
+
+  @media (min-width: 390px) {
+    --padding-bottom: max(env(safe-area-inset-bottom), 28px);
+  }
+
+  @media (min-width: 768px) {
+    --padding-bottom: max(env(safe-area-inset-bottom), 32px);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .hijo-content {
+    --padding-bottom: max(env(safe-area-inset-bottom), 16px);
+  }
+}
 
 // ── Error state ────────────────────────────
 .error-state {
@@ -90,6 +151,10 @@
   padding: 20px;
   margin: 18px;
   box-shadow: var(--fh-shadow-soft);
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .alumno-card { padding: 14px 20px; }
 }
 
 .skeleton-card {
@@ -176,6 +241,7 @@
   padding: 18px 8px;
   background: var(--fh-white);
   box-shadow: var(--fh-shadow-soft);
+  will-change: transform; // GUÍA Sección 14
   transition: transform 0.2s ease;
 
   &:hover { transform: scale(1.02); }
@@ -189,6 +255,11 @@
   &.color-reprobado .stat-num { color: var(--fh-error); }
   &.color-neutro,
   &.color-sin-nota  .stat-num { color: var(--fh-text); }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &:hover { transform: none; }
+  }
 }
 
 // ── Empty card ──────────────────────────────
@@ -232,6 +303,8 @@
 .tab-btn {
   flex-shrink: 0;
   padding: 12px 22px;
+  // GUÍA Sección 6: touch target mínimo 44px — el padding solo no lo garantizaba
+  min-height: 44px;
   border-radius: 9999px;
   border: none;
   background: var(--fh-white);
@@ -241,6 +314,8 @@
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  will-change: background, color, box-shadow; // GUÍA Sección 14
   transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
   &:hover { background: var(--fh-bg-2); }
@@ -249,6 +324,20 @@
     background: var(--fh-primary-bright);
     color: var(--fh-white);
     box-shadow: 0 8px 20px rgba(245, 124, 0, 0.28);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--fh-primary);
+    outline-offset: 2px;
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    min-height: 40px;
+    padding: 9px 18px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
   }
 }
 
@@ -445,6 +534,10 @@
   &.bar-reprobado { background: var(--fh-error); }
   &.bar-neutro,
   &.bar-sin-nota  { background: var(--fh-text-2); }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
 .rubro-nota {
@@ -555,7 +648,6 @@
 }
 
 // ── iPad: aprovechar el ancho en landscape / pantallas grandes ──
-// ── iPad: aprovechar el ancho en landscape / pantallas grandes ──
 @media (min-width: 768px) {
   .alumno-card,
   .stats-row,
@@ -574,5 +666,15 @@
     max-width: 720px;
     margin-left: auto;
     margin-right: auto;
+  }
+}
+
+// GUÍA Sección 9 + checklist a11y: reduced motion global — no existía en este archivo
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

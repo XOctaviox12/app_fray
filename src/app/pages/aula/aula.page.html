@@ -1,37 +1,46 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="header-toolbar">
     <ion-buttons slot="start">
-      <ion-menu-button>
-        <ion-icon name="menu-outline"></ion-icon>
+      <ion-menu-button
+        aria-label="Abrir menú"
+        class="header-menu-btn">
+        <ion-icon name="menu-outline" aria-hidden="true"></ion-icon>
       </ion-menu-button>
     </ion-buttons>
     <ion-title class="header-title">
       {{ esTutor ? 'Mi Hijo(a)' : esDocente ? 'Mis Grupos' : 'Mi Aula' }}
     </ion-title>
   </ion-toolbar>
-  <div class="header-accent-bar"></div>
+  <div class="header-accent-bar" aria-hidden="true"></div>
 </ion-header>
 
 <ion-content class="aula-content">
 
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
-    <ion-refresher-content></ion-refresher-content>
+    <ion-refresher-content
+      pullingIcon="chevron-down-circle-outline"
+      pullingText="Desliza para actualizar"
+      refreshingSpinner="crescent"
+      refreshingText="Actualizando..."
+      aria-live="polite"
+      aria-atomic="true">
+    </ion-refresher-content>
   </ion-refresher>
 
   <!-- Loading -->
-  <div class="loading-overlay" *ngIf="cargando">
-    <ion-spinner name="crescent" class="loading-spinner"></ion-spinner>
+  <div class="loading-overlay" *ngIf="cargando" role="status" aria-live="polite" aria-atomic="true">
+    <ion-spinner name="crescent" class="loading-spinner" aria-hidden="true"></ion-spinner>
     <p class="loading-text">Cargando datos...</p>
   </div>
 
   <!-- Error -->
-  <div class="error-state" *ngIf="error && !cargando">
-    <ion-icon name="cloud-offline-outline"></ion-icon>
+  <div class="error-state" *ngIf="error && !cargando" role="alert">
+    <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
     <p>{{ error }}</p>
   </div>
 
   <!-- ═══════════════════════════════════════ -->
-  <!--  DOCENTE                               -->
+  <!--  VISTA DOCENTE                         -->
   <!-- ═══════════════════════════════════════ -->
   <ng-container *ngIf="esDocente && !cargando && !error">
 
@@ -40,8 +49,8 @@
       <p class="section-sub">Selecciona un grupo y materia para ver sus métricas</p>
     </div>
 
-    <div class="empty-state" *ngIf="grupos.length === 0">
-      <ion-icon name="people-circle-outline"></ion-icon>
+    <div class="empty-state" *ngIf="grupos.length === 0" role="status">
+      <ion-icon name="people-circle-outline" aria-hidden="true"></ion-icon>
       <h3>Sin grupos asignados</h3>
       <p>Solicita al administrador que te asigne grupos.</p>
     </div>
@@ -52,18 +61,18 @@
         <!-- Encabezado del grupo -->
         <div class="grupo-bloque-header">
           <div class="grupo-bloque-icon">
-            <ion-icon name="people-outline"></ion-icon>
+            <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
           </div>
           <div class="grupo-bloque-info">
             <h3 class="grupo-bloque-nombre">Grupo {{ g.nombre }}</h3>
             <div class="grupo-bloque-tags">
               <span class="gtag orange">{{ g.grado }}° Semestre</span>
               <span class="gtag gray" *ngIf="g.aula">
-                <ion-icon name="easel-outline"></ion-icon>
+                <ion-icon name="easel-outline" aria-hidden="true"></ion-icon>
                 {{ g.aula }}
               </span>
               <span class="gtag blue">
-                <ion-icon name="people-circle-outline"></ion-icon>
+                <ion-icon name="people-circle-outline" aria-hidden="true"></ion-icon>
                 {{ g.capacidad_maxima }} alumnos
               </span>
             </div>
@@ -71,31 +80,27 @@
         </div>
 
         <!-- Sin materias asignadas en este grupo -->
-        <div class="sin-materias" *ngIf="g.materias.length === 0">
-          <ion-icon name="information-circle-outline"></ion-icon>
+        <div class="sin-materias" *ngIf="g.materias.length === 0" role="status">
+          <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
           <p>No tienes materias asignadas en este grupo</p>
         </div>
 
         <!-- Materia cards -->
         <div class="materias-list" *ngIf="g.materias.length > 0">
           <p class="materias-sublabel">
-            <ion-icon name="book-outline"></ion-icon>
+            <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
             {{ g.materias.length === 1 ? 'Tu materia en este grupo' : 'Tus materias en este grupo' }}
           </p>
 
-          <div
-            class="materia-card pressable"
+          <button
+            type="button"
+            class="materia-card"
             *ngFor="let m of g.materias"
-            role="button"
-            tabindex="0"
             [attr.aria-label]="'Ver métricas de ' + m.nombre"
-            (click)="verDetalle(g.id, m.asignaturaId)"
-            (keydown.enter)="verDetalle(g.id, m.asignaturaId)"
-            (keydown.space)="$event.preventDefault(); verDetalle(g.id, m.asignaturaId)"
-          >
+            (click)="verDetalle(g.id, m.asignaturaId)">
             <div class="materia-card-left">
               <div class="materia-icon-wrap">
-                <ion-icon name="book-outline"></ion-icon>
+                <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
               </div>
               <div class="materia-card-text">
                 <h4 class="materia-nombre">{{ m.nombre }}</h4>
@@ -104,9 +109,9 @@
             </div>
             <div class="materia-card-right">
               <span class="ver-metricas-txt">Ver métricas</span>
-              <ion-icon name="chevron-forward-outline"></ion-icon>
+              <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
             </div>
-          </div>
+          </button>
         </div>
 
       </div>
@@ -115,7 +120,7 @@
   </ng-container>
 
   <!-- ═══════════════════════════════════════ -->
-  <!--  ALUMNO                                -->
+  <!--  VISTA ALUMNO                          -->
   <!-- ═══════════════════════════════════════ -->
   <ng-container *ngIf="esAlumno && !cargando && !error">
 
@@ -124,30 +129,26 @@
       <p class="section-sub">Información de tu grupo</p>
     </div>
 
-    <div class="empty-state" *ngIf="!grupoAlumno">
-      <ion-icon name="school-outline"></ion-icon>
+    <div class="empty-state" *ngIf="!grupoAlumno" role="status">
+      <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
       <h3>Sin grupo asignado</h3>
       <p>Contacta a tu coordinador.</p>
     </div>
 
     <div class="grupos-container" *ngIf="grupoAlumno">
-      <div
-        class="aula-card pressable"
-        role="button"
-        tabindex="0"
-        aria-label="Ver métricas del grupo"
-        (click)="verDetalle(grupoAlumno.id)"
-        (keydown.enter)="verDetalle(grupoAlumno.id)"
-        (keydown.space)="$event.preventDefault(); verDetalle(grupoAlumno.id)"
-      >
+      <button
+        type="button"
+        class="aula-card"
+        [attr.aria-label]="'Ver métricas del grupo ' + grupoAlumno.nombre"
+        (click)="verDetalle(grupoAlumno.id)">
         <div class="aula-card-header">
           <div class="aula-badge-row">
             <span class="grado-badge">
-              <ion-icon name="school-outline"></ion-icon>
+              <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
               {{ grupoAlumno.grado }}° Semestre
             </span>
             <span class="plantel-id">
-              <ion-icon name="business-outline"></ion-icon>
+              <ion-icon name="business-outline" aria-hidden="true"></ion-icon>
               Plantel {{ grupoAlumno.plantel_id }}
             </span>
           </div>
@@ -155,14 +156,14 @@
         </div>
         <div class="aula-card-body">
           <div class="aula-detail-item">
-            <div class="detail-icon-wrap"><ion-icon name="easel-outline"></ion-icon></div>
+            <div class="detail-icon-wrap"><ion-icon name="easel-outline" aria-hidden="true"></ion-icon></div>
             <div class="detail-info">
               <span class="detail-label">Aula asignada</span>
               <span class="detail-value">{{ grupoAlumno.aula || 'Por definir' }}</span>
             </div>
           </div>
           <div class="aula-detail-item">
-            <div class="detail-icon-wrap"><ion-icon name="people-circle-outline"></ion-icon></div>
+            <div class="detail-icon-wrap"><ion-icon name="people-circle-outline" aria-hidden="true"></ion-icon></div>
             <div class="detail-info">
               <span class="detail-label">Capacidad</span>
               <span class="detail-value">{{ grupoAlumno.capacidad_maxima }} personas</span>
@@ -170,17 +171,17 @@
           </div>
         </div>
         <div class="card-tap-hint">
-          <ion-icon name="analytics-outline"></ion-icon>
+          <ion-icon name="analytics-outline" aria-hidden="true"></ion-icon>
           <span>Ver métricas del grupo</span>
-          <ion-icon name="chevron-forward-outline"></ion-icon>
+          <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
         </div>
-      </div>
+      </button>
     </div>
 
   </ng-container>
 
   <!-- ═══════════════════════════════════════ -->
-  <!--  TUTOR                                 -->
+  <!--  VISTA TUTOR                           -->
   <!-- ═══════════════════════════════════════ -->
   <ng-container *ngIf="esTutor && !cargando && !error">
 
@@ -190,37 +191,33 @@
     </div>
 
     <div class="hijo-card" *ngIf="nombreHijo">
-      <div class="hijo-card-avatar"><ion-icon name="person-outline"></ion-icon></div>
+      <div class="hijo-card-avatar"><ion-icon name="person-outline" aria-hidden="true"></ion-icon></div>
       <div class="hijo-card-info">
         <p class="hijo-card-label">Alumno vinculado</p>
         <h3 class="hijo-card-name">{{ nombreHijo }}</h3>
       </div>
     </div>
 
-    <div class="empty-state" *ngIf="!grupoHijo">
-      <ion-icon name="school-outline"></ion-icon>
+    <div class="empty-state" *ngIf="!grupoHijo" role="status">
+      <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
       <h3>Sin grupo asignado</h3>
       <p>{{ nombreHijo || 'El alumno' }} aún no tiene grupo.</p>
     </div>
 
     <div class="grupos-container" *ngIf="grupoHijo">
-      <div
-        class="aula-card tutor-card pressable"
-        role="button"
-        tabindex="0"
-        aria-label="Ver métricas del grupo"
-        (click)="verDetalle(grupoHijo.id)"
-        (keydown.enter)="verDetalle(grupoHijo.id)"
-        (keydown.space)="$event.preventDefault(); verDetalle(grupoHijo.id)"
-      >
+      <button
+        type="button"
+        class="aula-card tutor-card"
+        [attr.aria-label]="'Ver métricas del grupo ' + grupoHijo.nombre"
+        (click)="verDetalle(grupoHijo.id)">
         <div class="aula-card-header">
           <div class="aula-badge-row">
             <span class="grado-badge">
-              <ion-icon name="school-outline"></ion-icon>
+              <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
               {{ grupoHijo.grado }}° Semestre
             </span>
             <span class="plantel-id">
-              <ion-icon name="business-outline"></ion-icon>
+              <ion-icon name="business-outline" aria-hidden="true"></ion-icon>
               Plantel {{ grupoHijo.plantel_id }}
             </span>
           </div>
@@ -228,14 +225,14 @@
         </div>
         <div class="aula-card-body">
           <div class="aula-detail-item">
-            <div class="detail-icon-wrap"><ion-icon name="easel-outline"></ion-icon></div>
+            <div class="detail-icon-wrap"><ion-icon name="easel-outline" aria-hidden="true"></ion-icon></div>
             <div class="detail-info">
               <span class="detail-label">Aula</span>
               <span class="detail-value">{{ grupoHijo.aula || 'Por definir' }}</span>
             </div>
           </div>
           <div class="aula-detail-item">
-            <div class="detail-icon-wrap"><ion-icon name="people-circle-outline"></ion-icon></div>
+            <div class="detail-icon-wrap"><ion-icon name="people-circle-outline" aria-hidden="true"></ion-icon></div>
             <div class="detail-info">
               <span class="detail-label">Capacidad del grupo</span>
               <span class="detail-value">{{ grupoHijo.capacidad_maxima }} alumnos</span>
@@ -243,64 +240,52 @@
           </div>
         </div>
         <div class="card-tap-hint">
-          <ion-icon name="analytics-outline"></ion-icon>
+          <ion-icon name="analytics-outline" aria-hidden="true"></ion-icon>
           <span>Ver métricas del grupo</span>
-          <ion-icon name="chevron-forward-outline"></ion-icon>
+          <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
         </div>
-      </div>
+      </button>
 
       <p class="subsection-label">Seguimiento</p>
 
-      <div
+      <button
+        type="button"
         class="tutor-quick-card"
-        role="button"
-        tabindex="0"
-        aria-label="Calificaciones y asistencia"
         routerLink="/mi-hijo"
-        (keydown.enter)="$event.preventDefault(); $any($event.currentTarget).click()"
-        (keydown.space)="$event.preventDefault(); $any($event.currentTarget).click()"
-      >
-        <div class="tutor-quick-icon"><ion-icon name="ribbon-outline"></ion-icon></div>
+        aria-label="Ver calificaciones y asistencia">
+        <div class="tutor-quick-icon"><ion-icon name="ribbon-outline" aria-hidden="true"></ion-icon></div>
         <div class="tutor-quick-text">
           <h4>Calificaciones y asistencia</h4>
           <p>Desglose por materia del parcial actual</p>
         </div>
-        <ion-icon name="chevron-forward-outline" class="tutor-quick-arrow"></ion-icon>
-      </div>
+        <ion-icon name="chevron-forward-outline" class="tutor-quick-arrow" aria-hidden="true"></ion-icon>
+      </button>
 
-      <div
+      <button
+        type="button"
         class="tutor-quick-card"
-        role="button"
-        tabindex="0"
-        aria-label="Tareas pendientes"
         routerLink="/tareas-hijo"
-        (keydown.enter)="$event.preventDefault(); $any($event.currentTarget).click()"
-        (keydown.space)="$event.preventDefault(); $any($event.currentTarget).click()"
-      >
-        <div class="tutor-quick-icon"><ion-icon name="document-text-outline"></ion-icon></div>
+        [attr.aria-label]="'Ver tareas pendientes de ' + (nombreHijo.split(' ')[0] || 'tu hijo')">
+        <div class="tutor-quick-icon"><ion-icon name="document-text-outline" aria-hidden="true"></ion-icon></div>
         <div class="tutor-quick-text">
           <h4>Tareas pendientes</h4>
           <p>Revisa las entregas de {{ nombreHijo.split(' ')[0] }}</p>
         </div>
-        <ion-icon name="chevron-forward-outline" class="tutor-quick-arrow"></ion-icon>
-      </div>
+        <ion-icon name="chevron-forward-outline" class="tutor-quick-arrow" aria-hidden="true"></ion-icon>
+      </button>
 
-      <div
+      <button
+        type="button"
         class="tutor-quick-card"
-        role="button"
-        tabindex="0"
-        aria-label="Comunicados"
         routerLink="/comunidad"
-        (keydown.enter)="$event.preventDefault(); $any($event.currentTarget).click()"
-        (keydown.space)="$event.preventDefault(); $any($event.currentTarget).click()"
-      >
-        <div class="tutor-quick-icon"><ion-icon name="megaphone-outline"></ion-icon></div>
+        aria-label="Ver comunicados de la institución">
+        <div class="tutor-quick-icon"><ion-icon name="megaphone-outline" aria-hidden="true"></ion-icon></div>
         <div class="tutor-quick-text">
           <h4>Comunicados</h4>
           <p>Avisos de la institución</p>
         </div>
-        <ion-icon name="chevron-forward-outline" class="tutor-quick-arrow"></ion-icon>
-      </div>
+        <ion-icon name="chevron-forward-outline" class="tutor-quick-arrow" aria-hidden="true"></ion-icon>
+      </button>
     </div>
 
   </ng-container>

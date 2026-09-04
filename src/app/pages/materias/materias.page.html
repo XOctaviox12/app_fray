@@ -1,48 +1,48 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="header-toolbar">
     <ion-buttons slot="start">
-      <ion-menu-button>
-        <ion-icon name="menu-outline"></ion-icon>
+      <ion-menu-button aria-label="Abrir menú">
+        <ion-icon name="menu-outline" aria-hidden="true"></ion-icon>
       </ion-menu-button>
     </ion-buttons>
     <ion-title class="header-title">
       {{ esTutor ? 'Materias de ' + nombreHijo.split(' ')[0] : 'Materias' }}
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button class="header-action-btn" (click)="cargarDatos()">
-        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      <ion-button class="header-action-btn" (click)="cargarDatos()" aria-label="Actualizar materias">
+        <ion-icon name="refresh-outline" slot="icon-only" aria-hidden="true"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
-  <div class="header-accent-bar"></div>
+  <div class="header-accent-bar" aria-hidden="true"></div>
 
   <div class="segment-wrapper" *ngIf="!esTutor">
-    <ion-segment [value]="segmento" (ionChange)="cambiarSegmento($event)">
+    <ion-segment [value]="segmento" (ionChange)="cambiarSegmento($event)" aria-label="Secciones de materias">
 
       <ion-segment-button value="materias">
         <ion-label>
-          <ion-icon name="book-outline"></ion-icon>
+          <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
           {{ esDocente ? 'Mis Materias' : 'Materias' }}
         </ion-label>
       </ion-segment-button>
 
       <ion-segment-button value="pendientes" *ngIf="esAlumno">
         <ion-label>
-          <ion-icon name="time-outline"></ion-icon>
+          <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
           Pendientes
         </ion-label>
       </ion-segment-button>
 
       <ion-segment-button value="calificaciones" *ngIf="esAlumno">
         <ion-label>
-          <ion-icon name="ribbon-outline"></ion-icon>
+          <ion-icon name="ribbon-outline" aria-hidden="true"></ion-icon>
           Calificaciones
         </ion-label>
       </ion-segment-button>
 
       <ion-segment-button value="resumen" *ngIf="esDocente">
         <ion-label>
-          <ion-icon name="stats-chart-outline"></ion-icon>
+          <ion-icon name="stats-chart-outline" aria-hidden="true"></ion-icon>
           Resumen
         </ion-label>
       </ion-segment-button>
@@ -51,10 +51,10 @@
   </div>
 </ion-header>
 
-<ion-content class="materias-content">
+<ion-content class="materias-content" role="main" aria-label="Materias">
 
-  <div class="loading-state" *ngIf="cargando">
-    <ion-spinner name="crescent"></ion-spinner>
+  <div class="loading-state" *ngIf="cargando" role="status" aria-live="polite">
+    <ion-spinner name="crescent" aria-label="Cargando materias"></ion-spinner>
     <p>Cargando materias...</p>
   </div>
 
@@ -72,44 +72,45 @@
           <p class="section-sub">{{ materiasAlumno.length }} asignaturas este semestre</p>
         </div>
 
-        <div class="empty-state" *ngIf="materiasAlumno.length === 0">
-          <ion-icon name="book-outline"></ion-icon>
+        <div class="empty-state" *ngIf="materiasAlumno.length === 0" role="status">
+          <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
           <h3>Sin materias asignadas</h3>
           <p>Aún no tienes materias en tu grupo.</p>
         </div>
 
         <div [ngClass]="['materia-card', m.color + '-accent']"
+             role="list"
              *ngFor="let m of materiasAlumno; trackBy: trackById">
-          <div class="materia-top-bar"></div>
-          <div class="materia-body">
+          <div class="materia-top-bar" aria-hidden="true"></div>
+          <div class="materia-body" role="listitem">
             <div class="materia-header-row">
-              <div [ngClass]="['materia-icon-wrap', m.color + '-bg']">
+              <div [ngClass]="['materia-icon-wrap', m.color + '-bg']" aria-hidden="true">
                 <ion-icon name="book-outline"></ion-icon>
               </div>
               <div class="materia-info">
                 <h3 class="materia-name">{{ m.nombre }}</h3>
                 <p class="materia-teacher">{{ m.docente }}</p>
               </div>
-              <div [ngClass]="['cal-chip', colorCalificacion(m.calificacion)]" *ngIf="m.calificacion !== null">
-                <span class="cal-num">{{ m.calificacion }}</span>
-                <span class="cal-lbl">P{{ m.parcial }}</span>
+              <div [ngClass]="['cal-chip', colorCalificacion(m.calificacion)]" *ngIf="m.calificacion !== null" [attr.aria-label]="'Calificación ' + m.calificacion + ', parcial ' + m.parcial">
+                <span class="cal-num" aria-hidden="true">{{ m.calificacion }}</span>
+                <span class="cal-lbl" aria-hidden="true">P{{ m.parcial }}</span>
               </div>
             </div>
 
             <p class="materia-clave" *ngIf="m.clave">Clave: {{ m.clave }}</p>
 
-            <div class="tareas-indicator" *ngIf="m.tareasPendientes > 0">
-              <ion-icon name="alert-circle-outline"></ion-icon>
+            <div class="tareas-indicator" *ngIf="m.tareasPendientes > 0" role="status">
+              <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
               {{ m.tareasPendientes }} tarea{{ m.tareasPendientes > 1 ? 's' : '' }} pendiente{{ m.tareasPendientes > 1 ? 's' : '' }}
             </div>
 
             <div class="materia-actions">
               <ion-button fill="clear" size="small" class="btn-materia" routerLink="/tareas">
-                <ion-icon name="document-text-outline" slot="start"></ion-icon>
+                <ion-icon name="document-text-outline" slot="start" aria-hidden="true"></ion-icon>
                 Tareas
               </ion-button>
               <ion-button fill="clear" size="small" class="btn-materia" routerLink="/apoyo">
-                <ion-icon name="library-outline" slot="start"></ion-icon>
+                <ion-icon name="library-outline" slot="start" aria-hidden="true"></ion-icon>
                 Material
               </ion-button>
             </div>
@@ -124,33 +125,34 @@
           <p class="section-sub">Tareas que requieren tu atención inmediata</p>
         </div>
 
-        <div class="empty-state" *ngIf="tareasPendientesTotal === 0">
-          <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <div class="empty-state" *ngIf="tareasPendientesTotal === 0" role="status">
+          <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
           <h3>¡Todo al día!</h3>
           <p>No tienes tareas pendientes en este momento.</p>
         </div>
 
         <div class="pendiente-card urgente"
+             role="listitem"
              *ngFor="let m of materiasAlumno | filterPendientes">
           <div class="pendiente-card-header">
-            <div class="pendiente-icon-wrap">
+            <div class="pendiente-icon-wrap" aria-hidden="true">
               <ion-icon name="alert-circle-outline"></ion-icon>
             </div>
             <div class="pendiente-info">
               <h4 class="pendiente-title">{{ m.nombre }}</h4>
               <p class="pendiente-deadline">
-                <ion-icon name="document-text-outline"></ion-icon>
+                <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
                 {{ m.tareasPendientes }} tarea{{ m.tareasPendientes > 1 ? 's' : '' }} pendiente{{ m.tareasPendientes > 1 ? 's' : '' }}
               </p>
             </div>
             <span class="urgente-badge">
-              <ion-icon name="flame-outline"></ion-icon>
+              <ion-icon name="flame-outline" aria-hidden="true"></ion-icon>
               Pendiente
             </span>
           </div>
           <div class="pendiente-footer">
             <ion-button fill="clear" size="small" class="btn-urgente" routerLink="/tareas">
-              <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
+              <ion-icon name="arrow-forward-outline" slot="end" aria-hidden="true"></ion-icon>
               Ver tareas
             </ion-button>
           </div>
@@ -164,15 +166,15 @@
           <p class="section-sub">Boletas parciales publicadas por tus docentes</p>
         </div>
 
-        <div class="empty-state" *ngIf="sinCalificaciones">
-          <ion-icon name="ribbon-outline"></ion-icon>
+        <div class="empty-state" *ngIf="sinCalificaciones" role="status">
+          <ion-icon name="ribbon-outline" aria-hidden="true"></ion-icon>
           <h3>Sin calificaciones aún</h3>
           <p>Tus docentes aún no han publicado boletas parciales.</p>
         </div>
 
-        <div class="cal-card" *ngFor="let m of materiasAlumno; trackBy: trackById">
+        <div class="cal-card" role="listitem" *ngFor="let m of materiasAlumno; trackBy: trackById">
           <div class="cal-card-left">
-            <div [ngClass]="['cal-circle', colorCalificacion(m.calificacion)]">
+            <div [ngClass]="['cal-circle', colorCalificacion(m.calificacion)]" aria-hidden="true">
               <span>{{ m.calificacion !== null ? m.calificacion : '—' }}</span>
             </div>
           </div>
@@ -189,7 +191,7 @@
             <span class="cal-sin-nota" *ngIf="m.boletas.length === 0">Sin calificación publicada</span>
           </div>
           <div class="cal-card-right">
-            <div [ngClass]="['cal-estado', colorCalificacion(m.calificacion)]">
+            <div [ngClass]="['cal-estado', colorCalificacion(m.calificacion)]" aria-hidden="true">
               <ion-icon [name]="iconoCalificacion(m.calificacion)"></ion-icon>
             </div>
           </div>
@@ -210,15 +212,15 @@
           <p class="section-sub">{{ materiasDocente.length }} asignatura{{ materiasDocente.length !== 1 ? 's' : '' }} asignada{{ materiasDocente.length !== 1 ? 's' : '' }}</p>
         </div>
 
-        <div class="empty-state" *ngIf="materiasDocente.length === 0">
-          <ion-icon name="book-outline"></ion-icon>
+        <div class="empty-state" *ngIf="materiasDocente.length === 0" role="status">
+          <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
           <h3>Sin materias asignadas</h3>
           <p>El administrador aún no te ha asignado asignaturas.</p>
         </div>
 
-        <div class="docente-materia-card" *ngFor="let m of materiasDocente; trackBy: trackById">
+        <div class="docente-materia-card" role="listitem" *ngFor="let m of materiasDocente; trackBy: trackById">
           <div class="dm-header">
-            <div class="dm-icon-wrap">
+            <div class="dm-icon-wrap" aria-hidden="true">
               <ion-icon name="book-outline"></ion-icon>
             </div>
             <div class="dm-info">
@@ -233,26 +235,26 @@
 
           <div class="dm-stats">
             <div class="dm-stat">
-              <ion-icon name="people-outline"></ion-icon>
+              <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
               <span>{{ m.totalAlumnos }} alumnos</span>
             </div>
             <div class="dm-stat">
-              <ion-icon name="document-text-outline"></ion-icon>
+              <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
               <span>{{ m.tareasPub }} tareas</span>
             </div>
             <div class="dm-stat">
-              <ion-icon name="checkmark-done-outline"></ion-icon>
+              <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
               <span>{{ m.actividadesPub }} actividades</span>
             </div>
           </div>
 
           <div class="dm-actions">
             <ion-button fill="clear" size="small" class="dm-btn" routerLink="/tareas">
-              <ion-icon name="add-outline" slot="start"></ion-icon>
+              <ion-icon name="add-outline" slot="start" aria-hidden="true"></ion-icon>
               Nueva tarea
             </ion-button>
             <ion-button fill="clear" size="small" class="dm-btn" routerLink="/actividad">
-              <ion-icon name="add-outline" slot="start"></ion-icon>
+              <ion-icon name="add-outline" slot="start" aria-hidden="true"></ion-icon>
               Actividad
             </ion-button>
           </div>
@@ -266,24 +268,24 @@
           <p class="section-sub">Panorama general de tu actividad académica</p>
         </div>
 
-        <div class="resumen-grid">
-          <div class="resumen-card orange">
-            <ion-icon name="book-outline"></ion-icon>
+        <div class="resumen-grid" role="list">
+          <div class="resumen-card orange" role="listitem">
+            <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
             <span class="resumen-num">{{ materiasDocente.length }}</span>
             <span class="resumen-lbl">Materias</span>
           </div>
-          <div class="resumen-card blue">
-            <ion-icon name="document-text-outline"></ion-icon>
+          <div class="resumen-card blue" role="listitem">
+            <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
             <span class="resumen-num">{{ materiasDocente | sumField:'tareasPub' }}</span>
             <span class="resumen-lbl">Tareas pub.</span>
           </div>
-          <div class="resumen-card green">
-            <ion-icon name="checkmark-done-outline"></ion-icon>
+          <div class="resumen-card green" role="listitem">
+            <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
             <span class="resumen-num">{{ materiasDocente | sumField:'actividadesPub' }}</span>
             <span class="resumen-lbl">Actividades</span>
           </div>
-          <div class="resumen-card purple">
-            <ion-icon name="people-outline"></ion-icon>
+          <div class="resumen-card purple" role="listitem">
+            <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
             <!-- No usar sumField aquí: un mismo alumno puede estar en varias
                  materias del docente y se contaría repetido. Se usa el total
                  de alumnos únicos calculado en el componente. -->
@@ -292,14 +294,14 @@
           </div>
         </div>
 
-        <p class="section-sublabel">Por materia</p>
+        <p class="section-sublabel" id="porMateriaLabel">Por materia</p>
 
-        <div class="resumen-row" *ngFor="let m of materiasDocente; trackBy: trackById">
+        <div class="resumen-row" role="listitem" aria-labelledby="porMateriaLabel" *ngFor="let m of materiasDocente; trackBy: trackById">
           <div class="resumen-row-name">{{ m.nombre }}</div>
           <div class="resumen-row-stats">
-            <span><ion-icon name="document-text-outline"></ion-icon>{{ m.tareasPub }}</span>
-            <span><ion-icon name="checkmark-done-outline"></ion-icon>{{ m.actividadesPub }}</span>
-            <span><ion-icon name="people-outline"></ion-icon>{{ m.totalAlumnos }}</span>
+            <span><ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>{{ m.tareasPub }}</span>
+            <span><ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>{{ m.actividadesPub }}</span>
+            <span><ion-icon name="people-outline" aria-hidden="true"></ion-icon>{{ m.totalAlumnos }}</span>
           </div>
         </div>
       </div>
@@ -321,20 +323,20 @@
           <p class="promedio-label">Promedio general</p>
           <h2 [ngClass]="['promedio-num', colorCalificacion(promedioHijo)]">{{ promedioHijo }}</h2>
         </div>
-        <div [ngClass]="['promedio-icon', colorCalificacion(promedioHijo)]">
+        <div [ngClass]="['promedio-icon', colorCalificacion(promedioHijo)]" aria-hidden="true">
           <ion-icon name="ribbon-outline"></ion-icon>
         </div>
       </div>
 
-      <div class="empty-state" *ngIf="materiasTutor.length === 0">
-        <ion-icon name="book-outline"></ion-icon>
+      <div class="empty-state" *ngIf="materiasTutor.length === 0" role="status">
+        <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
         <h3>Sin información disponible</h3>
         <p>{{ nombreHijo }} aún no tiene materias o boletas publicadas.</p>
       </div>
 
-      <div class="cal-card" *ngFor="let m of materiasTutor; trackBy: trackById">
+      <div class="cal-card" role="listitem" *ngFor="let m of materiasTutor; trackBy: trackById">
         <div class="cal-card-left">
-          <div [ngClass]="['cal-circle', colorCalificacion(m.calificacion)]">
+          <div [ngClass]="['cal-circle', colorCalificacion(m.calificacion)]" aria-hidden="true">
             <span>{{ m.calificacion !== null ? m.calificacion : '—' }}</span>
           </div>
         </div>
@@ -350,7 +352,7 @@
           <span class="cal-sin-nota" *ngIf="m.boletas.length === 0">Sin boleta publicada</span>
         </div>
         <div class="cal-card-right">
-          <div [ngClass]="['cal-estado', colorCalificacion(m.calificacion)]">
+          <div [ngClass]="['cal-estado', colorCalificacion(m.calificacion)]" aria-hidden="true">
             <ion-icon [name]="iconoAprobada(m.aprobada)"></ion-icon>
           </div>
         </div>

@@ -67,8 +67,7 @@ export class InicioPage implements OnInit {
     const grupoId = usu?.alumno_grupo_id;
     if (!grupoId) return;
 
-    // ✅ MIGRADO: Materias del grupo del alumno
-    // Usa query directo a academic_asignatura_grupos (tabla sin período crítico)
+    // Materias del grupo del alumno
     const { data: materias, error: eM } = await this.sesion.supabase
       .from('academic_asignatura_grupos')
       .select('*', { count: 'exact', head: true })
@@ -76,8 +75,7 @@ export class InicioPage implements OnInit {
     if (eM) console.error('Error materias alumno:', eM.message);
     this.totalMaterias = materias?.length || 0;
 
-    // ✅ CORREGIDO: Tareas asignadas al grupo del alumno
-    // Cambiado de .from('academic_tarea') directo a RPC segura
+    // Tareas asignadas al grupo del alumno
     const { data: tareaCount, error: eT } = await this.sesion.supabase
       .rpc('contar_tareas_grupo', { p_token: token, p_grupo_id: grupoId });
     if (eT) {
@@ -87,8 +85,7 @@ export class InicioPage implements OnInit {
       this.tareasPendientes = tareaCount || 0;
     }
 
-    // ✅ MIGRADO: Actividades del grupo
-    // Usa RPC segura que valida período activo
+    // Actividades del grupo
     const { data: acts, error: eA } = await this.sesion.supabase
       .rpc('contar_actividades_grupo', { p_token: token, p_grupo_id: grupoId });
     if (eA) console.error('Error actividades alumno:', eA.message);
@@ -103,22 +100,19 @@ export class InicioPage implements OnInit {
     const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
     if (!token) return;
 
-    // ✅ MIGRADO: Grupos asignados al docente (con período activo)
-    // Usa RPC segura que valida período activo + sesión
+    // Grupos asignados al docente
     const { data: grupos, error: eG } = await this.sesion.supabase
       .rpc('grupos_del_docente', { p_token: token });
     if (eG) console.error('Error grupos docente:', eG.message);
     this.totalGrupos = (grupos || []).length;
 
-    // ✅ MIGRADO: Materias (asignaturas) asignadas al docente
-    // Usa RPC segura que valida sesión
+    // Materias (asignaturas) asignadas al docente
     const { data: materias, error: eM } = await this.sesion.supabase
       .rpc('materias_del_docente', { p_token: token });
     if (eM) console.error('Error materias docente:', eM.message);
     this.totalMaterias = (materias || []).length;
 
-    // ✅ CORREGIDO: Tareas creadas por el docente
-    // Cambiado de .from('academic_tarea') directo a RPC segura
+    // Tareas creadas por el docente
     const { data: tareaCount, error: eT } = await this.sesion.supabase
       .rpc('contar_tareas_docente', { p_token: token, p_docente_id: docenteId });
     if (eT) {
@@ -128,8 +122,7 @@ export class InicioPage implements OnInit {
       this.tareasPendientes = tareaCount || 0;
     }
 
-    // ✅ MIGRADO: Actividades creadas por el docente
-    // Usa RPC segura que valida período activo
+    // Actividades creadas por el docente
     const { data: acts, error: eA } = await this.sesion.supabase
       .rpc('contar_actividades_docente', { p_token: token, p_docente_id: docenteId });
     if (eA) console.error('Error actividades docente:', eA.message);
@@ -154,8 +147,6 @@ export class InicioPage implements OnInit {
 
       const grupoId = (alumno as any).alumno_grupo_id;
       if (grupoId) {
-        // ✅ MIGRADO: Materias del grupo del alumno (tutor)
-        // Query directo OK (academic_asignatura_grupos no tiene período crítico)
         const { count: materias, error: eM } = await this.sesion.supabase
           .from('academic_asignatura_grupos')
           .select('*', { count: 'exact', head: true })
@@ -165,8 +156,7 @@ export class InicioPage implements OnInit {
       }
     }
 
-    // ✅ MIGRADO: Boletas publicadas del alumno
-    // Usa RPC segura que valida sesión de tutor
+    // Boletas publicadas del alumno
     const { data: boletas } = token
       ? await this.sesion.supabase.rpc('boletas_alumno_publicadas', { p_token: token, p_alumno_id: alumnoId })
       : { data: [] as any[] };
@@ -197,5 +187,14 @@ export class InicioPage implements OnInit {
 
   doRefresh(event: any) {
     this.cargarStats().then(() => event.target.complete());
+  }
+
+  // ── CORREGIDO: acepta Event y castea a HTMLElement ──
+  onEnterPress(event: Event) {
+    event.preventDefault();
+    const target = event.currentTarget as HTMLElement;
+    if (target) {
+      target.click();
+    }
   }
 }

@@ -48,7 +48,7 @@
           type="button"
         >
           <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
-          <span>Alumnos / Maestros</span>
+          <span class="mode-btn-text">Alumnos / Maestros</span>
         </button>
 
         <button
@@ -60,14 +60,14 @@
           type="button"
         >
           <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
-          <span>Tutores</span>
+          <span class="mode-btn-text">Tutores</span>
         </button>
       </div>
 
       <!-- ════════════════════════════════════════════════════════════ -->
       <!-- FORMULARIO                                                   -->
       <!-- ════════════════════════════════════════════════════════════ -->
-      <form class="form-section" (ngSubmit)="modo === 'escolar' ? login() : loginTutor()">
+      <form class="form-section" (ngSubmit)="modo === 'escolar' ? login() : loginTutor()" novalidate>
 
         <!-- ────────────────────────────────────────────────────────── -->
         <!-- MENSAJES DE ESTADO (Banner Bloqueo, Error, Advertencia)   -->
@@ -122,6 +122,7 @@
                 [disabled]="bloqueado"
                 maxlength="80"
                 aria-label="Campo de usuario"
+                inputmode="text"
               />
             </div>
           </div>
@@ -150,7 +151,7 @@
               />
               <button
                 type="button"
-                class="input-icon-right"
+                class="toggle-password-btn"
                 (click)="togglePassword()"
                 [disabled]="bloqueado"
                 [attr.aria-label]="mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
@@ -193,6 +194,7 @@
                 [disabled]="bloqueado"
                 maxlength="10"
                 aria-label="Campo de código de acceso para tutores"
+                inputmode="text"
               />
             </div>
           </div>
@@ -234,13 +236,6 @@
             <span>Bloqueado ({{ segundosRestantes }}s)</span>
           </ng-container>
         </button>
-
-        <!-- ────────────────────────────────────────────────────────── -->
-        <!-- LINK: OLVIDÉ MI CONTRASEÑA                                 -->
-        <!-- ────────────────────────────────────────────────────────── -->
-        <!-- <a class="forgot-link" href="#" role="link">
-          ¿Olvidaste tu contraseña?
-        </a> -->
 
       </form>
 

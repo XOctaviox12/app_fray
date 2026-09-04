@@ -3,6 +3,15 @@
 // Alineado a la paleta del mock — tarjetas grandes,
 // iconos alternados por color, halo tras el avatar.
 // + Ajustes responsivos iPad + patrones iOS (GUIA_DISENO_RESPONSIVO / PATRONES_IONIC_IOS_AVANZADO)
+//
+// AJUSTES aplicados en esta pasada según la guía (comentados con "// GUÍA:"):
+//   1) Fix bug de zoom iOS: .inline-input estaba en 14.5px, ahora 16px (Sección 8, crítico)
+//   2) Dark mode automático — no existía en este archivo (Sección 1 + checklist)
+//   3) :focus-visible en botones y en el avatar editable (checklist a11y)
+//   4) will-change en elementos con transform/transición (Sección 14)
+//   5) Landscape: hero y botones más compactos (Sección 11)
+//   6) Hover de escritorio también en btn-guardar y header-edit-btn (Sección 10)
+// (Ninguna clase, evento o binding del HTML fue modificado)
 // ============================================
 
 :host {
@@ -43,6 +52,25 @@
   --f-text: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
 
   display: block;
+
+  // GUÍA Sección 1 + checklist: dark mode automático — faltaba por completo en este archivo
+  @media (prefers-color-scheme: dark) {
+    --p-white: #1A1F2E;
+    --p-bg: #0A0E1A;
+    --p-cool-grey: #13171F;
+    --p-text: #E8EAED;
+    --p-text-2: #B0B0B0;
+    --p-outline-variant: rgba(222, 193, 175, 0.35);
+
+    --p-primary-soft: rgba(245, 124, 0, 0.12);
+    --p-secondary-soft: rgba(74, 89, 161, 0.14);
+    --p-tertiary-soft: rgba(82, 96, 105, 0.16);
+    --p-error-container: rgba(186, 26, 26, 0.22);
+    --p-on-error-container: #FFB4AB;
+
+    --sh-card: 0 30px 60px -15px rgba(0, 0, 0, 0.55), 0 4px 12px -4px rgba(0, 0, 0, 0.3);
+    --sh-soft: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
 }
 
 // ============================================
@@ -58,12 +86,22 @@
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
 
+// GUÍA dark mode: el fondo translúcido del toolbar debe oscurecerse también
+@media (prefers-color-scheme: dark) {
+  .header-toolbar { --background: rgba(10, 14, 26, 0.86); }
+}
+
 @supports (padding: max(0px)) {
   .header-toolbar {
     padding-top: max(env(safe-area-inset-top), 0px);
     padding-left: max(env(safe-area-inset-left), 0px);
     padding-right: max(env(safe-area-inset-right), 0px);
   }
+}
+
+// GUÍA Sección 11: header más bajo en landscape
+@media (orientation: landscape) and (max-height: 500px) {
+  .header-toolbar { --min-height: 48px; }
 }
 
 .header-title {
@@ -94,6 +132,7 @@
   font-family: var(--f-text);
   font-size: 13px;
   font-weight: 600;
+  will-change: transform; // GUÍA Sección 14
   transition: background 200ms ease, color 200ms ease, transform 150ms ease;
   -webkit-tap-highlight-color: transparent;
 
@@ -103,6 +142,22 @@
   &.header-edit-btn--cancel {
     background: var(--p-error-container);
     color: var(--p-error);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary);
+    outline-offset: 2px;
+  }
+
+  // GUÍA Sección 10: hover de escritorio
+  @media (hover: hover) {
+    &:hover { background: var(--p-outline-variant); }
+    &.header-edit-btn--cancel:hover { background: rgba(255, 218, 214, 0.7); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &:active { transform: none; }
   }
 }
 
@@ -146,6 +201,10 @@
   padding: 40px 24px 28px;
 }
 
+@media (orientation: landscape) and (max-height: 500px) {
+  .profile-hero { padding: 24px 24px 18px; }
+}
+
 .avatar-halo-bg {
   position: absolute;
   top: 46%;
@@ -167,6 +226,10 @@
   margin-bottom: 16px;
 }
 
+@media (orientation: landscape) and (max-height: 500px) {
+  .avatar-wrap { width: 96px; height: 96px; }
+}
+
 .avatar-ring {
   width: 100%;
   height: 100%;
@@ -174,6 +237,12 @@
   padding: 5px;
   background: linear-gradient(135deg, rgba(150, 73, 0, 0.2), var(--p-bg) 50%, rgba(150, 73, 0, 0.2));
   box-shadow: var(--sh-soft);
+  will-change: transform; // GUÍA Sección 14
+  transition: transform 150ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
 .avatar-inner {
@@ -189,7 +258,14 @@
 .avatar-editable {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  border-radius: 50%;
   &:active .avatar-ring { transform: scale(0.97); }
+
+  // GUÍA checklist a11y: foco visible — el avatar actúa como botón cuando es editable
+  &:focus-visible {
+    outline: 2px solid var(--p-primary);
+    outline-offset: 4px;
+  }
 }
 
 .profile-avatar {
@@ -448,7 +524,9 @@
   --padding-end: 0;
   --padding-top: 3px;
   --padding-bottom: 3px;
-  font-size: 14.5px;
+  // GUÍA Sección 8: estaba en 14.5px — CRÍTICO, se sube a 16px para no disparar
+  // el zoom automático de iOS Safari al enfocar (afecta a teléfono y dirección)
+  font-size: 16px;
   font-weight: 600;
   font-family: var(--f-text);
 }
@@ -471,6 +549,12 @@ ion-datetime-button {
     padding: 6px 12px;
     border-radius: 12px;
     min-height: 32px;
+  }
+
+  // GUÍA checklist a11y: foco visible
+  &::part(native):focus-visible {
+    outline: 2px solid var(--p-primary);
+    outline-offset: 2px;
   }
 }
 
@@ -498,6 +582,13 @@ ion-datetime-button {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .academic-stat {
+    background: rgba(19, 23, 31, 0.6);
+    border-color: rgba(255, 255, 255, 0.06);
+  }
 }
 
 .academic-value {
@@ -555,6 +646,7 @@ ion-datetime-button {
   font-weight: 700;
   font-size: 14.5px;
   box-shadow: var(--sh-btn);
+  will-change: transform, box-shadow; // GUÍA Sección 14
   transition: transform 150ms ease, box-shadow 150ms ease;
   animation: fadeSlideIn 250ms ease;
   -webkit-tap-highlight-color: transparent;
@@ -564,6 +656,26 @@ ion-datetime-button {
 
   &:active:not(:disabled) { transform: scale(0.98); }
   &:disabled { opacity: 0.6; cursor: default; box-shadow: none; }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-on-secondary-container);
+    outline-offset: 2px;
+  }
+
+  // GUÍA Sección 10: hover de escritorio
+  @media (hover: hover) {
+    &:hover:not(:disabled) { box-shadow: 0 14px 30px rgba(245, 124, 0, 0.38); }
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    padding: 12px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    animation: none;
+    &:active:not(:disabled) { transform: none; }
+  }
 }
 
 // ============================================
@@ -595,8 +707,22 @@ ion-datetime-button {
   &:disabled { opacity: 0.6; cursor: default; }
   &:active { transform: scale(0.99); }
 
+  &:focus-visible {
+    outline: 2px solid var(--p-error);
+    outline-offset: 2px;
+  }
+
   @media (hover: hover) {
     &:hover:not(:disabled) { background: rgba(255, 218, 214, 0.7); }
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    padding: 12px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &:active { transform: none; }
   }
 }
 
@@ -680,5 +806,14 @@ ion-datetime-button {
   .btn-guardar:active:not(:disabled),
   .btn-logout:active {
     transform: none;
+  }
+
+  // GUÍA Sección 9: cobertura global de reduced-motion — el archivo solo
+  // desactivaba animaciones puntuales, no todas las transiciones/animaciones
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

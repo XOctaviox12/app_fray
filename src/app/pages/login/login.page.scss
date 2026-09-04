@@ -30,12 +30,22 @@ $shadow-btn:       0 8px 20px rgba(245,124,0,0.3);
 $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
 
 // ═══════════════════════════════════════════════════════════════════════════
+// RESET GLOBAL PARA iOS
+// ═══════════════════════════════════════════════════════════════════════════
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: auto; // Permite selección natural en inputs
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // CONTENEDOR PRINCIPAL
 // ═══════════════════════════════════════════════════════════════════════════
 .login-content {
   --background: #{$bg};
   --padding-top: 0;
   --padding-bottom: 0;
+  --overflow: auto;
+  background: $bg;
 }
 
 .login-wrapper {
@@ -49,12 +59,30 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   overflow: hidden;
   background: $bg;
 
+  // Prevenir scroll jump cuando aparece teclado
+  @supports (padding: max(0px)) {
+    padding-left: max(env(safe-area-inset-left), 24px);
+    padding-right: max(env(safe-area-inset-right), 24px);
+    padding-top: max(env(safe-area-inset-top), 24px);
+    padding-bottom: max(env(safe-area-inset-bottom), 24px);
+  }
+
   @media (min-width: 390px) {
     padding: 32px 24px;
+
+    @supports (padding: max(0px)) {
+      padding-left: max(env(safe-area-inset-left), 24px);
+      padding-right: max(env(safe-area-inset-right), 24px);
+    }
   }
 
   @media (min-width: 768px) {
     padding: 40px 24px;
+
+    @supports (padding: max(0px)) {
+      padding-left: max(env(safe-area-inset-left), 24px);
+      padding-right: max(env(safe-area-inset-right), 24px);
+    }
   }
 }
 
@@ -65,7 +93,7 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  will-change: filter; // Performance hint
+  will-change: filter;
 }
 
 .blob-top {
@@ -119,10 +147,14 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   max-width: 420px;
   background: $surface-lowest;
   border-radius: $radius-card;
-  padding: 32px 24px;
+  padding: 28px 20px; // ← Reducido para móvil pequeño
   box-shadow: $shadow-soft;
   border: 1px solid rgba(15, 23, 42, 0.04);
   animation: cardIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (min-width: 360px) {
+    padding: 32px 24px;
+  }
 
   @media (min-width: 390px) {
     padding: 36px 28px 28px;
@@ -160,7 +192,11 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+
+  @media (min-width: 390px) {
+    margin-bottom: 24px;
+  }
 
   @media (min-width: 768px) {
     margin-bottom: 28px;
@@ -168,36 +204,38 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
 }
 
 .logo-tile {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   border-radius: $radius-tile;
   background: $surface-lowest;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+
+  @media (min-width: 390px) {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 12px;
+  }
 
   @media (min-width: 768px) {
     width: 80px;
     height: 80px;
     margin-bottom: 16px;
   }
-
-  ion-icon {
-    font-size: 36px;
-    color: $primary;
-
-    @media (min-width: 768px) {
-      font-size: 40px;
-    }
-  }
 }
 
 .logo {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   object-fit: contain;
+
+  @media (min-width: 390px) {
+    width: 42px;
+    height: 42px;
+  }
 
   @media (min-width: 768px) {
     width: 48px;
@@ -206,13 +244,19 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
 }
 
 .app-title {
-  margin: 0 0 3px;
-  font-size: 20px;
+  margin: 0 0 2px;
+  font-size: 18px;
   font-weight: 700;
   color: $text-main;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.2px;
   text-align: center;
   font-family: -apple-system, "SF Pro Display", "Inter", sans-serif;
+  line-height: 1.2;
+
+  @media (min-width: 390px) {
+    font-size: 20px;
+    letter-spacing: -0.3px;
+  }
 
   @media (min-width: 768px) {
     font-size: 24px;
@@ -225,6 +269,11 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   color: $secondary;
   opacity: 0.7;
   text-align: center;
+  line-height: 1.3;
+
+  @media (min-width: 390px) {
+    font-size: 13px;
+  }
 
   @media (min-width: 768px) {
     font-size: 14px;
@@ -240,7 +289,11 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   background: $cool-grey;
   border-radius: $radius-selector;
   padding: 4px;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
+
+  @media (min-width: 390px) {
+    margin-bottom: 20px;
+  }
 
   @media (min-width: 768px) {
     margin-bottom: 24px;
@@ -271,19 +324,24 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   padding: 10px 8px;
   border-radius: $radius-glider;
   border: none;
   background: transparent;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: $text-sec;
   cursor: pointer;
   transition: color 0.2s ease;
   user-select: none;
-  -webkit-user-select: none;
+  min-height: 44px; // ← Touch target mínimo iOS
   -webkit-tap-highlight-color: transparent;
+
+  @media (min-width: 390px) {
+    font-size: 12px;
+    gap: 6px;
+  }
 
   @media (min-width: 768px) {
     font-size: 13px;
@@ -292,14 +350,22 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
 
   ion-icon {
     font-size: 16px;
+    flex-shrink: 0;
 
     @media (min-width: 768px) {
       font-size: 18px;
     }
   }
 
+  .mode-btn-text {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   &:active:not(:disabled) {
-    transform: scale(0.97);
+    transform: scale(0.96);
   }
 
   &.active {
@@ -313,7 +379,7 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
 .form-section {
   display: flex;
   flex-direction: column;
-  gap: 0; // Control explícito del spacing
+  gap: 0;
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -324,11 +390,16 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   align-items: flex-start;
   gap: 10px;
   border-radius: 14px;
-  padding: 12px 13px;
-  margin-bottom: 14px;
+  padding: 11px 12px;
+  margin-bottom: 12px;
   font-size: 12px;
   line-height: 1.45;
   animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  @media (min-width: 390px) {
+    padding: 12px 13px;
+    margin-bottom: 14px;
+  }
 
   @media (min-width: 768px) {
     padding: 13px 14px;
@@ -356,8 +427,8 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
 
 .lockout-banner {
   @extend .banner-base;
-  background: rgba(74, 89, 161, 0.06);
-  border: 1px solid rgba(74, 89, 161, 0.15);
+  background: rgba(74, 89, 161, 0.08); // ← Más visible
+  border: 1px solid rgba(74, 89, 161, 0.18);
   color: $on-secondary-container;
 }
 
@@ -369,6 +440,7 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   strong {
     font-weight: 700;
     font-size: 12px;
+    line-height: 1.3;
 
     @media (min-width: 768px) {
       font-size: 12.5px;
@@ -377,7 +449,8 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
 
   span {
     font-size: 11px;
-    color: rgba(48, 64, 134, 0.7);
+    color: rgba(48, 64, 134, 0.8); // ← Mejor contraste
+    line-height: 1.35;
 
     @media (min-width: 768px) {
       font-size: 11.5px;
@@ -387,16 +460,16 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
 
 .error-banner {
   @extend .banner-base;
-  background: rgba(186, 26, 26, 0.06);
-  border: 1px solid rgba(186, 26, 26, 0.15);
+  background: rgba(186, 26, 26, 0.08);
+  border: 1px solid rgba(186, 26, 26, 0.18);
   color: $error;
 }
 
 .warn-banner {
   @extend .banner-base;
-  background: rgba(245, 124, 0, 0.06);
+  background: rgba(245, 124, 0, 0.08);
   border: 1px solid rgba(245, 124, 0, 0.18);
-  color: #9A4D00;
+  color: #A85400; // ← Mejor contraste que #9A4D00
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -406,14 +479,19 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: 12px 13px;
-  background: rgba(245, 124, 0, 0.05);
-  border: 1px solid rgba(245, 124, 0, 0.15);
+  padding: 11px 12px;
+  background: rgba(245, 124, 0, 0.06);
+  border: 1px solid rgba(245, 124, 0, 0.18);
   border-radius: 14px;
   font-size: 12px;
   color: $text-sec;
   line-height: 1.45;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+
+  @media (min-width: 390px) {
+    padding: 12px 13px;
+    margin-bottom: 16px;
+  }
 
   @media (min-width: 768px) {
     padding: 13px 14px;
@@ -433,7 +511,11 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
 // INPUTS
 // ───────────────────────────────────────────────────────────────────────────
 .input-group {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+
+  @media (min-width: 390px) {
+    margin-bottom: 14px;
+  }
 
   @media (min-width: 768px) {
     margin-bottom: 16px;
@@ -445,9 +527,16 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   color: $text-sec;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
+  line-height: 1.2;
+
+  @media (min-width: 390px) {
+    font-size: 10.5px;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
 
   @media (min-width: 768px) {
     font-size: 11px;
@@ -463,16 +552,22 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   background: $cool-grey;
   border: 1.5px solid transparent;
   border-radius: $radius-input;
-  padding: 12px 13px;
+  padding: 11px 12px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   -webkit-appearance: none;
+  min-height: 48px; // ← Touch target mínimo iOS
+
+  @media (min-width: 390px) {
+    padding: 12px 13px;
+  }
 
   @media (min-width: 768px) {
     padding: 14px;
+    min-height: 52px;
   }
 
   &:focus-within {
-    border-color: rgba(245, 124, 0, 0.45);
+    border-color: rgba(245, 124, 0, 0.5);
     background: $surface-lowest;
     box-shadow: 0 0 0 4px rgba(245, 124, 0, 0.08);
   }
@@ -487,21 +582,46 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   font-size: 18px;
   color: $text-sec;
   flex-shrink: 0;
+
+  @media (min-width: 768px) {
+    font-size: 20px;
+  }
 }
 
-.input-icon-right {
+.toggle-password-btn {
   font-size: 18px;
   color: $text-sec;
   flex-shrink: 0;
   cursor: pointer;
-  padding: 2px;
+  padding: 4px; // ← Más padding para touch
+  background: none;
+  border: none;
   transition: color 0.15s ease;
   user-select: none;
-  -webkit-user-select: none;
+  -webkit-appearance: none;
   -webkit-tap-highlight-color: transparent;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  &:active {
+  @media (min-width: 768px) {
+    font-size: 20px;
+  }
+
+  ion-icon {
+    display: block;
+  }
+
+  &:active:not(:disabled) {
     color: $primary;
+    transform: scale(0.9);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
@@ -511,34 +631,43 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   background: transparent;
   border: none;
   outline: none;
-  font-size: 14px;
+  font-size: 16px; // ← FIX CRÍTICO: 16px previene auto-zoom en iOS
   color: $text-main;
   font-family: -apple-system, "SF Pro Display", "Inter", sans-serif;
   letter-spacing: 0.1px;
+  line-height: 1.4;
   -webkit-appearance: none;
-  -webkit-user-select: text;
 
   @media (min-width: 768px) {
-    font-size: 15.5px;
+    font-size: 16px; // ← Mantener 16px en iPad también
   }
 
   &::placeholder {
-    color: #9CA3AF;
+    color: #B0B9C8;
+    font-size: 16px;
   }
 
   &:disabled {
     cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  // Desactivar zoom en autocomplete de Safari
+  &:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px $surface-lowest inset !important;
+    -webkit-text-fill-color: $text-main !important;
   }
 }
 
 .codigo-input {
   text-transform: uppercase;
-  font-size: 16px;
+  font-size: 16px; // ← También 16px aquí
   font-weight: 700;
   letter-spacing: 2px;
+  text-align: center;
 
   @media (min-width: 768px) {
-    font-size: 17px;
+    font-size: 16px;
     letter-spacing: 3px;
   }
 }
@@ -549,12 +678,12 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
 .btn-login {
   width: 100%;
   height: 48px;
-  margin-top: 10px;
+  margin-top: 8px;
   border: none;
   border-radius: $radius-btn;
   background: linear-gradient(180deg, $primary-container, $primary-container-end);
   color: $surface-lowest;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.2px;
   cursor: pointer;
@@ -566,16 +695,22 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
   -webkit-appearance: none;
   user-select: none;
-  -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
+  min-height: 48px;
+
+  @media (min-width: 390px) {
+    font-size: 16px;
+  }
 
   @media (min-width: 768px) {
     height: 56px;
-    font-size: 16px;
+    min-height: 56px;
+    margin-top: 10px;
   }
 
   ion-icon {
     font-size: 18px;
+    flex-shrink: 0;
 
     @media (min-width: 768px) {
       font-size: 20px;
@@ -583,18 +718,19 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   }
 
   &:active:not(:disabled) {
-    transform: scale(0.98);
-    box-shadow: 0 4px 14px rgba(245, 124, 0, 0.22);
+    transform: scale(0.97);
+    box-shadow: 0 4px 14px rgba(245, 124, 0, 0.25);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     box-shadow: none;
+    transform: none;
   }
 
   &.btn-bloqueado {
-    background: rgba(74, 89, 161, 0.08);
+    background: rgba(74, 89, 161, 0.1);
     color: $on-secondary-container;
     box-shadow: none;
   }
@@ -611,40 +747,20 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   }
 }
 
-// ───────────────────────────────────────────────────────────────────────────
-// LINK "OLVIDÉ MI CONTRASEÑA"
-// ───────────────────────────────────────────────────────────────────────────
-.forgot-link {
-  display: block;
-  text-align: center;
-  margin-top: 16px;
-  font-size: 12px;
-  font-weight: 600;
-  color: $primary;
-  text-decoration: none;
-  transition: opacity 0.2s ease;
-  user-select: none;
-  -webkit-user-select: none;
-
-  @media (min-width: 768px) {
-    margin-top: 20px;
-    font-size: 13px;
-  }
-
-  &:active {
-    opacity: 0.7;
-  }
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
 // BADGES DE SEGURIDAD
 // ═══════════════════════════════════════════════════════════════════════════
 .security-badges {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  margin-top: 18px;
+  gap: 10px;
+  margin-top: 14px;
   flex-wrap: wrap;
+
+  @media (min-width: 390px) {
+    gap: 12px;
+    margin-top: 16px;
+  }
 
   @media (min-width: 768px) {
     gap: 16px;
@@ -655,17 +771,24 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
 .badge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  background: rgba(255, 255, 255, 0.6);
+  gap: 5px;
+  padding: 4px 9px;
+  background: rgba(255, 255, 255, 0.7); // ← Más opaco para mejor contraste
   border-radius: 999px;
   font-size: 9px;
   font-weight: 600;
   color: $text-sec;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   user-select: none;
-  -webkit-user-select: none;
+  line-height: 1.2;
+
+  @media (min-width: 390px) {
+    gap: 6px;
+    padding: 5px 10px;
+    font-size: 9.5px;
+    letter-spacing: 0.05em;
+  }
 
   @media (min-width: 768px) {
     gap: 8px;
@@ -681,7 +804,7 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   border-radius: 50%;
   background: $success;
   flex-shrink: 0;
-  box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+  box-shadow: 0 0 6px rgba(46, 125, 50, 0.5);
 
   @media (min-width: 768px) {
     width: 8px;
@@ -704,7 +827,7 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   }
 }
 
-// Dark mode (opcional)
+// Dark mode
 @media (prefers-color-scheme: dark) {
   .login-content {
     --background: #0A0E1A;
@@ -721,7 +844,7 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
 
   .custom-input,
   .app-title {
-    color: #E8E8E8;
+    color: #E8EAED;
   }
 
   .input-wrapper {
@@ -731,63 +854,126 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
       background: #1A1F2E;
     }
   }
+
+  .input-icon,
+  .toggle-password-btn {
+    color: #A0A7B5;
+  }
+
+  .custom-input::placeholder {
+    color: #6B7280;
+  }
+
+  .custom-input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px #1A1F2E inset !important;
+    -webkit-text-fill-color: #E8EAED !important;
+  }
+
+  .badge {
+    background: rgba(255, 255, 255, 0.1);
+    color: #A0A7B5;
+  }
 }
 
 // Orientación landscape
 @media (orientation: landscape) and (max-height: 600px) {
   .login-wrapper {
     min-height: auto;
-    padding: 16px;
-  }
+    padding: 12px;
 
-  .login-card {
-    padding: 24px 20px;
-  }
-
-  .logo-section {
-    margin-bottom: 16px;
-  }
-
-  .logo-tile {
-    width: 56px;
-    height: 56px;
-    margin-bottom: 8px;
-
-    ion-icon {
-      font-size: 28px;
+    @supports (padding: max(0px)) {
+      padding-left: max(env(safe-area-inset-left), 12px);
+      padding-right: max(env(safe-area-inset-right), 12px);
+      padding-top: max(env(safe-area-inset-top), 8px);
+      padding-bottom: max(env(safe-area-inset-bottom), 8px);
     }
   }
 
+  .login-card {
+    padding: 20px 16px;
+    max-width: 100%;
+  }
+
+  .logo-section {
+    margin-bottom: 12px;
+  }
+
+  .logo-tile {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 6px;
+  }
+
+  .logo {
+    width: 30px;
+    height: 30px;
+  }
+
   .app-title {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .app-subtitle {
     font-size: 11px;
   }
 
+  .mode-selector {
+    margin-bottom: 12px;
+  }
+
+  .mode-btn {
+    font-size: 10px;
+    gap: 4px;
+    padding: 8px 6px;
+  }
+
+  .mode-btn ion-icon {
+    font-size: 14px;
+  }
+
   .input-group {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+  }
+
+  .input-label {
+    font-size: 9px;
+    margin-bottom: 3px;
+  }
+
+  .input-wrapper {
+    padding: 8px 10px;
+    min-height: 40px;
+  }
+
+  .custom-input {
+    font-size: 16px; // ← Mantener 16px incluso en landscape
   }
 
   .btn-login {
-    height: 44px;
-    margin-top: 8px;
+    height: 40px;
+    min-height: 40px;
+    margin-top: 6px;
+    font-size: 14px;
   }
 
-  .forgot-link {
-    margin-top: 12px;
-    font-size: 11px;
+  .btn-login ion-icon {
+    font-size: 16px;
   }
 
   .security-badges {
-    margin-top: 12px;
-    gap: 8px;
+    margin-top: 8px;
+    gap: 6px;
   }
 
   .badge {
     font-size: 8px;
-    padding: 4px 8px;
+    padding: 3px 6px;
+    gap: 4px;
+  }
+
+  .dot {
+    width: 5px;
+    height: 5px;
   }
 }
 
@@ -799,18 +985,38 @@ $shadow-btn-hover: 0 12px 28px rgba(245,124,0,0.4);
   .custom-input,
   .mode-btn,
   .input-wrapper,
-  .btn-login {
+  .btn-login,
+  .toggle-password-btn {
     animation: none !important;
     transition: none !important;
   }
 }
 
-// Safe area (iPhone X+)
-@supports (padding: max(0px)) {
-  .login-wrapper {
-    padding-left: max(env(safe-area-inset-left), 24px);
-    padding-right: max(env(safe-area-inset-right), 24px);
-    padding-top: max(env(safe-area-inset-top), 24px);
-    padding-bottom: max(env(safe-area-inset-bottom), 24px);
+// iPhone SE y dispositivos pequeños (max 375px)
+@media (max-width: 375px) {
+  .login-card {
+    padding: 24px 18px;
+  }
+
+  .app-title {
+    font-size: 16px;
+  }
+
+  .mode-btn {
+    font-size: 10px;
+    min-height: 40px;
+  }
+
+  .input-label {
+    font-size: 9px;
+  }
+
+  .custom-input,
+  .codigo-input {
+    font-size: 15px;
+  }
+
+  .btn-login {
+    height: 44px;
   }
 }

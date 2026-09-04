@@ -1,24 +1,15 @@
 // ============================================
 // TAREAS.PAGE.SCSS
 // Rediseño premium iPad — Soft UI (70%) + Cupertino (20%) + Neumorphism ligero (10%)
+// Adaptado a la Guía de Diseño Responsivo iOS/iPad — FrayHub (Sep 2026)
 // Variables locales al componente: no se toca el theme global de la app.
-//
-// Se agregó: utilidades de truncado/wrap (por si aún no existen en
-// theme/_layout.scss global) + min-width:0 en contenedores flex con
-// texto dinámico + word-break en archivos/links largos, para que
-// nada empuje o se salga de las tarjetas.
-//
-// v2 — Reacomodo de layout siguiendo el mock (hero con stats a la
-// derecha, barra de filtros + botón "Nueva Tarea" en una sola fila
-// en tablet/desktop, grid tipo masonry sin estirar tarjetas, variante
-// "urgente" para tareas próximas a vencer, bloque de progreso de
-// entregas, cita de retroalimentación y eyebrows de sección.
 // ============================================
 
 :host {
   // ---- Paleta ----
   --p-primary: #F57C00;
-  --p-primary-soft: rgba(245, 124, 0, 0.10);
+  --p-primary-dark: #964900;
+  --p-primary-soft: rgba(150, 73, 0, 0.08);
   --p-primary-glow: rgba(245, 124, 0, 0.28);
   --p-secondary: #0D47A1;
   --p-secondary-soft: rgba(13, 71, 161, 0.08);
@@ -40,22 +31,31 @@
   --r-modal: 24px;
 
   // ---- Sombras ----
-  --sh-soft: 0 8px 30px rgba(15, 23, 42, 0.08);
-  --sh-soft-lg: 0 16px 40px rgba(15, 23, 42, 0.10);
+  --sh-soft: 0 20px 50px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0, 0, 0, 0.02);
+  --sh-soft-lg: 0 26px 55px -15px rgba(48, 64, 134, 0.14), 0 6px 10px -4px rgba(0, 0, 0, 0.06);
   --sh-neu-out: 8px 8px 18px rgba(163, 177, 198, 0.35), -8px -8px 18px rgba(255, 255, 255, 0.85);
   --sh-neu-in: inset 4px 4px 10px rgba(163, 177, 198, 0.30), inset -4px -4px 10px rgba(255, 255, 255, 0.75);
 
   // ---- Tipografía ----
-  --f-display: 'SF Pro Display', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --f-text: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+  --f-display: -apple-system, "SF Pro Display", "Inter", BlinkMacSystemFont, sans-serif;
+  --f-text: -apple-system, "SF Pro Text", "Inter", BlinkMacSystemFont, sans-serif;
+
+  // ---- Touch targets (Sección 6 de la guía) ----
+  --touch-min: 44px;
+  --touch-rec: 48px;
+
+  // ---- Safe area (Sección 7 y 12) ----
+  --page-padding-bottom: 24px;
+  @supports (padding: max(0px)) {
+    --page-padding-bottom: max(env(safe-area-inset-bottom), 24px);
+  }
 
   display: block;
+  overflow-x: hidden; // Sección 13 — nunca scroll horizontal
 }
 
 // ════════════════════════════════════════════════════════════
 // UTILIDADES DE TRUNCADO / WRAP
-// Definidas aquí (scoped a esta página) por si theme/_layout.scss
-// todavía no las trae globalmente.
 // ════════════════════════════════════════════════════════════
 .text-truncate {
   overflow: hidden;
@@ -101,9 +101,22 @@
   --background: rgba(248, 249, 251, 0.86);
   --color: var(--p-text);
   --border-style: none;
-  --min-height: 60px;
+  --min-height: 56px;
+  --padding-start: max(env(safe-area-inset-left), 12px);
+  --padding-end: max(env(safe-area-inset-right), 12px);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+// Botón de menú: mínimo 44x44 (Sección 6)
+ion-menu-button {
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary);
+    outline-offset: 2px;
+  }
 }
 
 .header-title {
@@ -116,6 +129,8 @@
 
 .tareas-content {
   --background: var(--p-bg);
+  --overflow: auto; // Sección 13 — previene scroll-jump con teclado
+  --padding-bottom: var(--page-padding-bottom);
 }
 
 .page-shell {
@@ -123,17 +138,20 @@
   margin: 0 auto;
   padding-bottom: 40px;
   box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
 }
 
 // ============================================
-// HERO + STATS
+// HERO + STATS — breakpoints 320/390/768
 // ============================================
 
 .tareas-hero {
-  padding: 28px 20px 20px;
+  padding: 22px 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
+
+  @media (min-width: 390px) { padding: 28px 20px 20px; gap: 18px; }
 
   @media (min-width: 768px) {
     padding: 32px 28px 22px;
@@ -151,22 +169,28 @@
 .hero-title {
   margin: 0;
   font-family: var(--f-display);
-  font-size: 24px;
+  font-size: 19px;
   font-weight: 700;
   color: var(--p-text);
-  letter-spacing: -0.4px;
+  letter-spacing: -0.3px;
+
+  @media (min-width: 390px) { font-size: 24px; letter-spacing: -0.4px; }
 }
 
 .hero-sub {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--p-text-2);
   font-family: var(--f-text);
+
+  @media (min-width: 390px) { font-size: 13px; }
 }
 
 .stats-row {
   display: flex;
-  gap: 12px;
+  gap: 10px;
+
+  @media (min-width: 390px) { gap: 12px; }
 
   @media (min-width: 768px) {
     flex-shrink: 0;
@@ -176,13 +200,16 @@
 .stat-chip {
   flex: 1;
   min-width: 0;
+  min-height: var(--touch-min);
   background: var(--p-white);
   border: 1px solid var(--p-border);
   border-radius: var(--r-input);
-  padding: 14px 10px;
+  padding: 12px 8px;
   text-align: center;
   box-shadow: var(--sh-soft);
   transition: transform 200ms ease;
+
+  @media (min-width: 390px) { padding: 14px 10px; }
 
   @media (min-width: 768px) {
     flex: 0 0 auto;
@@ -193,16 +220,18 @@
   .stat-num {
     display: block;
     font-family: var(--f-display);
-    font-size: 22px;
+    font-size: 19px;
     font-weight: 700;
     color: var(--p-text);
+
+    @media (min-width: 390px) { font-size: 22px; }
   }
 
   &.orange {
     background: var(--p-primary-soft);
-    border-color: rgba(245, 124, 0, 0.18);
+    border-color: rgba(150, 73, 0, 0.18);
 
-    .stat-num { color: var(--p-primary); }
+    .stat-num { color: var(--p-primary-dark); }
   }
 
   &.red {
@@ -214,12 +243,14 @@
 }
 
 .stat-lbl {
-  font-size: 9px;
+  font-size: 8.5px;
   color: var(--p-text-2);
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
   font-family: var(--f-text);
   font-weight: 600;
+
+  @media (min-width: 390px) { font-size: 9px; letter-spacing: 0.6px; }
 }
 
 // ============================================
@@ -227,10 +258,12 @@
 // ============================================
 
 .filters-bar {
-  padding: 4px 20px 16px;
+  padding: 4px 16px 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  @media (min-width: 390px) { padding: 4px 20px 16px; }
 
   @media (min-width: 768px) {
     padding: 4px 28px 18px;
@@ -244,6 +277,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  min-height: var(--touch-rec);
   background: var(--p-white);
   border: 1px solid var(--p-border);
   border-radius: var(--r-input);
@@ -266,19 +300,26 @@
     background: transparent;
     outline: none;
     padding: 13px 0;
-    font-size: 14px;
+    // Sección 8 (crítico): mínimo 16px para evitar zoom automático de iOS Safari
+    font-size: 16px;
     color: var(--p-text);
     font-family: var(--f-text);
+    -webkit-appearance: none;
 
     &::placeholder { color: var(--p-text-2); }
   }
 }
 
-.clear-search {
-  font-size: 18px;
-  color: var(--p-text-2);
-  cursor: pointer;
+.clear-search-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: var(--touch-min); height: var(--touch-min);
+  margin-right: -12px;
   flex-shrink: 0;
+  background: transparent; border: none; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  ion-icon { font-size: 18px; color: var(--p-text-2); }
+
+  &:focus-visible { outline: 2px solid var(--p-primary); outline-offset: -2px; border-radius: 50%; }
 }
 
 .filter-chips-row {
@@ -293,6 +334,7 @@
 .filter-chip {
   flex: 1;
   min-width: 0;
+  min-height: var(--touch-min);
   padding: 10px;
   border-radius: var(--r-input);
   border: 1px solid var(--p-border);
@@ -302,16 +344,21 @@
   font-weight: 700;
   font-family: var(--f-text);
   cursor: pointer;
-  transition: all 200ms ease;
+  transition: background 200ms ease, color 200ms ease, border-color 200ms ease,
+              transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: var(--sh-soft);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  -webkit-tap-highlight-color: transparent;
 
   @media (min-width: 768px) {
     flex: 0 0 auto;
     padding: 10px 16px;
   }
+
+  &:active { transform: scale(0.97); }
+  &:focus-visible { outline: 2px solid var(--p-primary); outline-offset: 2px; }
 
   &.active {
     background: var(--p-primary);
@@ -333,11 +380,14 @@
 .filter-select-wrap {
   flex: 1;
   min-width: 0;
+  min-height: var(--touch-rec);
   background: var(--p-white);
   border: 1px solid var(--p-border);
   border-radius: var(--r-input);
   padding: 0 12px;
   box-shadow: var(--sh-soft);
+  display: flex;
+  align-items: center;
 
   @media (min-width: 768px) {
     flex: 0 0 168px;
@@ -350,20 +400,23 @@
     background: transparent;
     outline: none;
     padding: 11px 0;
-    font-size: 12.5px;
+    // Sección 8 (crítico): mínimo 16px
+    font-size: 16px;
     color: var(--p-text);
     font-family: var(--f-text);
     appearance: none;
     -webkit-appearance: none;
     text-overflow: ellipsis;
 
+    &:focus-visible { outline: 2px solid var(--p-primary); outline-offset: 1px; }
+
     option { background: var(--p-white); color: var(--p-text); }
   }
 }
 
 .clear-filters-btn {
-  width: 38px;
-  height: 38px;
+  width: var(--touch-min);
+  height: var(--touch-min);
   flex-shrink: 0;
   border-radius: var(--r-input);
   border: 1px solid var(--p-border);
@@ -374,21 +427,22 @@
   justify-content: center;
   cursor: pointer;
   box-shadow: var(--sh-soft);
-  transition: transform 200ms ease;
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
 
   &:active { transform: scale(0.94); }
+  &:focus-visible { outline: 2px solid var(--p-primary); outline-offset: 2px; }
 
   ion-icon { font-size: 17px; }
 }
 
 // ---- Botón "Nueva Tarea" inline (tablet/desktop) ----
-// En mobile se usa el FAB (.fab-only-mobile); en tablet/desktop este
-// botón vive dentro de la barra de filtros, como en el mock.
 .btn-nueva-tarea-inline {
   display: none;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  min-height: var(--touch-min);
   padding: 12px 20px;
   border-radius: var(--r-btn);
   border: none;
@@ -400,10 +454,12 @@
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
-  box-shadow: 6px 6px 14px rgba(245, 124, 0, 0.22), -4px -4px 10px rgba(255, 255, 255, 0.6);
-  transition: transform 200ms ease;
+  box-shadow: 0 8px 20px rgba(245, 124, 0, 0.3);
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
 
   &:active { transform: scale(0.97); }
+  &:focus-visible { outline: 2px solid var(--p-primary-dark); outline-offset: 2px; }
 
   ion-icon { font-size: 16px; }
 
@@ -418,14 +474,16 @@
 // ============================================
 
 .new-task-form {
-  margin: 4px 20px 20px;
+  margin: 4px 16px 18px;
   background: var(--p-white);
   border: 1px solid var(--p-border);
   border-radius: var(--r-card);
-  padding: 22px;
+  padding: 18px;
   box-shadow: var(--sh-soft-lg);
   box-sizing: border-box;
-  animation: fadeSlideIn 220ms ease;
+  animation: fadeSlideIn 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  @media (min-width: 390px) { margin: 4px 20px 20px; padding: 22px; }
 
   @media (min-width: 768px) {
     margin: 4px 28px 22px;
@@ -444,16 +502,19 @@
 .form-title {
   margin: 0;
   font-family: var(--f-display);
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--p-text);
   flex: 1;
   min-width: 0;
+
+  @media (min-width: 390px) { font-size: 17px; }
 }
 
+// Touch target real 44x44 (visual conservado con icono chico)
 .form-close-btn {
-  width: 32px;
-  height: 32px;
+  width: var(--touch-min);
+  height: var(--touch-min);
   border-radius: 50%;
   border: none;
   background: var(--p-bg-2);
@@ -462,9 +523,11 @@
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 200ms ease, transform 200ms ease;
+  transition: background 200ms ease, transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
 
   &:active { transform: scale(0.92); }
+  &:focus-visible { outline: 2px solid var(--p-primary); outline-offset: -2px; }
 
   ion-icon {
     font-size: 17px;
@@ -511,6 +574,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  min-height: var(--touch-rec);
   background: var(--p-bg);
   border: 1px solid var(--p-border);
   border-radius: var(--r-input);
@@ -531,10 +595,12 @@
     border: none;
     background: transparent;
     outline: none;
-    font-size: 14px;
+    // Sección 8 (crítico): mínimo 16px, incluso en tablet
+    font-size: 16px;
     color: var(--p-text);
     padding: 12px 0;
     font-family: var(--f-text);
+    -webkit-appearance: none;
 
     &::placeholder {
       color: var(--p-text-2);
@@ -582,9 +648,11 @@
 
 .textarea-wrap {
   align-items: flex-start;
+  min-height: auto;
 
   textarea {
     resize: none;
+    padding: 12px 0;
   }
 }
 
@@ -599,15 +667,26 @@
 .file-upload-zone {
   border: 1.5px dashed var(--p-border);
   border-radius: var(--r-input);
-  padding: 24px 14px;
+  padding: 22px 14px;
   text-align: center;
   cursor: pointer;
   margin: 16px 0 10px;
   box-sizing: border-box;
   transition: border-color 200ms ease, background 200ms ease;
   background: var(--p-bg);
+  -webkit-tap-highlight-color: transparent;
 
-  &:hover,
+  @media (min-width: 390px) { padding: 24px 14px; }
+
+  &:focus-visible { outline: 2px solid var(--p-primary); outline-offset: 2px; }
+
+  @media (hover: hover) {
+    &:hover {
+      border-color: var(--p-primary);
+      background: var(--p-primary-soft);
+    }
+  }
+
   &.dragging {
     border-color: var(--p-primary);
     background: var(--p-primary-soft);
@@ -629,7 +708,7 @@
   overflow-wrap: anywhere;
 
   span {
-    color: var(--p-primary);
+    color: var(--p-primary-dark);
     font-weight: 700;
   }
 }
@@ -655,7 +734,7 @@
   background: var(--p-bg);
   border: 1px solid var(--p-border);
   border-radius: var(--r-input);
-  padding: 10px 12px;
+  padding: 8px 8px 8px 12px;
   box-sizing: border-box;
 
   &.error {
@@ -666,7 +745,7 @@
 
 .file-type-icon {
   font-size: 16px;
-  color: var(--p-primary);
+  color: var(--p-primary-dark);
   flex-shrink: 0;
 }
 
@@ -678,8 +757,6 @@
   gap: 3px;
 }
 
-// .file-name ya truncaba con ellipsis, se mantiene tal cual pero
-// reforzando min-width:0 desde el padre .file-chip-info (arriba).
 .file-name {
   font-size: 12px;
   color: var(--p-text);
@@ -699,7 +776,7 @@
 
 .file-progress-text {
   font-size: 10.5px;
-  color: var(--p-primary);
+  color: var(--p-primary-dark);
   font-weight: 600;
 }
 
@@ -721,26 +798,33 @@
 .file-progress-fill {
   height: 100%;
   background: var(--p-primary);
-  transition: width 150ms ease;
+  transition: width 200ms ease;
 }
 
-.retry-file {
-  font-size: 18px;
-  color: var(--p-primary);
+// Touch target real 44x44 en botones de solo ícono de archivos
+.retry-file-btn,
+.remove-file-btn {
+  width: var(--touch-min);
+  height: var(--touch-min);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
   cursor: pointer;
-}
-
-.remove-file {
-  font-size: 18px;
-  color: var(--p-text-2);
-  flex-shrink: 0;
-  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition: color 200ms ease;
 
-  &:hover {
-    color: var(--p-error);
-  }
+  ion-icon { font-size: 18px; color: var(--p-text-2); }
+
+  &:focus-visible { outline: 2px solid var(--p-primary); outline-offset: -2px; border-radius: 50%; }
+}
+
+.retry-file-btn ion-icon { color: var(--p-primary-dark); }
+
+@media (hover: hover) {
+  .remove-file-btn:hover ion-icon { color: var(--p-error); }
 }
 
 .form-actions {
@@ -753,6 +837,7 @@
 .btn-save {
   flex: 1;
   min-width: 0;
+  min-height: var(--touch-rec);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -764,7 +849,8 @@
   font-weight: 700;
   font-family: var(--f-display);
   cursor: pointer;
-  transition: transform 200ms ease, box-shadow 200ms ease;
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms ease;
+  -webkit-tap-highlight-color: transparent;
 
   ion-icon {
     font-size: 16px;
@@ -776,6 +862,11 @@
 
   &:active {
     transform: scale(0.98);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary-dark);
+    outline-offset: 2px;
   }
 
   &[disabled] {
@@ -793,7 +884,7 @@
 .btn-save {
   background: var(--p-primary);
   color: var(--p-white);
-  box-shadow: 6px 6px 14px rgba(245, 124, 0, 0.22), -4px -4px 10px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 20px rgba(245, 124, 0, 0.3);
 }
 
 // ============================================
@@ -838,15 +929,18 @@
 // ============================================
 
 .tasks-list {
-  padding: 4px 20px 110px;
+  padding: 4px 16px 100px;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
+  gap: 14px;
   align-items: stretch;
-  // Todas las filas tienen un alto mínimo fijo, así todas las tarjetas
-  // se ven del mismo tamaño; una fila solo crece si una tarjeta abre
-  // su panel de entregas / formulario (contenido que no se recorta).
-  grid-auto-rows: minmax(300px, auto);
+  grid-auto-rows: minmax(280px, auto);
+
+  @media (min-width: 390px) {
+    padding: 4px 20px 110px;
+    gap: 16px;
+    grid-auto-rows: minmax(300px, auto);
+  }
 
   @media (min-width: 768px) {
     padding: 4px 28px 120px;
@@ -855,7 +949,7 @@
     grid-auto-rows: minmax(360px, auto);
   }
 
-  @media (min-width: 1180px) {
+  @media (min-width: 1024px) {
     grid-template-columns: repeat(3, 1fr);
   }
 }
@@ -864,26 +958,35 @@
   background: var(--p-white);
   border: 1px solid var(--p-border);
   border-radius: var(--r-card);
-  padding: 18px;
+  padding: 16px;
   box-shadow: var(--sh-soft);
   box-sizing: border-box;
   overflow: hidden;
-  transition: transform 200ms ease, box-shadow 200ms ease, opacity 200ms ease;
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms ease, opacity 200ms ease;
   cursor: pointer;
   min-width: 0;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-tap-highlight-color: transparent;
 
-  // ── clave del acomodo: todas las tarjetas ocupan el 100% del alto
-  // de fila (fijo por grid-auto-rows), el bloque variable se recorta
-  // con .task-card-scroll y el footer siempre queda pegado abajo ──
   height: 100%;
   display: flex;
   flex-direction: column;
+
+  @media (min-width: 390px) { padding: 18px; }
 
   @media (hover: hover) {
     &:hover {
       transform: translateY(-2px);
       box-shadow: var(--sh-soft-lg);
     }
+  }
+
+  &:active { transform: scale(0.995); }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary);
+    outline-offset: 3px;
   }
 
   &.completed {
@@ -926,7 +1029,7 @@
 
     .btn-entregar {
       background: var(--p-white);
-      color: var(--p-primary);
+      color: var(--p-primary-dark);
       border-color: transparent;
     }
   }
@@ -937,7 +1040,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: var(--p-primary);
+  color: var(--p-primary-dark);
   margin: 0 0 6px;
   font-family: var(--f-text);
 }
@@ -971,7 +1074,7 @@
 
   ion-icon {
     font-size: 18px;
-    color: var(--p-primary);
+    color: var(--p-primary-dark);
   }
 }
 
@@ -983,10 +1086,12 @@
 .task-title {
   margin: 0;
   font-family: var(--f-display);
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 700;
   color: var(--p-text);
   min-width: 0;
+
+  @media (min-width: 390px) { font-size: 15px; }
 }
 
 .task-meta-row {
@@ -999,7 +1104,7 @@
 
 .meta-icon {
   font-size: 12px;
-  color: var(--p-primary);
+  color: var(--p-primary-dark);
   flex-shrink: 0;
 }
 
@@ -1009,8 +1114,6 @@
   flex-shrink: 0;
 }
 
-// Materia y grupo comparten la fila con un punto separador: cada
-// uno se encoge y trunca en vez de desbordar la fila.
 .task-materia {
   font-size: 12px;
   color: var(--p-text-2);
@@ -1019,9 +1122,10 @@
   flex-shrink: 1;
 }
 
+// Touch target real 44x44 (visual conservado con icono chico)
 .task-delete-btn {
-  width: 30px;
-  height: 30px;
+  width: var(--touch-min);
+  height: var(--touch-min);
   border-radius: 50%;
   border: none;
   background: transparent;
@@ -1031,6 +1135,7 @@
   flex-shrink: 0;
   cursor: pointer;
   transition: background 200ms ease;
+  -webkit-tap-highlight-color: transparent;
 
   ion-icon {
     font-size: 17px;
@@ -1044,6 +1149,8 @@
       color: var(--p-error);
     }
   }
+
+  &:focus-visible { outline: 2px solid var(--p-primary); outline-offset: -2px; }
 }
 
 .task-desc {
@@ -1054,12 +1161,6 @@
   font-family: var(--f-text);
 }
 
-// ── Zona "recortable" de la tarjeta ──
-// Agrupa encabezado + descripción + progreso + archivos. Se lleva
-// todo el espacio sobrante de la tarjeta (flex:1) y esconde
-// cualquier exceso de contenido, para que el footer y los botones
-// de acción queden siempre en la misma posición y todas las
-// tarjetas midan exactamente lo mismo.
 .task-card-scroll {
   flex: 1 1 auto;
   overflow: hidden;
@@ -1105,7 +1206,7 @@
   height: 100%;
   background: var(--p-primary);
   border-radius: 4px;
-  transition: width 300ms ease;
+  transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .task-files {
@@ -1124,17 +1225,20 @@
   color: var(--p-text-2);
   text-decoration: none;
   min-width: 0;
+  min-height: var(--touch-min);
 
   span {
     min-width: 0;
     word-break: break-word;
     overflow-wrap: anywhere;
   }
+
+  &:focus-visible { outline: 2px solid var(--p-primary); outline-offset: 2px; border-radius: 6px; }
 }
 
 .file-attach-icon {
   font-size: 14px;
-  color: var(--p-primary);
+  color: var(--p-primary-dark);
   flex-shrink: 0;
 }
 
@@ -1169,7 +1273,7 @@
   gap: 4px;
   font-size: 11.5px;
   font-weight: 700;
-  color: var(--p-primary);
+  color: var(--p-primary-dark);
   font-family: var(--f-text);
   flex-shrink: 0;
 
@@ -1196,13 +1300,15 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 64px 24px;
+  padding: 56px 20px;
   box-sizing: border-box;
+
+  @media (min-width: 390px) { padding: 64px 24px; }
 }
 
 .empty-icon-wrap {
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   background: var(--p-primary-soft);
   display: flex;
@@ -1211,34 +1317,39 @@
   margin-bottom: 18px;
   box-shadow: var(--sh-soft);
 
+  @media (min-width: 390px) { width: 80px; height: 80px; }
+
   ion-icon {
-    font-size: 34px;
-    color: var(--p-primary);
+    font-size: 32px;
+    color: var(--p-primary-dark);
   }
 }
 
 .empty-title {
   margin: 0 0 6px;
   font-family: var(--f-display);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--p-text);
+
+  @media (min-width: 390px) { font-size: 16px; }
 }
 
 .empty-sub {
   margin: 0;
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--p-text-2);
   font-family: var(--f-text);
 
+  @media (min-width: 390px) { font-size: 13px; }
+
   strong {
-    color: var(--p-primary);
+    color: var(--p-primary-dark);
   }
 }
 
 // ============================================
-// FAB — solo en mobile (en tablet/desktop se usa
-// el botón inline .btn-nueva-tarea-inline)
+// FAB — solo en mobile
 // ============================================
 
 .fab-only-mobile {
@@ -1252,7 +1363,7 @@
   --background-activated: #d96e00;
   --background-hover: #ff8a1f;
   --color: var(--p-white);
-  --box-shadow: 8px 8px 18px rgba(245, 124, 0, 0.28), -4px -4px 14px rgba(255, 255, 255, 0.7);
+  --box-shadow: 0 8px 20px rgba(245, 124, 0, 0.3);
   transition: transform 200ms ease;
 
   &:active {
@@ -1270,9 +1381,11 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 56px 24px;
+  padding: 48px 20px;
   gap: 12px;
   box-sizing: border-box;
+
+  @media (min-width: 390px) { padding: 56px 24px; }
 
   ion-icon {
     font-size: 36px;
@@ -1292,19 +1405,22 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  min-height: var(--touch-min);
   margin-top: 4px;
   padding: 11px 18px;
   border-radius: var(--r-btn);
-  border: 1px solid rgba(245, 124, 0, 0.3);
+  border: 1px solid rgba(150, 73, 0, 0.3);
   background: var(--p-primary-soft);
-  color: var(--p-primary);
+  color: var(--p-primary-dark);
   font-size: 13px;
   font-weight: 700;
   font-family: var(--f-display);
   cursor: pointer;
-  transition: transform 200ms ease;
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
 
   &:active { transform: scale(0.97); }
+  &:focus-visible { outline: 2px solid var(--p-primary-dark); outline-offset: 2px; }
 
   ion-icon { font-size: 16px; }
 }
@@ -1312,7 +1428,7 @@
 .input-hint {
   margin: -4px 0 0;
   font-size: 11px;
-  color: var(--p-primary);
+  color: var(--p-primary-dark);
   font-style: italic;
   font-family: var(--f-text);
 }
@@ -1345,13 +1461,14 @@
 .task-actions {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 0;
   flex-shrink: 0;
 }
 
+// Touch target real 44x44 (visual conservado con icono chico)
 .task-action-btn {
-  width: 30px;
-  height: 30px;
+  width: var(--touch-min);
+  height: var(--touch-min);
   border-radius: 50%;
   border: none;
   background: transparent;
@@ -1360,6 +1477,7 @@
   justify-content: center;
   cursor: pointer;
   transition: background 200ms ease;
+  -webkit-tap-highlight-color: transparent;
 
   ion-icon {
     font-size: 16px;
@@ -1368,8 +1486,10 @@
 
   &:active {
     background: var(--p-bg-2);
-    ion-icon { color: var(--p-primary); }
+    ion-icon { color: var(--p-primary-dark); }
   }
+
+  &:focus-visible { outline: 2px solid var(--p-primary); outline-offset: -2px; }
 }
 
 .task-footer-right {
@@ -1383,6 +1503,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  min-height: var(--touch-min);
   padding: 6px 12px;
   border-radius: 20px;
   border: 1px solid var(--p-border);
@@ -1392,10 +1513,13 @@
   font-weight: 700;
   font-family: var(--f-text);
   cursor: pointer;
-  transition: all 200ms ease;
+  transition: background 200ms ease, color 200ms ease, border-color 200ms ease;
   white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
 
   ion-icon { font-size: 13px; }
+
+  &:focus-visible { outline: 2px solid var(--p-primary); outline-offset: 2px; }
 
   &.is-published {
     border-color: rgba(46, 125, 50, 0.25);
@@ -1407,21 +1531,24 @@
 // ── Panel de entregas (docente) ──
 .btn-ver-entregas {
   display: flex; align-items: center; gap: 6px;
-  width: 100%; margin-top: 12px; padding: 12px;
+  width: 100%; min-height: var(--touch-min); margin-top: 12px; padding: 12px;
   background: transparent; border: 1px dashed var(--p-border);
-  border-radius: var(--r-input); color: var(--p-primary);
+  border-radius: var(--r-input); color: var(--p-primary-dark);
   font-family: var(--f-display); font-size: 12.5px; font-weight: 700;
   justify-content: center; cursor: pointer;
   box-sizing: border-box;
   transition: background 200ms ease;
+  -webkit-tap-highlight-color: transparent;
 
   &:active { background: var(--p-primary-soft); }
+  &:focus-visible { outline: 2px solid var(--p-primary); outline-offset: 2px; }
 }
 
 .panel-entregas {
   margin-top: 12px; padding-top: 12px;
   border-top: 1px solid var(--p-border);
   min-width: 0;
+  animation: slideDown 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .loading-entregas, .empty-entregas {
@@ -1454,7 +1581,7 @@
   flex-shrink: 0; white-space: nowrap;
 
   &.sin-entregar { background: var(--p-bg-2); color: var(--p-text-2); }
-  &.entregada { background: rgba(245, 124, 0, 0.10); color: var(--p-primary); }
+  &.entregada { background: var(--p-primary-soft); color: var(--p-primary-dark); }
   &.calificada { background: var(--p-success-soft); color: var(--p-success); }
 }
 
@@ -1467,9 +1594,12 @@
 
 .entrega-archivo-link {
   display: flex; align-items: center; gap: 6px;
-  font-size: 12.5px; color: var(--p-primary); margin: 8px 0; text-decoration: none;
+  font-size: 12.5px; color: var(--p-primary-dark); margin: 8px 0; text-decoration: none;
   font-weight: 600; font-family: var(--f-text);
   min-width: 0; word-break: break-word; overflow-wrap: anywhere;
+  min-height: var(--touch-min);
+
+  &:focus-visible { outline: 2px solid var(--p-primary); outline-offset: 2px; border-radius: 6px; }
 }
 
 .entrega-comentario {
@@ -1483,22 +1613,32 @@
 .calificar-row {
   display: flex; flex-direction: column; gap: 10px; margin-top: 12px;
 
-  label { font-size: 10.5px; color: var(--p-text-2); text-transform: uppercase; font-family: var(--f-text); font-weight: 700; }
+  label { font-size: 10.5px; color: var(--p-text-2); text-transform: uppercase; font-family: var(--f-text); font-weight: 700; display: block; margin-bottom: 4px; }
   input, textarea {
     width: 100%; box-sizing: border-box; background: var(--p-white); border: 1px solid var(--p-border);
-    border-radius: var(--r-input); padding: 10px 12px; color: var(--p-text); font-size: 13.5px;
+    border-radius: var(--r-input); padding: 12px; color: var(--p-text);
+    // Sección 8 (crítico): mínimo 16px
+    font-size: 16px;
     font-family: var(--f-text);
+    -webkit-appearance: none;
 
     &:focus { outline: none; border-color: var(--p-primary); }
+    &:focus-visible { outline: 2px solid var(--p-primary); outline-offset: 1px; }
   }
 }
 
 .btn-guardar-calif {
   display: flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: var(--touch-rec);
   padding: 12px; background: var(--p-primary); border: none; border-radius: var(--r-btn);
   color: var(--p-white); font-weight: 700; font-size: 12.5px; cursor: pointer;
   font-family: var(--f-display);
-  box-shadow: 4px 4px 10px rgba(245, 124, 0, 0.2);
+  box-shadow: 0 8px 20px rgba(245, 124, 0, 0.3);
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+
+  &:active { transform: scale(0.98); }
+  &:focus-visible { outline: 2px solid var(--p-primary-dark); outline-offset: 2px; }
 }
 
 // ── Vista alumno ──
@@ -1513,7 +1653,6 @@
   display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;
 }
 
-// ── Cita de retroalimentación (calificación del docente) ──
 .feedback-quote {
   position: relative;
   padding: 12px 14px;
@@ -1557,27 +1696,42 @@
 
 .btn-editar-entrega, .btn-entregar {
   display: flex; align-items: center; justify-content: center; gap: 6px;
-  width: 100%; margin-top: 12px; padding: 13px;
-  background: var(--p-primary-soft); border: 1px solid rgba(245, 124, 0, 0.25);
-  border-radius: var(--r-btn); color: var(--p-primary); font-weight: 700; font-size: 13px;
+  width: 100%; min-height: var(--touch-rec); margin-top: 12px; padding: 13px;
+  background: var(--p-primary-soft); border: 1px solid rgba(150, 73, 0, 0.25);
+  border-radius: var(--r-btn); color: var(--p-primary-dark); font-weight: 700; font-size: 13px;
   font-family: var(--f-display);
   cursor: pointer;
   box-sizing: border-box;
-  transition: transform 200ms ease;
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
 
   &:active { transform: scale(0.98); }
+  &:focus-visible { outline: 2px solid var(--p-primary); outline-offset: 2px; }
 }
 
 .form-entrega {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--p-border);
-  animation: fadeSlideIn 220ms ease;
+  animation: fadeSlideIn 300ms cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 0;
 }
 
 // ============================================
-// ANIMACIONES SUTILES
+// ORIENTACIÓN LANDSCAPE (Sección 11)
+// ============================================
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .tareas-hero { padding: 12px 16px; gap: 10px; }
+  .hero-title { font-size: 18px; }
+  .filters-bar { padding: 4px 16px 10px; }
+  .tasks-list { padding-top: 10px; gap: 12px; grid-auto-rows: minmax(220px, auto); }
+  .task-card { padding: 14px; animation: none; }
+  .new-task-form { padding: 16px; animation: none; }
+}
+
+// ============================================
+// ANIMACIONES SUTILES (Sección 9)
 // ============================================
 
 @keyframes fadeSlideIn {
@@ -1588,5 +1742,68 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// Reducción de movimiento (accesibilidad)
+@media (prefers-reduced-motion: reduce) {
+  .task-card,
+  .new-task-form,
+  .form-entrega,
+  .panel-entregas,
+  .filter-chip,
+  .btn-cancel,
+  .btn-save,
+  .btn-guardar-calif,
+  .btn-editar-entrega,
+  .btn-entregar,
+  .clear-filters-btn,
+  .btn-nueva-tarea-inline,
+  .retry-btn,
+  .form-close-btn,
+  .task-action-btn,
+  .task-delete-btn,
+  .fab-agregar {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+// ============================================
+// DARK MODE (Sección 1)
+// ============================================
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --p-bg: #0A0E1A;
+    --p-bg-2: #13171F;
+    --p-white: #1A1F2E;
+    --p-text: #E8EAED;
+    --p-text-2: #B0B0B0;
+    --p-border: rgba(255, 255, 255, 0.08);
+  }
+
+  .header-toolbar { --background: rgba(10, 14, 26, 0.86); }
+
+  .task-card,
+  .stat-chip,
+  .search-wrap,
+  .filter-chip,
+  .filter-select-wrap,
+  .clear-filters-btn,
+  .new-task-form,
+  .entrega-row,
+  .mi-entrega-status,
+  .feedback-quote {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35), 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  .input-wrap, .file-upload-zone, .file-chip, .calificar-row input, .calificar-row textarea {
+    background: var(--p-bg-2);
   }
 }

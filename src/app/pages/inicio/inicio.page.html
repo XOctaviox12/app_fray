@@ -1,25 +1,25 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="header-toolbar">
     <ion-buttons slot="start">
-      <ion-menu-button class="header-icon-btn" aria-label="Abrir menú">
+      <ion-menu-button aria-label="Abrir menú">
         <ion-icon name="menu-outline" aria-hidden="true"></ion-icon>
       </ion-menu-button>
     </ion-buttons>
-
-    <ion-title class="header-title">Fray Hub</ion-title>
+    <ion-title class="header-title">Inicio</ion-title>
   </ion-toolbar>
-
   <div class="header-accent-bar" aria-hidden="true"></div>
 </ion-header>
 
-<!-- ─────────────────────────────────────────────────────────────────────── -->
+<ion-content class="inicio-content">
+  <!-- ─────────────────────────────────────────────────────────────────────── -->
 <!-- CONTENIDO PRINCIPAL                                                     -->
 <!-- ─────────────────────────────────────────────────────────────────────── -->
-<ion-content class="inicio-content">
-
   <!-- Pull-to-refresh -->
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
-    <ion-refresher-content></ion-refresher-content>
+    <ion-refresher-content
+      pulling-icon="chevron-down-circle-outline"
+      refreshing-spinner="crescent"
+    ></ion-refresher-content>
   </ion-refresher>
 
   <!-- ═════════════════════════════════════════════════════════════════════ -->
@@ -36,8 +36,8 @@
   <ng-container *ngIf="cargando">
     <div class="hero-section">
       <div class="hero-text">
-        <ion-skeleton-text animated style="width: 40%; height: 12px;"></ion-skeleton-text>
-        <ion-skeleton-text animated style="width: 60%; height: 24px; margin-top: 8px;"></ion-skeleton-text>
+        <ion-skeleton-text animated [style.width.%]="40" style="height: 12px;"></ion-skeleton-text>
+        <ion-skeleton-text animated [style.width.%]="60" style="height: 24px; margin-top: 8px;"></ion-skeleton-text>
       </div>
       <div class="hero-avatar-wrap">
         <ion-skeleton-text animated style="width: 100%; height: 100%; border-radius: 50%;"></ion-skeleton-text>
@@ -68,9 +68,9 @@
     <ng-container *ngIf="!esTutor && !esDocente">
 
       <!-- HERO SECTION -->
-      <section class="hero-section" aria-label="Saludo y avatar de usuario">
+      <section class="hero-section" aria-label="Saludo y perfil del alumno">
         <div class="hero-text">
-          <p class="hero-greeting" aria-label="Fecha actual">
+          <p class="hero-greeting" [attr.aria-label]="'Fecha: ' + fechaActual">
             {{ fechaActual }}
           </p>
           <h1 class="hero-title">
@@ -90,9 +90,11 @@
               alt="Foto de perfil"
               loading="lazy"
               decoding="async"
+              width="56"
+              height="56"
             />
           </div>
-          <span class="hero-avatar-dot" aria-label="Estado: Conectado" aria-hidden="true"></span>
+          <span class="hero-avatar-dot" aria-label="Estado en línea" aria-hidden="true"></span>
         </div>
       </section>
 
@@ -135,7 +137,13 @@
       <!-- QUICK ACCESS GRID -->
       <nav class="quick-grid" aria-label="Accesos rápidos">
         <!-- Tareas -->
-        <a class="quick-card" routerLink="/tareas" routerLinkActive="active">
+        <a
+          class="quick-card"
+          routerLink="/tareas"
+          routerLinkActive="active"
+          role="button"
+          tabindex="0"
+        >
           <div class="quick-card-top">
             <div class="quick-card-icon orange-icon" aria-hidden="true">
               <ion-icon name="document-text-outline"></ion-icon>
@@ -147,7 +155,13 @@
         </a>
 
         <!-- Actividades -->
-        <a class="quick-card" routerLink="/actividad" routerLinkActive="active">
+        <a
+          class="quick-card"
+          routerLink="/actividad"
+          routerLinkActive="active"
+          role="button"
+          tabindex="0"
+        >
           <div class="quick-card-top">
             <div class="quick-card-icon blue-icon" aria-hidden="true">
               <ion-icon name="time-outline"></ion-icon>
@@ -159,7 +173,13 @@
         </a>
 
         <!-- Herramientas -->
-        <a class="quick-card" routerLink="/herramientas" routerLinkActive="active">
+        <a
+          class="quick-card"
+          routerLink="/herramientas"
+          routerLinkActive="active"
+          role="button"
+          tabindex="0"
+        >
           <div class="quick-card-top">
             <div class="quick-card-icon green-icon" aria-hidden="true">
               <ion-icon name="construct-outline"></ion-icon>
@@ -171,7 +191,13 @@
         </a>
 
         <!-- Comunidad -->
-        <a class="quick-card" routerLink="/comunidad" routerLinkActive="active">
+        <a
+          class="quick-card"
+          routerLink="/comunidad"
+          routerLinkActive="active"
+          role="button"
+          tabindex="0"
+        >
           <div class="quick-card-top">
             <div class="quick-card-icon tertiary-icon" aria-hidden="true">
               <ion-icon name="people-outline"></ion-icon>
@@ -191,9 +217,10 @@
         href="https://universidadlisboa.edu.mx/"
         target="_blank"
         rel="noopener noreferrer"
+        aria-label="Ir a portal institucional (se abre en nueva pestaña)"
       >
         <ion-icon name="globe-outline" slot="start" aria-hidden="true"></ion-icon>
-        Explorar Portal Institucional
+        <span>Explorar Portal Institucional</span>
       </ion-button>
 
     </ng-container>
@@ -204,9 +231,9 @@
     <ng-container *ngIf="esDocente">
 
       <!-- HERO SECTION -->
-      <section class="hero-section" aria-label="Saludo docente y avatar">
+      <section class="hero-section" aria-label="Saludo y perfil del docente">
         <div class="hero-text">
-          <p class="hero-greeting" aria-label="Fecha actual">
+          <p class="hero-greeting" [attr.aria-label]="'Fecha: ' + fechaActual">
             {{ fechaActual }}
           </p>
           <h1 class="hero-title">
@@ -226,9 +253,11 @@
               alt="Foto de perfil"
               loading="lazy"
               decoding="async"
+              width="56"
+              height="56"
             />
           </div>
-          <span class="hero-avatar-dot" aria-label="Estado: Conectado" aria-hidden="true"></span>
+          <span class="hero-avatar-dot" aria-label="Estado en línea" aria-hidden="true"></span>
         </div>
       </section>
 
@@ -271,7 +300,13 @@
       <!-- QUICK ACCESS GRID -->
       <nav class="quick-grid" aria-label="Accesos rápidos para docentes">
         <!-- Mis Grupos -->
-        <a class="quick-card" routerLink="/aula" routerLinkActive="active">
+        <a
+          class="quick-card"
+          routerLink="/aula"
+          routerLinkActive="active"
+          role="button"
+          tabindex="0"
+        >
           <div class="quick-card-top">
             <div class="quick-card-icon orange-icon" aria-hidden="true">
               <ion-icon name="school-outline"></ion-icon>
@@ -286,7 +321,13 @@
         </a>
 
         <!-- Mis Materias -->
-        <a class="quick-card" routerLink="/materias" routerLinkActive="active">
+        <a
+          class="quick-card"
+          routerLink="/materias"
+          routerLinkActive="active"
+          role="button"
+          tabindex="0"
+        >
           <div class="quick-card-top">
             <div class="quick-card-icon blue-icon" aria-hidden="true">
               <ion-icon name="book-outline"></ion-icon>
@@ -301,7 +342,13 @@
         </a>
 
         <!-- Tareas Pendientes -->
-        <a class="quick-card" routerLink="/tareas" routerLinkActive="active">
+        <a
+          class="quick-card"
+          routerLink="/tareas"
+          routerLinkActive="active"
+          role="button"
+          tabindex="0"
+        >
           <div class="quick-card-top">
             <div class="quick-card-icon orange-icon" aria-hidden="true">
               <ion-icon name="document-text-outline"></ion-icon>
@@ -313,7 +360,13 @@
         </a>
 
         <!-- Actividades -->
-        <a class="quick-card" routerLink="/actividad" routerLinkActive="active">
+        <a
+          class="quick-card"
+          routerLink="/actividad"
+          routerLinkActive="active"
+          role="button"
+          tabindex="0"
+        >
           <div class="quick-card-top">
             <div class="quick-card-icon blue-icon" aria-hidden="true">
               <ion-icon name="checkmark-done-outline"></ion-icon>
@@ -328,7 +381,13 @@
         </a>
 
         <!-- Material de Apoyo -->
-        <a class="quick-card" routerLink="/herramientas" routerLinkActive="active">
+        <a
+          class="quick-card"
+          routerLink="/herramientas"
+          routerLinkActive="active"
+          role="button"
+          tabindex="0"
+        >
           <div class="quick-card-top">
             <div class="quick-card-icon green-icon" aria-hidden="true">
               <ion-icon name="folder-open-outline"></ion-icon>
@@ -340,7 +399,13 @@
         </a>
 
         <!-- Comunidad -->
-        <a class="quick-card" routerLink="/comunidad" routerLinkActive="active">
+        <a
+          class="quick-card"
+          routerLink="/comunidad"
+          routerLinkActive="active"
+          role="button"
+          tabindex="0"
+        >
           <div class="quick-card-top">
             <div class="quick-card-icon tertiary-icon" aria-hidden="true">
               <ion-icon name="people-outline"></ion-icon>
@@ -360,9 +425,10 @@
         href="https://universidadlisboa.edu.mx/"
         target="_blank"
         rel="noopener noreferrer"
+        aria-label="Ir a portal institucional (se abre en nueva pestaña)"
       >
         <ion-icon name="globe-outline" slot="start" aria-hidden="true"></ion-icon>
-        Explorar Portal Institucional
+        <span>Explorar Portal Institucional</span>
       </ion-button>
 
     </ng-container>
@@ -373,9 +439,9 @@
     <ng-container *ngIf="esTutor">
 
       <!-- HERO SECTION -->
-      <section class="hero-section" aria-label="Saludo tutor">
+      <section class="hero-section" aria-label="Saludo al tutor">
         <div class="hero-text">
-          <p class="hero-greeting" aria-label="Fecha actual">
+          <p class="hero-greeting" [attr.aria-label]="'Fecha: ' + fechaActual">
             {{ fechaActual }}
           </p>
           <h1 class="hero-title">
@@ -385,13 +451,19 @@
           <p class="hero-sub">Portal de Seguimiento</p>
         </div>
 
-        <div class="tutor-avatar-wrap" role="img" aria-label="Avatar genérico de tutor">
+        <div class="tutor-avatar-wrap" role="img" aria-label="Avatar representativo de tutor">
           <ion-icon name="people-outline" class="tutor-avatar-icon" aria-hidden="true"></ion-icon>
         </div>
       </section>
 
       <!-- HIJO HIGHLIGHT CARD -->
-      <a class="hijo-highlight-card" routerLink="/mi-hijo" routerLinkActive="active" role="link">
+      <a
+        class="hijo-highlight-card"
+        routerLink="/mi-hijo"
+        routerLinkActive="active"
+        role="link"
+        (keypress.enter)="onEnterPress($event)"
+      >
         <div class="hijo-highlight-left">
           <div class="hijo-avatar-circle" aria-hidden="true">
             <ion-icon name="person-outline"></ion-icon>
@@ -401,7 +473,12 @@
             <h3 class="hijo-nombre">{{ nombreHijo || 'Ver perfil' }}</h3>
           </div>
         </div>
-        <button type="button" class="hijo-btn" aria-label="Ver perfil del alumno">
+        <button
+          type="button"
+          class="hijo-btn"
+          aria-label="Ver perfil y desempeño del alumno"
+          tabindex="-1"
+        >
           <ion-icon name="trending-up-outline" aria-hidden="true"></ion-icon>
         </button>
       </a>
@@ -435,7 +512,13 @@
       <!-- QUICK ACCESS GRID -->
       <nav class="quick-grid" aria-label="Accesos rápidos para tutores">
         <!-- Mi Hijo(a) -->
-        <a class="quick-card" routerLink="/mi-hijo" routerLinkActive="active">
+        <a
+          class="quick-card"
+          routerLink="/mi-hijo"
+          routerLinkActive="active"
+          role="button"
+          tabindex="0"
+        >
           <div class="quick-card-top">
             <div class="quick-card-icon orange-icon" aria-hidden="true">
               <ion-icon name="school-outline"></ion-icon>
@@ -447,7 +530,13 @@
         </a>
 
         <!-- Comunicados -->
-        <a class="quick-card" routerLink="/comunidad" routerLinkActive="active">
+        <a
+          class="quick-card"
+          routerLink="/comunidad"
+          routerLinkActive="active"
+          role="button"
+          tabindex="0"
+        >
           <div class="quick-card-top">
             <div class="quick-card-icon blue-icon" aria-hidden="true">
               <ion-icon name="megaphone-outline"></ion-icon>
@@ -467,13 +556,14 @@
         href="https://universidadlisboa.edu.mx/"
         target="_blank"
         rel="noopener noreferrer"
+        aria-label="Ir a portal institucional (se abre en nueva pestaña)"
       >
         <ion-icon name="globe-outline" slot="start" aria-hidden="true"></ion-icon>
-        Explorar Portal Institucional
+        <span>Explorar Portal Institucional</span>
       </ion-button>
 
     </ng-container>
 
   </ng-container>
-
 </ion-content>
+

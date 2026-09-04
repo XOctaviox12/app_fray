@@ -4,7 +4,18 @@
 // + Reglas de diseño responsivo FrayHub (GUIA_DISEÑO_RESPONSIVO_FRAYUB.md):
 //   5 breakpoints, padding/tipografía escalados, safe-area, dark mode,
 //   reduced motion, landscape, touch targets >= 44px.
-// (Solo estilos. Ninguna clase, evento o binding del HTML fue modificado)
+//
+// AJUSTES aplicados en esta pasada según la guía (comentados con "// GUÍA:"):
+//   1) Font stack: -apple-system primero (Sección 2)
+//   2) Fix bug de zoom iOS: textarea y select ahora font-size 16px (Sección 8, crítico)
+//   3) Safe-area-bottom en comunidad.page — la guía la listaba como pendiente (Sección 12)
+//   4) -webkit-tap-highlight-color en elementos interactivos (Sección 8)
+//   5) :focus-visible en botones/inputs/select (Sección 10 + checklist a11y)
+//   6) Hover de escritorio en botón principal (Sección 10, @media hover:hover)
+//   7) Landscape: alturas de input/botón reducidas a 40-44px (Sección 11, tabla)
+//   8) will-change en elementos animados (Sección 14, GPU acceleration)
+//   9) Animación de entrada cardIn en post-card (Sección 9)
+// (Ninguna clase, evento o binding del HTML fue modificado)
 // ============================================
 
 :host {
@@ -55,7 +66,8 @@
   --fh-sp-8: 32px;
   --fh-sp-12: 48px;
 
-  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  // GUÍA Sección 2: font stack -apple-system → "SF Pro Display" → "Inter" → fallback
+  font-family: -apple-system, "SF Pro Display", "Inter", BlinkMacSystemFont, sans-serif;
 
   // ── Dark mode automático (Regla 10 de la guía) ──
   // Mismos nombres de token, valores invertidos para preservar contraste.
@@ -97,6 +109,11 @@
   .header-toolbar { --min-height: 64px; }
 }
 
+// GUÍA Sección 11: header más bajo en landscape
+@media (orientation: landscape) and (max-height: 500px) {
+  .header-toolbar { --min-height: 48px; }
+}
+
 .header-title {
   color: var(--fh-text);
   font-weight: 700;
@@ -124,7 +141,18 @@
 .comunidad-content {
   --background: var(--fh-bg);
   --padding-top: var(--fh-sp-4);
-  --padding-bottom: var(--fh-sp-8);
+
+  // GUÍA Sección 12: comunidad.page estaba listada como pendiente de safe-area bottom.
+  // Se aplica aquí siguiendo el mismo patrón que inicio.page.
+  --padding-bottom: max(env(safe-area-inset-bottom), var(--fh-sp-8));
+
+  @media (min-width: 390px) {
+    --padding-bottom: max(env(safe-area-inset-bottom), 28px);
+  }
+
+  @media (min-width: 768px) {
+    --padding-bottom: max(env(safe-area-inset-bottom), 32px);
+  }
 
   // Ancho máximo de contenido en pantallas grandes (Regla 6)
   @media (min-width: 1366px) {
@@ -138,8 +166,11 @@
   .comunidad-content {
     --padding-top: var(--fh-sp-3);
   }
-  .header-toolbar {
-    --min-height: 48px;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .comunidad-content {
+    --padding-bottom: max(env(safe-area-inset-bottom), 16px);
   }
 }
 
@@ -184,6 +215,9 @@
   border-radius: var(--fh-radius-card);
   box-shadow: var(--fh-shadow-soft);
 
+  // GUÍA Sección 9: animación de entrada estándar (cardIn)
+  animation: fh-card-in 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+
   // Halo decorativo detrás de la tarjeta, igual que en el mockup
   &::before {
     content: '';
@@ -213,6 +247,10 @@
   .publish-card { max-width: 760px; }
 }
 
+@media (orientation: landscape) and (max-height: 500px) {
+  .publish-card { padding: 20px; }
+}
+
 .publish-card-header {
   display: flex;
   align-items: center;
@@ -221,10 +259,18 @@
   cursor: pointer;
   user-select: none;
   min-height: 44px; // área táctil mínima (Regla 5.5 de la guía)
+  -webkit-tap-highlight-color: transparent; // GUÍA Sección 8
 
   // Cuando la tarjeta está colapsada, el encabezado no necesita separación inferior
   .publish-card.collapsed & {
     margin-bottom: 0;
+  }
+
+  // GUÍA checklist a11y: foco visible al navegar con teclado
+  &:focus-visible {
+    outline: 2px solid var(--fh-primary-bright);
+    outline-offset: 2px;
+    border-radius: 12px;
   }
 }
 
@@ -257,6 +303,7 @@
   color: var(--fh-text-2);
   flex-shrink: 0;
   transition: transform 0.25s ease;
+  will-change: transform; // GUÍA Sección 14: GPU acceleration en elementos animados
 
   &.open { transform: rotate(180deg); }
 
@@ -268,6 +315,12 @@
 // Cuerpo del formulario: aparece/desaparece con el estado de mostrarFormulario
 .publish-card-body {
   padding-top: var(--fh-sp-1);
+  // GUÍA Sección 9: animación slideDown al desplegar el formulario
+  animation: fh-slide-down 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 }
 
 .error-inline {
@@ -289,13 +342,15 @@
   border: 1.5px solid transparent;
   border-radius: var(--fh-radius-input);
   padding: var(--fh-sp-4);
-  font-size: 16px; // >=16px evita zoom automático de iOS al enfocar
+  font-size: 16px; // GUÍA Sección 8: >=16px evita zoom automático de iOS al enfocar — CRÍTICO
   font-weight: 700;
   color: var(--fh-text);
   font-family: inherit;
   margin-bottom: var(--fh-sp-3);
   box-sizing: border-box;
   min-height: 44px;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
   transition: border-color 0.2s ease, background 0.2s ease;
 
   &::placeholder { color: #9CA3AF; font-weight: 500; }
@@ -304,6 +359,10 @@
     background: var(--fh-white);
     outline: none;
     box-shadow: 0 0 0 4px rgba(245, 124, 0, 0.12);
+  }
+
+  @media (min-width: 768px) {
+    font-size: 16px; // GUÍA: mantener 16px incluso en tablet
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -321,9 +380,14 @@
   --padding-top: 14px;
   --padding-bottom: 14px;
   border-radius: var(--fh-radius-input);
-  font-size: 14px;
+  // GUÍA Sección 8: estaba en 14px — se corrige a 16px para no disparar zoom de iOS Safari
+  font-size: 16px;
   margin-bottom: var(--fh-sp-3);
   overflow: hidden;
+
+  @media (min-width: 768px) {
+    font-size: 16px;
+  }
 }
 
 .adjunto-preview {
@@ -352,7 +416,14 @@
   width: 32px;
   height: 32px;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
   ion-icon { font-size: 17px; }
+
+  &:focus-visible {
+    outline: 2px solid var(--fh-primary-bright);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
 }
 
 .publish-actions {
@@ -376,10 +447,21 @@
   font-weight: 700;
   color: var(--fh-text-2);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition: background 0.2s ease;
   ion-icon { font-size: 15px; color: var(--fh-primary); }
 
   &:active { background: var(--fh-border); }
+
+  &:focus-visible {
+    outline: 2px solid var(--fh-primary-bright);
+    outline-offset: 2px;
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    min-height: 40px;
+    padding: 8px 16px;
+  }
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
@@ -400,14 +482,35 @@
   color: var(--fh-on-primary);
   cursor: pointer;
   box-shadow: var(--fh-shadow-primary);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform, box-shadow; // GUÍA Sección 14
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
   ion-icon { font-size: 15px; }
-  &:active { transform: scale(0.97); }
+
+  &:active:not(:disabled) { transform: scale(0.97); }
   &:disabled { opacity: .55; box-shadow: none; cursor: not-allowed; }
+
+  &:focus-visible {
+    outline: 2px solid var(--fh-primary-dark);
+    outline-offset: 2px;
+  }
+
+  // GUÍA Sección 10: hover solo en escritorio real (no simula touch)
+  @media (hover: hover) {
+    &:hover:not(:disabled) {
+      box-shadow: 0 12px 28px rgba(245, 124, 0, 0.40);
+      transform: translateY(-1px);
+    }
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    min-height: 40px;
+    padding: 10px 22px;
+  }
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
-    &:active { transform: none; }
+    &:active, &:hover { transform: none; }
   }
 }
 
@@ -448,6 +551,7 @@
   color: var(--fh-text-2);
   cursor: pointer;
   position: relative;
+  -webkit-tap-highlight-color: transparent;
   transition: all .2s ease;
 
   ion-icon { font-size: 16px; }
@@ -456,6 +560,16 @@
     background: var(--fh-white);
     color: var(--fh-primary);
     box-shadow: var(--fh-shadow-soft);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--fh-primary-bright);
+    outline-offset: 2px;
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    min-height: 40px;
+    padding: 8px 0;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -532,7 +646,10 @@
   padding: var(--fh-sp-4) var(--fh-sp-4) var(--fh-sp-4) 22px;
   margin-bottom: var(--fh-sp-3);
   box-shadow: var(--fh-shadow-soft);
+  will-change: box-shadow; // GUÍA Sección 14
   transition: box-shadow 0.3s ease;
+  // GUÍA Sección 9: animación de entrada estándar
+  animation: fh-card-in 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 
   &::before {
     content: '';
@@ -551,11 +668,16 @@
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
+    animation: none;
   }
 }
 
 @media (min-width: 768px) {
   .post-card { padding: 20px 20px 20px 24px; }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .post-card { padding: 16px 16px 16px 20px; }
 }
 
 .post-header {
@@ -645,6 +767,7 @@
   color: var(--fh-text-2);
   cursor: pointer;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
   transition: background 0.2s ease, color 0.2s ease;
 
   ion-icon { font-size: 16px; }
@@ -655,6 +778,11 @@
   }
 
   &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  &:focus-visible {
+    outline: 2px solid var(--fh-error);
+    outline-offset: 2px;
+  }
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
@@ -704,7 +832,13 @@
   font-weight: 700;
   color: var(--fh-primary);
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
   ion-icon { font-size: 15px; }
+
+  &:focus-visible {
+    outline: 2px solid var(--fh-primary-bright);
+    outline-offset: 2px;
+  }
 }
 
 // ── Empty state ───────────────────────────────
@@ -777,6 +911,7 @@
   font-size: 12.5px;
   font-weight: 700;
   color: var(--fh-text-2);
+  -webkit-tap-highlight-color: transparent;
   transition: all 0.2s ease;
   font-family: inherit;
 
@@ -787,6 +922,16 @@
     color: var(--fh-on-primary);
     box-shadow: var(--fh-shadow-primary);
     ion-icon { color: var(--fh-on-primary); }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--fh-primary-dark);
+    outline-offset: 2px;
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    min-height: 40px;
+    padding: 8px 14px;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -820,6 +965,7 @@
   border: none;
   background: var(--fh-bg-2);
   cursor: pointer; text-align: left;
+  -webkit-tap-highlight-color: transparent;
   transition: all 0.2s ease; width: 100%;
   font-family: inherit;
 
@@ -830,6 +976,16 @@
     box-shadow: inset 0 0 0 1.5px var(--fh-primary-bright);
     ion-icon { color: var(--fh-primary); }
     .dest-opt-text strong { color: var(--fh-primary); }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--fh-primary-bright);
+    outline-offset: 2px;
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    min-height: 40px;
+    padding: 10px 14px;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -858,8 +1014,17 @@
 
   select {
     flex: 1; border: none; background: transparent;
-    outline: none; font-size: 15px; color: var(--fh-text); padding: 13px 0;
+    outline: none;
+    // GUÍA Sección 8: estaba en 15px — se corrige a 16px, crítico para no disparar zoom en iOS
+    font-size: 16px;
+    color: var(--fh-text); padding: 13px 0;
+    -webkit-appearance: none;
+    -webkit-tap-highlight-color: transparent;
     option { background: var(--fh-white); color: var(--fh-text); }
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    min-height: 40px;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -903,6 +1068,7 @@
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
   transition: all 0.2s ease;
 
   ion-icon { font-size: 15px; color: var(--fh-text-2); }
@@ -912,6 +1078,11 @@
     border-color: var(--fh-primary-bright);
     color: var(--fh-primary);
     ion-icon { color: var(--fh-primary); }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--fh-primary-bright);
+    outline-offset: 2px;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1016,6 +1187,29 @@
 
 .post-card.propio .post-header {
   background: rgba(255, 165, 0, 0.08);
+}
+
+// GUÍA Sección 9: keyframes de entrada estándar (cardIn / slideDown)
+@keyframes fh-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fh-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 // ── Accesibilidad: respetar reduced motion globalmente (Regla 11) ──

@@ -1475,7 +1475,7 @@ select:disabled {
     box-shadow: var(--fh-shadow-neu-in);
     border-radius: 12px;
     padding: 10px 12px;
-    font-size: 15px;
+    font-size: 16px; // CORREGIDO: 16px para evitar zoom automático en iOS
     font-family: inherit;
     color: var(--fh-text);
     resize: none;

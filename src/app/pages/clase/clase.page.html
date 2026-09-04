@@ -34,16 +34,6 @@
 
   <!-- ============================================================
        TEMPLATE COMPARTIDO: tarjeta de bloque
-       Antes esta tarjeta (texto/pdf/video/imagen/link/actividad) estaba
-       copiada y pegada dos veces —idéntica— en la vista de docente y en
-       la de alumno. Se extrae aquí una sola vez y se reutiliza con
-       ngTemplateOutlet, pasando `editable` para mostrar u ocultar los
-       botones de editar/eliminar según el rol.
-
-       NOTA (tamaño uniforme): el contenido variable de cada bloque
-       (texto/pdf/video/imagen/actividad) va envuelto en `.bloque-body`,
-       que tiene su propio scroll interno. Así todas las tarjetas miden
-       lo mismo sin importar cuánto contenido tengan dentro.
        ============================================================ -->
   <ng-template #bloqueCardTpl let-b="bloque" let-editable="editable">
     <div class="bloque-card" [ngClass]="'bloque-' + b.tipo" role="listitem" [attr.aria-label]="etiquetaTipo(b.tipo) + (b.titulo ? ': ' + b.titulo : '')">
@@ -121,9 +111,7 @@
             <p class="act-instrucciones" *ngIf="act.instrucciones">{{ act.instrucciones }}</p>
 
             <!-- ══════════════════════════════════════════════════
-                 DOCENTE (editable=true): vista de solo lectura, tal
-                 como la ve mientras administra el bloque. El docente
-                 no "contesta" su propia actividad.
+                 DOCENTE (editable=true): vista de solo lectura
                  ══════════════════════════════════════════════════ -->
             <ng-container *ngIf="editable">
               <div class="pregunta-card" *ngFor="let p of act.preguntas; let i = index">
@@ -153,10 +141,6 @@
 
             <!-- ══════════════════════════════════════════════════
                  ALUMNO (editable=false): preguntas interactivas.
-                 Una vez enviada la actividad (actividadesEnviadas[b.id])
-                 los controles se bloquean y se muestra el resultado.
-                 Si la clase ya está FINALIZADA (sesionFinalizada), no se
-                 puede enviar aunque falten respuestas.
                  ══════════════════════════════════════════════════ -->
             <ng-container *ngIf="!editable">
               <fieldset class="pregunta-card pregunta-card-alumno"

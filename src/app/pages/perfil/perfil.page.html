@@ -1,19 +1,19 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="header-toolbar">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/inicio" class="header-back-btn" text=""></ion-back-button>
+      <ion-back-button defaultHref="/inicio" class="header-back-btn" text="" aria-label="Volver"></ion-back-button>
     </ion-buttons>
     <ion-title class="header-title">Mi Perfil</ion-title>
     <ion-buttons slot="end">
       <button class="header-edit-btn" [class.header-edit-btn--cancel]="editando" (click)="toggleEdicion()" *ngIf="usuario">
-        <ion-icon [name]="editando ? 'close-outline' : 'create-outline'"></ion-icon>
+        <ion-icon [name]="editando ? 'close-outline' : 'create-outline'" aria-hidden="true"></ion-icon>
         <span>{{ editando ? 'Cancelar' : 'Editar Perfil' }}</span>
       </button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="perfil-content">
+<ion-content class="perfil-content" role="main" aria-label="Mi perfil">
 
   <div class="page-shell">
 
@@ -23,31 +23,38 @@
            HERO
       ============================================ -->
       <div class="profile-hero">
-        <div class="avatar-halo-bg"></div>
+        <div class="avatar-halo-bg" aria-hidden="true"></div>
 
-        <div class="avatar-wrap" [class.avatar-editable]="editando" (click)="editando && seleccionarFoto()">
+        <div class="avatar-wrap"
+          [class.avatar-editable]="editando"
+          [attr.role]="editando ? 'button' : null"
+          [attr.tabindex]="editando ? 0 : null"
+          [attr.aria-label]="editando ? 'Cambiar foto de perfil' : null"
+          (click)="editando && seleccionarFoto()"
+          (keyup.enter)="editando && seleccionarFoto()"
+          (keyup.space)="editando && seleccionarFoto()">
           <div class="avatar-ring">
             <div class="avatar-inner">
               <img [src]="avatarUrl" (error)="onErrorImagen()" class="profile-avatar" alt="Foto de perfil" />
-              <span class="avatar-status-dot" [class.dot-activo]="esActivo()" [class.dot-inactivo]="!esActivo()"></span>
+              <span class="avatar-status-dot" [class.dot-activo]="esActivo()" [class.dot-inactivo]="!esActivo()" aria-hidden="true"></span>
             </div>
           </div>
 
-          <div class="avatar-edit-overlay" *ngIf="editando">
+          <div class="avatar-edit-overlay" *ngIf="editando" aria-hidden="true">
             <ion-spinner *ngIf="subiendoFoto" name="crescent"></ion-spinner>
             <span *ngIf="subiendoFoto" class="progreso-txt">{{ progresoFoto }}%</span>
             <ion-icon *ngIf="!subiendoFoto" name="camera-outline"></ion-icon>
           </div>
-          <input #fileInput type="file" accept="image/*" hidden (change)="onFotoSeleccionada($event)" />
+          <input #fileInput type="file" accept="image/*" hidden aria-label="Subir foto de perfil" (change)="onFotoSeleccionada($event)" />
         </div>
 
         <h1 class="profile-name">{{ getNombreCompleto() }}</h1>
 
         <div class="badge-row">
           <span class="role-badge">{{ getRolDisplay() }}</span>
-          <span class="badge-sep"></span>
+          <span class="badge-sep" aria-hidden="true"></span>
           <span class="estatus-badge" [class.estatus-activo]="esActivo()" [class.estatus-inactivo]="!esActivo()">
-            <span class="estatus-dot"></span>
+            <span class="estatus-dot" aria-hidden="true"></span>
             {{ esActivo() ? 'Activa' : 'Inactiva' }}
           </span>
         </div>
@@ -57,8 +64,8 @@
         </p>
       </div>
 
-      <div class="error-banner" *ngIf="errorGuardado">
-        <ion-icon name="alert-circle-outline"></ion-icon>
+      <div class="error-banner" *ngIf="errorGuardado" role="alert" aria-live="assertive">
+        <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
         <p>{{ errorGuardado }}</p>
       </div>
 
@@ -71,11 +78,11 @@
           <div class="info-card">
             <div class="card-header">
               <h2 class="card-title">Información de contacto</h2>
-              <ion-icon name="mail-open-outline" class="card-header-icon"></ion-icon>
+              <ion-icon name="mail-open-outline" class="card-header-icon" aria-hidden="true"></ion-icon>
             </div>
 
             <div class="info-row">
-              <div class="info-icon-wrap icon-primary">
+              <div class="info-icon-wrap icon-primary" aria-hidden="true">
                 <ion-icon name="person-outline"></ion-icon>
               </div>
               <div class="info-text">
@@ -85,7 +92,7 @@
             </div>
 
             <div class="info-row">
-              <div class="info-icon-wrap icon-secondary">
+              <div class="info-icon-wrap icon-secondary" aria-hidden="true">
                 <ion-icon name="mail-outline"></ion-icon>
               </div>
               <div class="info-text">
@@ -95,47 +102,49 @@
             </div>
 
             <div class="info-row">
-              <div class="info-icon-wrap icon-tertiary">
+              <div class="info-icon-wrap icon-tertiary" aria-hidden="true">
                 <ion-icon name="call-outline"></ion-icon>
               </div>
               <div class="info-text full-width">
-                <span class="info-label">Teléfono</span>
+                <span class="info-label" id="telefonoLabel">Teléfono</span>
                 <span class="info-value" *ngIf="!editando">{{ usuario.telefono || 'No registrado' }}</span>
                 <ion-input
                   *ngIf="editando"
                   [(ngModel)]="formEdicion.telefono"
                   type="tel"
                   placeholder="Ej. 4431234567"
+                  aria-labelledby="telefonoLabel"
                   class="inline-input">
                 </ion-input>
               </div>
             </div>
 
             <div class="info-row">
-              <div class="info-icon-wrap icon-primary">
+              <div class="info-icon-wrap icon-primary" aria-hidden="true">
                 <ion-icon name="location-outline"></ion-icon>
               </div>
               <div class="info-text full-width">
-                <span class="info-label">Dirección</span>
+                <span class="info-label" id="direccionLabel">Dirección</span>
                 <span class="info-value" *ngIf="!editando">{{ usuario.direccion || 'No registrada' }}</span>
                 <ion-textarea
                   *ngIf="editando"
                   [(ngModel)]="formEdicion.direccion"
                   placeholder="Calle, número, colonia, ciudad"
                   [autoGrow]="true"
+                  aria-labelledby="direccionLabel"
                   class="inline-input">
                 </ion-textarea>
               </div>
             </div>
 
             <div class="info-row">
-              <div class="info-icon-wrap icon-secondary">
+              <div class="info-icon-wrap icon-secondary" aria-hidden="true">
                 <ion-icon name="calendar-outline"></ion-icon>
               </div>
               <div class="info-text full-width">
-                <span class="info-label">Fecha de nacimiento</span>
+                <span class="info-label" id="fechaNacLabel">Fecha de nacimiento</span>
                 <span class="info-value" *ngIf="!editando">{{ getFechaNacimiento() }}</span>
-                <ion-datetime-button *ngIf="editando" datetime="fechaNacDatetime" class="inline-input"></ion-datetime-button>
+                <ion-datetime-button *ngIf="editando" datetime="fechaNacDatetime" aria-labelledby="fechaNacLabel" class="inline-input"></ion-datetime-button>
                 <ion-modal *ngIf="editando" [keepContentsMounted]="true" class="soft-modal">
                   <ng-template>
                     <ion-datetime
@@ -155,7 +164,7 @@
           <div class="info-card">
             <div class="card-header">
               <h2 class="card-title">Información académica</h2>
-              <ion-icon name="school-outline" class="card-header-icon"></ion-icon>
+              <ion-icon name="school-outline" class="card-header-icon" aria-hidden="true"></ion-icon>
             </div>
 
             <div class="academic-grid">
@@ -172,7 +181,7 @@
 
             <div class="estatus-bar">
               <div class="estatus-bar-left">
-                <ion-icon name="checkmark-circle-outline" [class.icon-ok]="esActivo()" [class.icon-off]="!esActivo()"></ion-icon>
+                <ion-icon name="checkmark-circle-outline" [class.icon-ok]="esActivo()" [class.icon-off]="!esActivo()" aria-hidden="true"></ion-icon>
                 <span>Estatus de cuenta: <strong>{{ esActivo() ? 'Activo' : 'Inactivo' }}</strong></span>
               </div>
             </div>
@@ -183,18 +192,19 @@
             *ngIf="editando"
             class="btn-guardar"
             [disabled]="guardando"
+            [attr.aria-busy]="guardando"
             (click)="guardarCambios()">
-            <ion-spinner *ngIf="guardando" name="crescent"></ion-spinner>
+            <ion-spinner *ngIf="guardando" name="crescent" aria-hidden="true"></ion-spinner>
             <ng-container *ngIf="!guardando">
-              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
               <span>Guardar cambios</span>
             </ng-container>
             <span *ngIf="guardando">Guardando...</span>
           </button>
 
-          <button class="btn-logout" (click)="confirmarCerrarSesion()" [disabled]="cerrandoSesion" *ngIf="!editando">
-            <ion-spinner *ngIf="cerrandoSesion" name="crescent"></ion-spinner>
-            <ion-icon *ngIf="!cerrandoSesion" name="log-out-outline"></ion-icon>
+          <button class="btn-logout" (click)="confirmarCerrarSesion()" [disabled]="cerrandoSesion" [attr.aria-busy]="cerrandoSesion" *ngIf="!editando">
+            <ion-spinner *ngIf="cerrandoSesion" name="crescent" aria-hidden="true"></ion-spinner>
+            <ion-icon *ngIf="!cerrandoSesion" name="log-out-outline" aria-hidden="true"></ion-icon>
             {{ cerrandoSesion ? 'Cerrando sesión...' : 'Cerrar sesión' }}
           </button>
         </div>
@@ -204,8 +214,8 @@
     </ng-container>
 
     <ng-template #sinSesion>
-      <div class="empty-state">
-        <div class="empty-icon-wrap">
+      <div class="empty-state" role="status">
+        <div class="empty-icon-wrap" aria-hidden="true">
           <ion-icon name="person-circle-outline"></ion-icon>
         </div>
         <h3 class="empty-title">No hay sesión activa</h3>
@@ -215,6 +225,6 @@
 
   </div>
 
-  <div class="bg-decor"></div>
+  <div class="bg-decor" aria-hidden="true"></div>
 
 </ion-content>

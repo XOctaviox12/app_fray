@@ -1,32 +1,48 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="asist-toolbar">
-  <ion-buttons slot="start">
-    <ion-menu-button *ngIf="vista === 'selector'">
-      <ion-icon name="menu-outline"></ion-icon>
-    </ion-menu-button>
-    <ion-button *ngIf="vista === 'tomar'" (click)="volver()">
-      <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
-    </ion-button>
-  </ion-buttons>
-  <ion-title class="asist-header-title" *ngIf="vista === 'selector'">
-    Tomar Asistencia
-  </ion-title>
-  <ion-title class="asist-header-title asist-header-title-stacked" *ngIf="vista === 'tomar'">
-    <span class="title-line-1">{{ materiaNombre }}</span>
-    <span class="title-line-2">{{ grupoEtiqueta }}</span>
-  </ion-title>
-</ion-toolbar>
-  <div class="header-accent-bar"></div>
+    <ion-buttons slot="start">
+      <ion-menu-button
+        *ngIf="vista === 'selector'"
+        aria-label="Abrir menú"
+        class="asist-menu-btn">
+        <ion-icon name="menu-outline"></ion-icon>
+      </ion-menu-button>
+      <ion-button
+        *ngIf="vista === 'tomar'"
+        (click)="volver()"
+        aria-label="Volver a selector de grupo"
+        class="asist-back-btn">
+        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <!-- Titulo: Vista Selector -->
+    <ion-title class="asist-header-title" *ngIf="vista === 'selector'">
+      Tomar Asistencia
+    </ion-title>
+
+    <!-- Titulo: Vista Tomar (2 lineas) -->
+    <ion-title class="asist-header-title-stacked" *ngIf="vista === 'tomar'">
+      <span class="title-line-1">{{ materiaNombre }}</span>
+      <span class="title-line-2">{{ grupoEtiqueta }}</span>
+    </ion-title>
+  </ion-toolbar>
+
+  <div class="header-accent-bar" aria-hidden="true"></div>
 
   <!-- Segmento (solo dentro de un grupo) -->
-  <div class="segment-wrap" *ngIf="vista === 'tomar'">
-    <ion-segment [(ngModel)]="segmento" (ionChange)="onSegmentoChange()" class="asist-segment">
-      <ion-segment-button value="lista">
-        <ion-icon name="people-outline"></ion-icon>
+  <div class="segment-wrap" *ngIf="vista === 'tomar'" role="tablist">
+    <ion-segment
+      [(ngModel)]="segmento"
+      (ionChange)="onSegmentoChange()"
+      class="asist-segment"
+      aria-label="Cambiar entre vista de lista e historial">
+      <ion-segment-button value="lista" role="tab" aria-selected="segmento === 'lista'">
+        <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
         <ion-label>Tomar lista</ion-label>
       </ion-segment-button>
-      <ion-segment-button value="historial">
-        <ion-icon name="calendar-outline"></ion-icon>
+      <ion-segment-button value="historial" role="tab" aria-selected="segmento === 'historial'">
+        <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
         <ion-label>Historial</ion-label>
       </ion-segment-button>
     </ion-segment>
@@ -40,7 +56,9 @@
       pullingIcon="chevron-down-circle-outline"
       pullingText="Desliza para actualizar"
       refreshingSpinner="crescent"
-      refreshingText="Actualizando...">
+      refreshingText="Actualizando..."
+      aria-live="polite"
+      aria-atomic="true">
     </ion-refresher-content>
   </ion-refresher>
 
@@ -49,59 +67,88 @@
   <!-- ══════════════════════════════════════ -->
   <ng-container *ngIf="vista === 'selector'">
 
-    <div class="loading-overlay" *ngIf="cargandoGrupos">
-      <ion-spinner name="crescent"></ion-spinner>
+    <!-- Loading -->
+    <div class="loading-overlay" *ngIf="cargandoGrupos" role="status" aria-live="polite" aria-atomic="true">
+      <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
       <p>Cargando tus grupos...</p>
     </div>
 
-    <div class="error-state" *ngIf="errorGrupos && !cargandoGrupos">
-      <ion-icon name="cloud-offline-outline"></ion-icon>
+    <!-- Error State -->
+    <div class="error-state" *ngIf="errorGrupos && !cargandoGrupos" role="alert">
+      <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
       <p>{{ errorGrupos }}</p>
-      <button type="button" class="retry-btn" (click)="cargarGrupos()">
-        <ion-icon name="refresh-outline"></ion-icon> Reintentar
+      <button type="button" class="retry-btn" (click)="cargarGrupos()" aria-label="Reintentar carga de grupos">
+        <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon> Reintentar
       </button>
     </div>
 
+    <!-- Selector Content -->
     <ng-container *ngIf="!cargandoGrupos && !errorGrupos">
 
+      <!-- Intro + Fecha -->
       <div class="selector-intro">
         <p class="selector-hint">Elige la materia y el grupo al que le vas a pasar lista</p>
-        <button type="button" class="fecha-pill fecha-pill-selector" (click)="mostrarSelectorFecha = true">
-          <ion-icon name="calendar-outline"></ion-icon>
+        <button
+          type="button"
+          class="fecha-pill fecha-pill-selector"
+          (click)="mostrarSelectorFecha = true"
+          [attr.aria-label]="'Seleccionar fecha. Fecha actual: ' + fechaSeleccionadaDisplay">
+          <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
           {{ esHoy ? 'Hoy · ' : '' }}{{ fechaSeleccionadaDisplay }}
-          <ion-icon name="chevron-down-outline" class="fecha-pill-chevron"></ion-icon>
+          <ion-icon name="chevron-down-outline" class="fecha-pill-chevron" aria-hidden="true"></ion-icon>
         </button>
-        <button type="button" class="link-hoy" *ngIf="!esHoy" (click)="irAHoy()">Volver a hoy</button>
+        <button
+          type="button"
+          class="link-hoy"
+          *ngIf="!esHoy"
+          (click)="irAHoy()"
+          aria-label="Volver a la fecha de hoy">
+          Volver a hoy
+        </button>
       </div>
 
-      <div class="empty-state" *ngIf="materias.length === 0">
-        <ion-icon name="school-outline"></ion-icon>
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="materias.length === 0" role="status">
+        <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
         <h3>No tienes materias o grupos asignados</h3>
         <p>Verifica tu asignación de materias y grupos en el panel web.</p>
       </div>
 
-      <div class="materia-section" *ngFor="let materia of materias">
-        <p class="materia-section-title">{{ materia.nombre }}</p>
+      <!-- Materias + Grupos -->
+      <div class="materias-container">
+        <div class="materia-section" *ngFor="let materia of materias">
+          <p class="materia-section-title">{{ materia.nombre }}</p>
 
-        <div class="grupo-selector-list">
-          <button type="button" class="grupo-card" *ngFor="let g of materia.grupos" (click)="seleccionarGrupo(materia, g)">
-            <div class="grupo-card-icon" [ngClass]="{ tomada: g.tomada }">
-              <ion-icon name="school-outline"></ion-icon>
-            </div>
-            <div class="grupo-card-info">
-              <span class="grupo-card-nombre">{{ g.grado }}° {{ g.nombre }}</span>
-              <span class="grupo-card-meta">
-                {{ g.totalAlumnos }} alumno{{ g.totalAlumnos === 1 ? '' : 's' }}
-                <span class="grupo-card-meta-dot" *ngIf="g.aula">·</span>
-                <span *ngIf="g.aula">{{ formatAula(g.aula) }}</span>
-              </span>
-            </div>
-            <div class="grupo-card-estado" [ngClass]="{ tomada: g.tomada }">
-              <ion-icon [name]="g.tomada ? 'checkmark-circle' : 'time-outline'"></ion-icon>
-              {{ g.tomada ? 'Tomada' : 'Pendiente' }}
-            </div>
-            <ion-icon name="chevron-forward-outline" class="grupo-card-arrow"></ion-icon>
-          </button>
+          <div class="grupo-selector-list">
+            <button
+              type="button"
+              class="grupo-card"
+              [class.tomada]="g.tomada"
+              *ngFor="let g of materia.grupos"
+              (click)="seleccionarGrupo(materia, g)"
+              [attr.aria-label]="'Seleccionar grupo ' + g.grado + '° ' + g.nombre + ' con ' + g.totalAlumnos + ' alumno' + (g.totalAlumnos === 1 ? '' : 's')">
+
+              <div class="grupo-card-icon" [ngClass]="{ tomada: g.tomada }">
+                <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
+              </div>
+
+              <div class="grupo-card-info">
+                <span class="grupo-card-nombre">{{ g.grado }}° {{ g.nombre }}</span>
+                <span class="grupo-card-meta">
+                  {{ g.totalAlumnos }} alumno{{ g.totalAlumnos === 1 ? '' : 's' }}
+                  <span class="grupo-card-meta-dot" *ngIf="g.aula" aria-hidden="true">·</span>
+                  <span *ngIf="g.aula">{{ formatAula(g.aula) }}</span>
+                </span>
+              </div>
+
+              <div class="grupo-card-estado" [ngClass]="{ tomada: g.tomada }">
+                <ion-icon [name]="g.tomada ? 'checkmark-circle' : 'time-outline'" aria-hidden="true"></ion-icon>
+                {{ g.tomada ? 'Tomada' : 'Pendiente' }}
+              </div>
+
+              <ion-icon name="chevron-forward-outline" class="grupo-card-arrow" aria-hidden="true"></ion-icon>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -114,87 +161,95 @@
   <ng-container *ngIf="vista === 'tomar' && segmento === 'lista'">
 
     <!-- Loading -->
-    <div class="loading-overlay" *ngIf="cargando">
-      <ion-spinner name="crescent"></ion-spinner>
+    <div class="loading-overlay" *ngIf="cargando" role="status" aria-live="polite" aria-atomic="true">
+      <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
       <p>Cargando alumnos...</p>
     </div>
 
     <!-- Error -->
-    <div class="error-state" *ngIf="error && !cargando">
-      <ion-icon name="cloud-offline-outline"></ion-icon>
+    <div class="error-state" *ngIf="error && !cargando" role="alert">
+      <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
       <p>{{ error }}</p>
-      <button type="button" class="retry-btn" (click)="cargarAlumnos()">
-        <ion-icon name="refresh-outline"></ion-icon> Reintentar
+      <button type="button" class="retry-btn" (click)="cargarAlumnos()" aria-label="Reintentar carga de alumnos">
+        <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon> Reintentar
       </button>
     </div>
 
     <ng-container *ngIf="!cargando && !error">
 
-      <!-- Banner: fecha distinta a hoy -->
-      <div class="banner-fecha-distinta" *ngIf="!esHoy">
-        <ion-icon name="time-outline"></ion-icon>
+      <!-- Banner: Fecha distinta -->
+      <div class="banner-fecha-distinta" *ngIf="!esHoy" role="alert">
+        <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
         <span>Estás viendo/editando la lista del <strong>{{ fechaSeleccionadaDisplay }}</strong>, no la de hoy.</span>
       </div>
 
-      <!-- Banner: lista ya guardada en esta fecha -->
-      <div class="banner-guardada" *ngIf="yaGuardada && !hayCambiosSinGuardar">
-        <ion-icon name="checkmark-circle-outline"></ion-icon>
+      <!-- Banner: Lista guardada -->
+      <div class="banner-guardada" *ngIf="yaGuardada && !hayCambiosSinGuardar" role="status">
+        <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
         <span>Lista de este día ya registrada. Puedes editarla y volver a guardar.</span>
       </div>
 
-      <!-- Banner: cambios sin guardar -->
-      <div class="banner-sin-guardar" *ngIf="hayCambiosSinGuardar">
-        <ion-icon name="alert-circle-outline"></ion-icon>
+      <!-- Banner: Cambios sin guardar -->
+      <div class="banner-sin-guardar" *ngIf="hayCambiosSinGuardar" role="alert">
+        <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
         <span>Tienes cambios sin guardar.</span>
       </div>
 
-      <!-- Fecha + contadores -->
+      <!-- Header Info (Fecha + Contadores) -->
       <div class="asist-header-info">
         <div class="header-info-row">
-          <button type="button" class="fecha-pill" (click)="mostrarSelectorFecha = true">
-            <ion-icon name="calendar-outline"></ion-icon>
+          <button
+            type="button"
+            class="fecha-pill"
+            (click)="mostrarSelectorFecha = true"
+            [attr.aria-label]="'Seleccionar fecha. Fecha actual: ' + fechaSeleccionadaDisplay">
+            <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
             {{ esHoy ? 'Hoy · ' : '' }}{{ fechaSeleccionadaDisplay }}
-            <ion-icon name="chevron-down-outline" class="fecha-pill-chevron"></ion-icon>
+            <ion-icon name="chevron-down-outline" class="fecha-pill-chevron" aria-hidden="true"></ion-icon>
           </button>
-          <div class="grupo-meta-pill">
-            <ion-icon name="school-outline"></ion-icon>
+          <div class="grupo-meta-pill" [attr.aria-label]="'Grupo ' + grupoEtiqueta">
+            <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
             {{ grupoEtiqueta }}
           </div>
         </div>
+
+        <!-- Contadores -->
         <div class="contadores">
-          <div class="contador verde">
-            <span class="cnt-num">{{ totalPresentes }}</span>
+          <div class="contador verde" role="status">
+            <span class="cnt-num" aria-label="Presentes">{{ totalPresentes }}</span>
             <span class="cnt-lbl">P</span>
           </div>
-          <div class="contador naranja">
-            <span class="cnt-num">{{ totalRetardos }}</span>
+          <div class="contador naranja" role="status">
+            <span class="cnt-num" aria-label="Retardos">{{ totalRetardos }}</span>
             <span class="cnt-lbl">R</span>
           </div>
-          <div class="contador rojo">
-            <span class="cnt-num">{{ totalAusentes }}</span>
+          <div class="contador rojo" role="status">
+            <span class="cnt-num" aria-label="Ausentes">{{ totalAusentes }}</span>
             <span class="cnt-lbl">A</span>
           </div>
-          <div class="contador pct">
-            <span class="cnt-num">{{ porcentaje }}%</span>
+          <div class="contador pct" role="status">
+            <span class="cnt-num" aria-label="Porcentaje de asistencia">{{ porcentaje }}%</span>
             <span class="cnt-lbl">asist.</span>
           </div>
         </div>
       </div>
 
-      <!-- Aviso: alumnos sin revisar -->
-      <div class="banner-sin-revisar" *ngIf="totalSinRevisar > 0 && !filtroAlumno">
-        <ion-icon name="eye-outline"></ion-icon>
+      <!-- Banner: Sin revisar -->
+      <div class="banner-sin-revisar" *ngIf="totalSinRevisar > 0 && !filtroAlumno" role="alert">
+        <ion-icon name="eye-outline" aria-hidden="true"></ion-icon>
         <span>{{ totalSinRevisar }} alumno{{ totalSinRevisar === 1 ? '' : 's' }} sin revisar aún.</span>
       </div>
 
-      <!-- Buscador de alumno -->
+      <!-- Buscador -->
       <div class="buscador-wrap" *ngIf="alumnos.length > 5">
-        <ion-icon name="search-outline" class="buscador-icon"></ion-icon>
+        <ion-icon name="search-outline" class="buscador-icon" aria-hidden="true"></ion-icon>
         <input
           type="text"
           class="buscador-input"
           placeholder="Buscar alumno por nombre..."
           [(ngModel)]="filtroAlumno"
+          aria-label="Filtro para buscar alumnos por nombre"
+          autocomplete="off"
         />
         <button
           type="button"
@@ -202,68 +257,91 @@
           *ngIf="filtroAlumno"
           (click)="filtroAlumno = ''"
           aria-label="Limpiar búsqueda">
-          <ion-icon name="close-circle"></ion-icon>
+          <ion-icon name="close-circle" aria-hidden="true"></ion-icon>
         </button>
       </div>
 
-      <!-- Acciones rápidas globales (ocultas mientras hay un filtro activo,
-           para no marcar por error solo a un subconjunto pensando que es
-           el grupo completo) -->
-      <div class="acciones-rapidas" *ngIf="!filtroAlumno">
-        <button type="button" class="accion-btn verde" (click)="confirmarMarcarTodos('P')">
-          <ion-icon name="checkmark-circle-outline"></ion-icon> Todos presentes
+      <!-- Acciones Rápidas -->
+      <div class="acciones-rapidas" *ngIf="!filtroAlumno" role="group" aria-label="Acciones rápidas para marcar todos">
+        <button type="button" class="accion-btn verde" (click)="confirmarMarcarTodos('P')" aria-label="Marcar todos como presentes">
+          <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon> Todos presentes
         </button>
-        <button type="button" class="accion-btn naranja" (click)="confirmarMarcarTodos('R')">
-          <ion-icon name="time-outline"></ion-icon> Todos con retardo
+        <button type="button" class="accion-btn naranja" (click)="confirmarMarcarTodos('R')" aria-label="Marcar todos con retardo">
+          <ion-icon name="time-outline" aria-hidden="true"></ion-icon> Todos con retardo
         </button>
-        <button type="button" class="accion-btn rojo" (click)="confirmarMarcarTodos('A')">
-          <ion-icon name="close-circle-outline"></ion-icon> Todos ausentes
+        <button type="button" class="accion-btn rojo" (click)="confirmarMarcarTodos('A')" aria-label="Marcar todos como ausentes">
+          <ion-icon name="close-circle-outline" aria-hidden="true"></ion-icon> Todos ausentes
         </button>
       </div>
       <p class="filtro-activo-hint" *ngIf="filtroAlumno">
         Acciones masivas ocultas mientras hay una búsqueda activa.
       </p>
 
-      <!-- Sin alumnos -->
-      <div class="empty-state" *ngIf="alumnos.length === 0">
-        <ion-icon name="people-outline"></ion-icon>
+      <!-- Empty: Sin alumnos -->
+      <div class="empty-state" *ngIf="alumnos.length === 0" role="status">
+        <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
         <h3>Sin alumnos en este grupo</h3>
         <p>Verifica la asignación de alumnos en el panel web.</p>
       </div>
 
-      <!-- Sin resultados de búsqueda -->
-      <div class="empty-state" *ngIf="alumnos.length > 0 && filtroAlumno && alumnosFiltrados.length === 0">
-        <ion-icon name="search-outline"></ion-icon>
+      <!-- Empty: Sin resultados búsqueda -->
+      <div class="empty-state" *ngIf="alumnos.length > 0 && filtroAlumno && alumnosFiltrados.length === 0" role="status">
+        <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
         <h3>Sin resultados</h3>
         <p>No se encontró ningún alumno con ese nombre.</p>
       </div>
 
-      <!-- Lista de alumnos -->
-      <div class="alumnos-list" *ngIf="alumnosFiltrados.length > 0">
-        <div class="alumno-card" *ngFor="let alumno of alumnosFiltrados"
-             [ngClass]="alumno.estado">
+      <!-- Lista de Alumnos -->
+      <div class="alumnos-list" *ngIf="alumnosFiltrados.length > 0" role="list">
+        <div
+          class="alumno-card"
+          [ngClass]="alumno.estado"
+          *ngFor="let alumno of alumnosFiltrados"
+          role="listitem"
+          [attr.aria-label]="'Alumno ' + alumno.nombre + ' ' + alumno.apellido + ', estado actual: ' + (alumno.estado === 'P' ? 'Presente' : alumno.estado === 'R' ? 'Retardo' : 'Ausente')">
 
-          <!-- Avatar + nombre -->
+          <!-- Avatar + Info -->
           <div class="alumno-info">
             <div class="alumno-avatar" [ngClass]="alumno.estado">
-              <img *ngIf="alumno.foto" [src]="alumno.foto" [alt]="alumno.nombre">
+              <img *ngIf="alumno.foto" [src]="alumno.foto" [alt]="'Foto de ' + alumno.nombre">
               <span *ngIf="!alumno.foto" class="avatar-initials">{{ iniciales(alumno) }}</span>
-              <span class="sin-revisar-dot" *ngIf="!alumno.revisado"></span>
+              <span class="sin-revisar-dot" *ngIf="!alumno.revisado" aria-label="Sin revisar"></span>
             </div>
             <div class="alumno-text">
-              <span class="alumno-num">#{{ alumno.numero }}</span>
+              <span class="alumno-num" aria-hidden="true">#{{ alumno.numero }}</span>
               <span class="alumno-nombre">{{ alumno.apellido }}, {{ alumno.nombre }}</span>
             </div>
           </div>
 
           <!-- Botones P / R / A -->
-          <div class="estado-btns">
-            <button type="button" class="estado-btn P" [class.activo]="alumno.estado === 'P'"
-                    aria-label="Presente" (click)="setEstado(alumno, 'P')">P</button>
-            <button type="button" class="estado-btn R" [class.activo]="alumno.estado === 'R'"
-                    aria-label="Retardo" (click)="setEstado(alumno, 'R')">R</button>
-            <button type="button" class="estado-btn A" [class.activo]="alumno.estado === 'A'"
-                    aria-label="Ausente" (click)="setEstado(alumno, 'A')">A</button>
+          <div class="estado-btns" role="group" [attr.aria-label]="'Marcar estado para ' + alumno.nombre + ' ' + alumno.apellido">
+            <button
+              type="button"
+              class="estado-btn P"
+              [class.activo]="alumno.estado === 'P'"
+              (click)="setEstado(alumno, 'P')"
+              aria-label="Marcar como presente"
+              [attr.aria-pressed]="alumno.estado === 'P'">
+              P
+            </button>
+            <button
+              type="button"
+              class="estado-btn R"
+              [class.activo]="alumno.estado === 'R'"
+              (click)="setEstado(alumno, 'R')"
+              aria-label="Marcar con retardo"
+              [attr.aria-pressed]="alumno.estado === 'R'">
+              R
+            </button>
+            <button
+              type="button"
+              class="estado-btn A"
+              [class.activo]="alumno.estado === 'A'"
+              (click)="setEstado(alumno, 'A')"
+              aria-label="Marcar como ausente"
+              [attr.aria-pressed]="alumno.estado === 'A'">
+              A
+            </button>
           </div>
 
         </div>
@@ -271,9 +349,14 @@
 
       <!-- FAB Guardar -->
       <div class="fab-guardar-wrap" *ngIf="alumnos.length > 0">
-        <button type="button" class="fab-guardar" (click)="guardarLista()" [disabled]="guardando">
-          <ion-spinner *ngIf="guardando" name="crescent"></ion-spinner>
-          <ion-icon *ngIf="!guardando" name="checkmark-done-outline"></ion-icon>
+        <button
+          type="button"
+          class="fab-guardar"
+          (click)="guardarLista()"
+          [disabled]="guardando"
+          [attr.aria-label]="guardando ? 'Guardando lista...' : 'Guardar lista'">
+          <ion-spinner *ngIf="guardando" name="crescent" aria-hidden="true"></ion-spinner>
+          <ion-icon *ngIf="!guardando" name="checkmark-done-outline" aria-hidden="true"></ion-icon>
           {{ guardando ? 'Guardando...' : 'Guardar lista' }}
         </button>
       </div>
@@ -286,41 +369,49 @@
   <!-- ══════════════════════════════════════ -->
   <ng-container *ngIf="vista === 'tomar' && segmento === 'historial'">
 
-    <div class="loading-overlay" *ngIf="cargandoHistorial">
-      <ion-spinner name="crescent"></ion-spinner>
+    <!-- Loading -->
+    <div class="loading-overlay" *ngIf="cargandoHistorial" role="status" aria-live="polite" aria-atomic="true">
+      <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
       <p>Cargando historial...</p>
     </div>
 
-    <div class="empty-state" *ngIf="!cargandoHistorial && historial.length === 0">
-      <ion-icon name="calendar-outline"></ion-icon>
+    <!-- Empty -->
+    <div class="empty-state" *ngIf="!cargandoHistorial && historial.length === 0" role="status">
+      <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
       <h3>Sin registros</h3>
       <p>Aún no hay listas guardadas para este grupo.</p>
     </div>
 
-    <!-- Historial separado por parcial: cada bloque trae su encabezado
-         "Parcial N" y, debajo, sus fechas ordenadas de más reciente a
-         más antigua. Los bloques de parcial también van del más
-         reciente al más antiguo. -->
-    <div class="historial-list" *ngIf="!cargandoHistorial && historial.length > 0">
+    <!-- Historial -->
+    <div class="historial-list" *ngIf="!cargandoHistorial && historial.length > 0" role="list">
       <ng-container *ngFor="let grupo of historialPorParcial">
         <p class="historial-parcial-header">Parcial {{ grupo.parcial }}</p>
 
-        <button type="button" class="historial-card" *ngFor="let item of grupo.items" (click)="abrirDiaHistorial(item.fecha)">
+        <button
+          type="button"
+          class="historial-card"
+          *ngFor="let item of grupo.items"
+          (click)="abrirDiaHistorial(item.fecha)"
+          role="listitem"
+          [attr.aria-label]="'Asistencia del ' + formatFecha(item.fecha) + ': ' + item.presentes + ' presentes, ' + item.retardos + ' retardos, ' + item.ausentes + ' ausentes, ' + porcentajeHistorial(item) + '% asistencia'">
 
           <div class="hist-fecha-col">
-            <span class="hist-dia">{{ item.fecha.split('-')[2] }}</span>
-            <span class="hist-mes">{{ formatFecha(item.fecha).split(' ')[1] }}</span>
+            <span class="hist-dia" aria-hidden="true">{{ item.fecha.split('-')[2] }}</span>
+            <span class="hist-mes" aria-hidden="true">{{ formatFecha(item.fecha).split(' ')[1] }}</span>
           </div>
 
           <div class="hist-info">
             <div class="hist-bar-wrap">
-              <div class="hist-bar">
+              <div class="hist-bar" role="img" [attr.aria-label]="'Distribución: ' + ((item.presentes / item.total) * 100 | number: '1.0-0') + '% presentes, ' + ((item.retardos / item.total) * 100 | number: '1.0-0') + '% retardos, ' + ((item.ausentes / item.total) * 100 | number: '1.0-0') + '% ausentes'">
                 <div class="hist-bar-seg verde"
-                     [style.width.%]="(item.presentes / item.total) * 100"></div>
+                     [style.width.%]="(item.presentes / item.total) * 100"
+                     aria-hidden="true"></div>
                 <div class="hist-bar-seg naranja"
-                     [style.width.%]="(item.retardos  / item.total) * 100"></div>
+                     [style.width.%]="(item.retardos  / item.total) * 100"
+                     aria-hidden="true"></div>
                 <div class="hist-bar-seg rojo"
-                     [style.width.%]="(item.ausentes  / item.total) * 100"></div>
+                     [style.width.%]="(item.ausentes  / item.total) * 100"
+                     aria-hidden="true"></div>
               </div>
             </div>
             <div class="hist-nums">
@@ -335,9 +426,9 @@
             verde:   porcentajeHistorial(item) >= 85,
             naranja: porcentajeHistorial(item) >= 70 && porcentajeHistorial(item) < 85,
             rojo:    porcentajeHistorial(item) < 70
-          }">{{ porcentajeHistorial(item) }}%</div>
+          }" aria-hidden="true">{{ porcentajeHistorial(item) }}%</div>
 
-          <ion-icon name="chevron-forward-outline" class="hist-card-arrow"></ion-icon>
+          <ion-icon name="chevron-forward-outline" class="hist-card-arrow" aria-hidden="true"></ion-icon>
 
         </button>
       </ng-container>
@@ -348,13 +439,13 @@
 </ion-content>
 
 <!-- ══════════════════════════════════════ -->
-<!--     SELECTOR DE FECHA (compartido)   -->
+<!--     MODAL: SELECTOR DE FECHA        -->
 <!-- ══════════════════════════════════════ -->
 <ion-modal
   [isOpen]="mostrarSelectorFecha"
   (didDismiss)="mostrarSelectorFecha = false"
   class="fecha-modal"
->
+  aria-label="Selector de fecha">
   <ng-template>
     <div class="fecha-modal-inner">
       <p class="fecha-modal-title">Selecciona la fecha</p>
@@ -366,8 +457,15 @@
         [value]="fechaSeleccionadaISO"
         (ionChange)="onFechaChange($event.detail.value)"
         class="fecha-datetime"
-      ></ion-datetime>
-      <button type="button" class="fecha-modal-close" (click)="mostrarSelectorFecha = false">Cerrar</button>
+        aria-label="Selector de fecha para asistencia">
+      </ion-datetime>
+      <button
+        type="button"
+        class="fecha-modal-close"
+        (click)="mostrarSelectorFecha = false"
+        aria-label="Cerrar selector de fecha">
+        Cerrar
+      </button>
     </div>
   </ng-template>
 </ion-modal>

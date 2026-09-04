@@ -1,84 +1,143 @@
 // ============================================
 // APP.COMPONENT.SCSS — Menú lateral
-// Rediseño: acorde al mockup Fray Hub / Navigation Drawer (soft UI claro)
-// + Ajustes responsivos iPad + patrones iOS (GUIA_DISENO_RESPONSIVO / PATRONES_IONIC_IOS_AVANZADO)
+// Rediseño alineado a GUÍA_COMPLETA_DISEÑO_RESPONSIVO
+// Mismas variables y reglas que clase.page.scss
 // ============================================
 
-ion-menu {
-  --navy:              #F8F9FB;  // fondo principal del menú
-  --navy-2:            #FFFFFF;  // fondo toolbar / tarjetas
-  --cool-grey:         #EDF0F5;  // fondo del botón "Ver Perfil"
-  --surface-container-low:  #F3F4F5;
-  --surface-container-high: #E7E8E9;
-  --on-surface:         #1A1C1E;  // texto principal
-  --on-surface-variant: #574235;  // texto secundario
-  --outline-variant:    #E5E7EB;  // bordes sutiles
-  --primary:            #F57C00;
-  --primary-container:  #F57C00;
-  --success:            #2E7D32;
-  --error:               #BA1A1A;
-  --live-purple:          #8B5CF6;
+// ── Design tokens (exactos de la guía) ──
+:host {
+  // Colores primarios
+  --fh-primary: #964900;
+  --fh-primary-container: #F57C00;
+  --fh-primary-dark: #723600;
+  --fh-secondary: #4A59A1;
+  --fh-secondary-container: #304086;
+  --fh-tertiary: #526069;       // Gris
+  --fh-error: #BA1A1A;
+  --fh-error-container: #FFDAD6;
+  --fh-success: #2E7D32;
+  --fh-white: #FFFFFF;
 
+  // Fondos (light)
+  --fh-bg: #F8F9FA;                // bg
+  --fh-bg-2: #F3F4F5;              // surface-low
+  --fh-bg-3: #EDF0F5;              // cool-grey
+  --fh-bg-4: #E5E7EB;              // card-border
+  --fh-bg-5: #D2D6DC;              // surface-variant
+
+  // Textos (light)
+  --fh-text: #1A1C1E;              // text-main
+  --fh-text-2: #574235;            // text-sec
+  --fh-border: #E5E7EB;            // card-border
+  --fh-outline: #8B7263;
+
+  // Colores funcionales
+  --fh-live: #8B5CF6;              // morado para LIVE
+  --fh-live-soft: rgba(139, 92, 246, 0.12);
+  --fh-asistencia: #F57C00;        // naranja para tomar lista
+  --fh-asistencia-soft: rgba(245, 124, 0, 0.08);
+
+  // Border radius (Sección 4)
+  --fh-radius-card: 22px;
+  --fh-radius-btn: 12px;
+  --fh-radius-input: 12px;
+  --fh-radius-badge: 999px;
+
+  // Sombras soft (Sección 5)
+  --fh-shadow-soft: 0 20px 50px rgba(0,0,0,0.06), 0 4px 10px rgba(0,0,0,0.02);
+  --fh-shadow-lift: 0 24px 60px rgba(0,0,0,0.08), 0 6px 14px rgba(0,0,0,0.03);
+
+  // Escala de espaciado (Sección 3)
+  --fh-sp-1: 4px;
+  --fh-sp-2: 8px;
+  --fh-sp-3: 12px;
+  --fh-sp-4: 16px;
+  --fh-sp-6: 24px;
+  --fh-sp-8: 32px;
+  --fh-sp-12: 48px;
+
+  // Tipografía (Sección 2)
+  font-family: -apple-system, 'SF Pro Display', 'Inter', sans-serif;
+
+  // ── DARK MODE (colores exactos de la guía) ──
+  @media (prefers-color-scheme: dark) {
+    --fh-bg: #0A0E1A;             // Fondo Oscuro
+    --fh-bg-2: #13171F;           // Superficie Oscura
+    --fh-bg-3: #1A1F2E;           // Card Oscuro
+    --fh-bg-4: #242B3D;
+    --fh-bg-5: #2D3547;
+
+    --fh-white: #1A1F2E;
+    --fh-text: #E8EAED;           // Texto Claro
+    --fh-text-2: #B0B0B0;         // Texto Muted
+    --fh-border: rgba(255,255,255,0.08);
+    --fh-outline: #9C8874;
+
+    --fh-shadow-soft: 0 20px 50px rgba(0,0,0,0.45), 0 4px 10px rgba(0,0,0,0.2);
+    --fh-shadow-lift: 0 24px 60px rgba(0,0,0,0.55), 0 6px 14px rgba(0,0,0,0.25);
+  }
+}
+
+// ── ANCHO DEL MENÚ (Sección 15) ──
+ion-menu {
   --width: 280px;  // estándar iOS (móvil)
 
-  // iPad Mini / 7-8" — antes solo existía el salto a 1024px
+  // iPad Mini / 7-8"
   @media (min-width: 768px) {
     --width: 320px;
   }
 
-  // iPad Pro 12.9" — aprovechar más espacio disponible
+  // iPad Pro 12.9"
   @media (min-width: 1366px) {
     --width: 350px;
   }
 }
 
-// --- Header del menú ---
-
+// ── HEADER ──
 ion-toolbar {
-  --background: var(--navy-2);
+  --background: var(--fh-white);
   --border-style: none;
   --min-height: 68px;
-  border-bottom: 1px solid var(--outline-variant);
-}
+  border-bottom: 1px solid var(--fh-border);
 
-// Notch / Dynamic Island: el menú puede quedar detrás del status bar en algunos
-// dispositivos con notch si no se respeta el safe area explícitamente.
-@supports (padding: max(0px)) {
-  ion-toolbar {
+  // Safe area (Sección 7 y 12)
+  @supports (padding: max(0px)) {
     padding-top: max(env(safe-area-inset-top), 0px);
     padding-left: max(env(safe-area-inset-left), 0px);
+    padding-right: max(env(safe-area-inset-right), 0px);
   }
-}
 
-ion-title {
-  display: flex;
-   padding-inline: 8px;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
-  font-weight: 700;
-  font-size: 19px;
-  color: var(--primary);
-  letter-spacing: -0.2px;
-
-  span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  @media (prefers-color-scheme: dark) {
+    --background: var(--fh-white); // 1A1F2E
   }
 }
 
 .brand-row {
   display: flex;
-  flex-direction: row;      // explícito, no dejarlo a la herencia
-  flex-wrap: nowrap;        // evita que el texto se vaya a otra línea
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 12px;
-  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+  gap: var(--fh-sp-3);
+  font-family: inherit;
   font-weight: 700;
   font-size: 19px;
-  color: var(--primary);
+  color: var(--fh-primary-container);
   letter-spacing: -0.2px;
+
+  .brand-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(245, 124, 0, 0.12);
+    color: var(--fh-primary-container);
+
+    ion-icon {
+      font-size: 22px;
+    }
+  }
 
   span {
     overflow: hidden;
@@ -87,42 +146,59 @@ ion-title {
   }
 }
 
+// ── CONTENIDO ──
 ion-content {
-  --background: var(--navy);
-  --padding-bottom: 24px; // margen extra reservado en el contenedor interno de scroll
-  // Momentum scroll en iOS + GPU layer para evitar jank en listas largas (iPad)
+  --background: var(--fh-bg);
+  --padding-bottom: var(--fh-sp-6);
+
+  // Momentum scroll en iOS + GPU layer
   -webkit-overflow-scrolling: touch;
   transform: translateZ(0);
   backface-visibility: hidden;
+
+  // Safe area en el contenido (Sección 7)
+  @supports (padding: max(0px)) {
+    padding-left: max(env(safe-area-inset-left), 0px);
+    padding-right: max(env(safe-area-inset-right), 0px);
+  }
 }
 
 ion-list {
   background: transparent;
-  padding: 12px 0;
-  contain: layout style paint; // perf en listas largas de docentes/materias
+  padding: var(--fh-sp-3) 0;
+  contain: layout style paint; // performance
 }
 
-// ============================================
-// TARJETA DE USUARIO (Soft UI card flotante)
-// ============================================
-
+// ── TARJETA DE USUARIO ──
 .user-card-container {
-  margin: 4px 14px 20px;
-  padding: 16px;
-  background: var(--navy-2);
-  border-radius: 20px;
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(15, 23, 42, 0.04);
+  margin: var(--fh-sp-1) var(--fh-sp-4) var(--fh-sp-6);
+  padding: var(--fh-sp-4);
+  background: var(--fh-white);
+  border-radius: var(--fh-radius-card);
+  box-shadow: var(--fh-shadow-soft);
+  border: 1px solid var(--fh-border);
   transition: transform 0.15s ease;
 
-  &:active { transform: scale(0.99); }
+  &:active {
+    transform: scale(0.99);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &:active { transform: none; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: var(--fh-white);
+    border-color: var(--fh-border);
+  }
 }
 
 .user-card {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: var(--fh-sp-3);
+  margin-bottom: var(--fh-sp-3);
 }
 
 .avatar-section {
@@ -135,7 +211,7 @@ ion-list {
   height: 52px;
   border-radius: 16px;
   object-fit: cover;
-  background: var(--surface-container-low);
+  background: var(--fh-bg-2);
   display: block;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
@@ -146,9 +222,9 @@ ion-list {
   right: -2px;
   width: 15px;
   height: 15px;
-  background: var(--success);
+  background: var(--fh-success);
   border-radius: 50%;
-  border: 2px solid var(--navy-2);
+  border: 2px solid var(--fh-white);
 }
 
 .info-section {
@@ -159,19 +235,19 @@ ion-list {
 
 .user-name {
   margin: 0;
-  font-family: var(--font-display, -apple-system, "SF Pro Display", "Inter", sans-serif);
+  font-family: inherit;
   font-size: 14px;
   font-weight: 700;
-  color: var(--on-surface);
+  color: var(--fh-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .user-email {
-  margin: 2px 0 0;
+  margin: var(--fh-sp-1) 0 0;
   font-size: 11px;
-  color: var(--on-surface-variant);
+  color: var(--fh-text-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -180,86 +256,104 @@ ion-list {
 .btn-profile {
   width: 100%;
   margin: 0;
-  --background: var(--cool-grey);
-  --background-hover: var(--surface-container-high);
-  --color: var(--primary);
-  --border-radius: 12px;
+  --background: var(--fh-bg-3);
+  --background-hover: var(--fh-bg-4);
+  --color: var(--fh-primary-container);
+  --border-radius: var(--fh-radius-btn);
   --box-shadow: none;
-  --padding-top: 10px;
-  --padding-bottom: 10px;
-  --min-height: 44px; // área táctil mínima Apple HIG
+  --padding-top: var(--fh-sp-3);
+  --padding-bottom: var(--fh-sp-3);
+  --min-height: 44px; // touch target mínimo (Sección 6)
   font-size: 12.5px;
   font-weight: 700;
   letter-spacing: 0.2px;
   text-transform: none;
   -webkit-tap-highlight-color: transparent;
+
+  @media (prefers-color-scheme: dark) {
+    --background: var(--fh-bg-3);
+    --color: var(--fh-primary-container);
+  }
 }
 
 .user-card-skeleton {
   display: flex;
   align-items: center;
-  margin: 4px 14px 20px;
-  padding: 16px;
-  background: var(--navy-2);
-  border-radius: 20px;
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08);
+  margin: var(--fh-sp-1) var(--fh-sp-4) var(--fh-sp-6);
+  padding: var(--fh-sp-4);
+  background: var(--fh-white);
+  border-radius: var(--fh-radius-card);
+  box-shadow: var(--fh-shadow-soft);
+  border: 1px solid var(--fh-border);
+
+  @media (prefers-color-scheme: dark) {
+    background: var(--fh-white);
+    border-color: var(--fh-border);
+  }
 }
 
-// ============================================
-// NAVEGACIÓN — íconos planos, sin contenedor
-// ============================================
-
+// ── SECCIONES DE NAVEGACIÓN ──
 .nav-section-label {
   font-size: 11px;
   font-weight: 700;
-  color: var(--on-surface-variant);
+  color: var(--fh-text-2);
   opacity: 0.6;
   letter-spacing: 1.4px;
   text-transform: uppercase;
-  padding: 16px 22px 8px;
+  padding: var(--fh-sp-4) var(--fh-sp-6) var(--fh-sp-2);
   margin: 0;
 }
 
+// ── ÍTEMS DEL MENÚ ──
 ion-item {
   --background: transparent;
-  --background-hover: var(--surface-container-high);   // se queda por si corre en web/desktop
-  --background-activated: rgba(245, 124, 0, 0.12);      // esto SÍ dispara al tocar en iOS/iPad
+  --background-hover: var(--fh-bg-4);
+  --background-activated: rgba(245, 124, 0, 0.12);
   --background-activated-opacity: 1;
-  --padding-start: 16px;
-  --inner-padding-end: 16px;
-  --min-height: 48px;  // ya cumple el mínimo de 44px de Apple HIG
+  --padding-start: var(--fh-sp-4);
+  --inner-padding-end: var(--fh-sp-4);
+  --min-height: 48px; // >=44 (Sección 6)
   --border-style: none;
-  margin: 2px 10px;
+  margin: var(--fh-sp-1) var(--fh-sp-3);
   border-radius: 13px;
   overflow: hidden;
   position: relative;
-  --color: var(--on-surface-variant);
+  --color: var(--fh-text-2);
   transition: background 0.18s ease;
-  -webkit-tap-highlight-color: transparent; // quita el flash gris nativo en iOS
+  -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
 
   ion-icon[slot="start"] {
     font-size: 20px;
-    color: var(--on-surface-variant);
-    margin-inline-end: 12px;
+    color: var(--fh-text-2);
+    margin-inline-end: var(--fh-sp-3);
     transition: color 0.18s ease;
   }
 
   &:hover ion-icon[slot="start"] {
-    color: var(--primary);
+    color: var(--fh-primary-container);
+  }
+
+  ion-label {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--fh-text-2);
+    margin: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    --background-hover: var(--fh-bg-4);
+    --background-activated: rgba(245, 124, 0, 0.2);
+    --color: var(--fh-text-2);
   }
 }
 
-ion-item ion-label {
-  font-size: 13.5px;
-  font-weight: 500;
-  color: var(--on-surface-variant);
-  margin: 0;
-}
-
-// --- Estado activo ---
-
+// ── ITEM ACTIVO ──
 ion-item.active-item {
   --background: rgba(245, 124, 0, 0.1);
 
@@ -270,126 +364,145 @@ ion-item.active-item {
     top: 20%;
     height: 60%;
     width: 4px;
-    background: var(--primary);
-    border-radius: 0 4px 4px 0;
+    background: var(--fh-primary-container);
+    border-radius: 0 var(--fh-radius-btn) var(--fh-radius-btn) 0;
   }
 
-  ion-icon[slot="start"] { color: var(--primary); }
+  ion-icon[slot="start"] {
+    color: var(--fh-primary-container);
+  }
 
   ion-label {
-    color: var(--primary);
+    color: var(--fh-primary-container);
     font-weight: 700;
   }
-}
 
-// --- Cerrar sesión ---
-
-ion-item.logout-item {
-  --background: rgba(186, 26, 26, 0.06);
-  --background-hover: rgba(186, 26, 26, 0.12);
-  margin-top: 4px;
-  border: 1px solid rgba(186, 26, 26, 0.14);
-
-  ion-icon[slot="start"] { color: var(--error); }
-
-  ion-label {
-    color: var(--error);
-    font-weight: 600;
+  @media (prefers-color-scheme: dark) {
+    --background: rgba(245, 124, 0, 0.18);
   }
 }
 
-// ============================================
-// ÍTEMS DESTACADOS
-// ============================================
-
-// --- Tomar Lista (docente) ---
-
+// ── ITEM DE ASISTENCIA (docente) ──
 ion-item.asistencia-item {
-  --background: rgba(245, 124, 0, 0.08);
+  --background: var(--fh-asistencia-soft);
   --min-height: 54px;
   border: 1px solid rgba(245, 124, 0, 0.18);
 
-  ion-icon[slot="start"] { color: var(--primary); }
+  ion-icon[slot="start"] {
+    color: var(--fh-primary-container);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    --background: rgba(245, 124, 0, 0.12);
+    border-color: rgba(245, 124, 0, 0.25);
+  }
 }
 
-// --- Clase en Vivo (alumno + docente) ---
-
+// ── ITEM DE CLASE EN VIVO ──
 ion-item.clase-item {
-  --background: rgba(139, 92, 246, 0.07);
+  --background: var(--fh-live-soft);
   --min-height: 54px;
   border: 1px solid rgba(139, 92, 246, 0.18);
 
-  ion-icon[slot="start"] { color: var(--live-purple); }
+  ion-icon[slot="start"] {
+    color: var(--fh-live);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    --background: rgba(139, 92, 246, 0.12);
+    border-color: rgba(139, 92, 246, 0.25);
+  }
 }
 
-// --- Sublabel ---
-
+// ── SUBLABEL ──
 .nav-sublabel {
-  margin: 1px 0 0;
+  margin: var(--fh-sp-1) 0 0;
   font-size: 10px;
   font-weight: 400;
-  color: var(--on-surface-variant);
+  color: var(--fh-text-2);
   opacity: 0.75;
 }
 
-// --- Badges ---
-
+// ── BADGES ──
 .nav-badge-hoy {
-  background: var(--primary);
-  color: #FFFFFF;
+  background: var(--fh-primary-container);
+  color: var(--fh-white);
   font-size: 8.5px;
   font-weight: 800;
   letter-spacing: 0.5px;
-  padding: 3px 8px;
-  border-radius: 20px;
+  padding: 3px var(--fh-sp-2);
+  border-radius: var(--fh-radius-badge);
   flex-shrink: 0;
 }
 
 .nav-badge-live {
-  background: var(--live-purple);
-  color: #FFFFFF;
+  background: var(--fh-live);
+  color: var(--fh-white);
   font-size: 8.5px;
   font-weight: 800;
   letter-spacing: 1px;
-  padding: 3px 8px;
-  border-radius: 20px;
+  padding: 3px var(--fh-sp-2);
+  border-radius: var(--fh-radius-badge);
   flex-shrink: 0;
   animation: pulse-live 2s infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 }
 
 @keyframes pulse-live {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.6; }
+  50%      { opacity: 0.6; }
 }
 
-// ============================================
-// FOOTER
-// ============================================
+// ── ITEM DE CERRAR SESIÓN ──
+ion-item.logout-item {
+  --background: var(--fh-error-container);
+  --background-hover: rgba(186, 26, 26, 0.16);
+  margin-top: var(--fh-sp-1);
+  border: 1px solid rgba(186, 26, 26, 0.14);
 
+  ion-icon[slot="start"] {
+    color: var(--fh-error);
+  }
+
+  ion-label {
+    color: var(--fh-error);
+    font-weight: 600;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    --background: rgba(186, 26, 26, 0.15);
+    border-color: rgba(186, 26, 26, 0.25);
+  }
+}
+
+// ── FOOTER ──
 .menu-footer {
-  padding: 18px 22px;
-  border-top: 1px solid var(--outline-variant);
+  padding: var(--fh-sp-4) var(--fh-sp-6);
+  border-top: 1px solid var(--fh-border);
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 12px;
-}
+  gap: var(--fh-sp-3);
+  margin-top: var(--fh-sp-3);
 
-// Home indicator / gesture bar en iPhone X+ y iPad
-@supports (padding: max(0px)) {
-  .menu-footer {
-    // antes: max(env(safe-area-inset-bottom), 18px)
-    // ahora con margen extra para que "Cerrar sesión" (arriba en la lista)
-    // y el footer no queden pegados al borde en pantallas más cortas
-    padding-bottom: calc(max(env(safe-area-inset-bottom), 18px) + 12px);
-    padding-left: max(env(safe-area-inset-left), 22px);
+  // Safe area inferior (Sección 7 y 12)
+  @supports (padding: max(0px)) {
+    padding-bottom: calc(max(env(safe-area-inset-bottom), var(--fh-sp-4)) + var(--fh-sp-3));
+    padding-left: max(env(safe-area-inset-left), var(--fh-sp-6));
+    padding-right: max(env(safe-area-inset-right), var(--fh-sp-6));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    border-top-color: var(--fh-border);
   }
 }
 
 .footer-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--fh-sp-2);
   filter: grayscale(0.4);
   opacity: 0.7;
 
@@ -404,18 +517,52 @@ ion-item.clase-item {
 .menu-footer-text {
   font-size: 11px;
   font-weight: 700;
-  color: var(--on-surface);
+  color: var(--fh-text);
 }
 
 .menu-footer-copy {
   margin: 0;
   font-size: 10px;
-  color: var(--on-surface-variant);
+  color: var(--fh-text-2);
   opacity: 0.5;
 }
 
+// ── REDUCED MOTION (accesibilidad) ──
 @media (prefers-reduced-motion: reduce) {
   .nav-badge-live {
     animation: none;
   }
+  .user-card-container {
+    transition: none;
+    &:active { transform: none; }
+  }
+  ion-item {
+    transition: none;
+  }
+}
+
+// ── SR ONLY ──
+.ion-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// NUEVA REGLA: FORZAR SCROLL EN EL MENÚ LATERAL
+// ════════════════════════════════════════════════════════════════════════
+ion-menu ion-content {
+  --overflow: auto !important;
+  overflow-y: auto !important;
+  height: 100% !important;
+}
+
+ion-menu ion-list {
+  overflow: visible;
 }
