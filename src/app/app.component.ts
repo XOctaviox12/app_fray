@@ -1,6 +1,6 @@
-﻿import { Component, OnInit, OnDestroy } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController, MenuController } from '@ionic/angular';
+import { AlertController, MenuController, Platform } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { SesionService, Usuario } from './services/sesion.service';
 import { NetworkStatusService } from '../environments/network-status.service';
@@ -13,37 +13,25 @@ import { NetworkStatusService } from '../environments/network-status.service';
 })
 export class AppComponent implements OnInit, OnDestroy {
 
-  // Año dinámico para el footer del menú (antes estaba fijo en "2025").
+  // Año dinámico para el footer del menú
   currentYear = new Date().getFullYear();
 
-  // Fallback real de avatar: si la imagen falla en tiempo real (URL rota,
-  // Cloudinary/Supabase caído, etc.) se conmuta a un avatar local por defecto.
+  // Fallback de avatar
   private avatarFallback = 'assets/img/default-avatar.png';
   private avatarErrorOcurrido = false;
-
-  // Guarda la última URL "cruda" (sin cache-busting) que devolvió el
-  // servicio de sesión. Sirve para detectar cuándo el usuario cambió su
-  // foto de perfil: si la URL cambió, reseteamos el estado de error y
-  // regeneramos el parámetro de cache-busting.
   private ultimaAvatarUrlCruda: string | null = null;
   private avatarCacheBuster = 0;
 
-  // Badge "HOY" real: se calcula revisando si falta tomar asistencia hoy
-  // en algún grupo+materia del docente. Antes estaba encendido siempre.
+  // Badges
   hayAsistenciaPendienteHoy = false;
-
-  // Badge "LIVE": no tenemos todavía ninguna tabla ni mecanismo real que
-  // indique si hay una clase en vivo activa en este momento (no ha
-  // aparecido ese módulo en el proyecto). Se deja apagado por default en
-  // vez de mostrar "LIVE" fijo sin que signifique nada real. Conectar
-  // aquí en cuanto exista esa función.
   hayClaseEnVivoActiva = false;
 
-  // Estado de conexión a internet, para mostrar un banner/alerta en el
-  // layout cuando el usuario se quede sin red (wifi del plantel caído,
-  // sin señal de datos móviles, etc.).
+  // Estado de conexión
   sinConexion = false;
   private networkSub?: Subscription;
+
+  // Keep-alive para iOS (mantiene el WebView activo)
+  private keepAliveInterval: any;
 
   constructor(
     private router: Router,
@@ -51,21 +39,60 @@ export class AppComponent implements OnInit, OnDestroy {
     private alertCtrl: AlertController,
     private menuCtrl: MenuController,
     private networkStatus: NetworkStatusService,
+    private platform: Platform,
   ) {}
 
   ngOnInit() {
-    // La sesión local ya se carga dentro del constructor de SesionService.
     if (this.esDocente) this.chequearAsistenciaPendienteHoy();
 
     this.networkSub = this.networkStatus.online$.subscribe(isOnline => {
       this.sinConexion = !isOnline;
     });
+
+    // Iniciar keep-alive solo en iOS
+    this.platform.ready().then(() => {
+      if (this.platform.is('ios')) {
+        this.startKeepAlive();
+      }
+    });
   }
 
   ngOnDestroy() {
     this.networkSub?.unsubscribe();
+    this.stopKeepAlive();
   }
 
+  // ── Keep-alive: mantiene el WebView activo ────────────────────────────────
+  private startKeepAlive() {
+    this.stopKeepAlive();
+    this.keepAliveInterval = setInterval(() => {
+      // Operación trivial que fuerza un reflow
+      document.body.getBoundingClientRect();
+    }, 500);
+  }
+
+  private stopKeepAlive() {
+    if (this.keepAliveInterval) {
+      clearInterval(this.keepAliveInterval);
+      this.keepAliveInterval = null;
+    }
+  }
+
+  // ── HostListener: fuerza el foco en inputs al tocarlos (iOS) ──────────────
+  @HostListener('document:touchstart', ['$event'])
+  onTouchStart(event: TouchEvent) {
+    if (this.platform.is('ios')) {
+      const target = event.target as HTMLElement;
+      // Si el toque fue en un input o textarea, forzar foco
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        setTimeout(() => {
+          target.focus();
+        }, 10);
+      }
+    }
+  }
+
+  // ── Getters ─────────────────────────────────────────────────────────────────
   get usuario(): Usuario | null {
     return this.sesion.usuario;
   }
@@ -77,9 +104,6 @@ export class AppComponent implements OnInit, OnDestroy {
   get avatarUrl(): string {
     const urlCruda = this.sesion.getAvatarUrl();
 
-    // Si la URL cambió respecto a la última vez (ej. se subió una foto
-    // nueva), reseteamos el flag de error para no quedar pegados en el
-    // fallback para siempre, y renovamos el cache-buster.
     if (urlCruda !== this.ultimaAvatarUrlCruda) {
       this.ultimaAvatarUrlCruda = urlCruda;
       this.avatarErrorOcurrido = false;
@@ -90,18 +114,11 @@ export class AppComponent implements OnInit, OnDestroy {
       return this.avatarFallback;
     }
 
-    // Cache-busting: si el storage reutiliza el mismo nombre de archivo
-    // al subir una foto nueva, la URL pública queda idéntica y el
-    // navegador puede servir la imagen vieja desde caché. Se agrega un
-    // parámetro de versión que solo cambia cuando la URL cruda cambia.
     const separador = urlCruda.includes('?') ? '&' : '?';
     return `${urlCruda}${separador}v=${this.avatarCacheBuster}`;
   }
 
-  // ── Helpers de rol para el menú dinámico ────────────────────────────
-  // La app es solo para alumnos, docentes y tutores — se quitan COORD y
-  // DIRECTOR, que antes hacían que esDocente() fuera true para esos
-  // roles también.
+  // ── Roles ──────────────────────────────────────────────────────────────────
   get esAlumno(): boolean {
     return this.sesion.rolActual === 'ALUMNO';
   }
@@ -147,15 +164,11 @@ export class AppComponent implements OnInit, OnDestroy {
     await alert.present();
   }
 
-  /** Se mantiene este método porque login.page.ts lo invoca tal cual. */
   async iniciarSesion(username: string, password: string): Promise<boolean> {
     return this.sesion.iniciarSesion(username, password);
   }
 
-  // ══════════════════════════════════════════════════════════════════
-  // Badge "HOY" — revisa si falta tomar asistencia en alguna
-  // combinación materia+grupo del docente, para el día de hoy.
-  // ══════════════════════════════════════════════════════════════════
+  // ── Badge "HOY" ────────────────────────────────────────────────────────────
   private async chequearAsistenciaPendienteHoy() {
     try {
       const uid = this.sesion.usuario?.id;
@@ -163,8 +176,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
       if (!uid || !token) return;
 
-      // ✅ MIGRADO: Usar RPC grupos_del_docente en vez de .from('users_docentegrupo')
-      // Línea 165 original: .from('users_docentegrupo').select('grupo_id').eq('docente_id', uid).eq('activo', true)
       const { data: relGrupos, error: errRG } = await this.sesion.supabase
         .rpc('grupos_del_docente', { p_token: token });
 
@@ -176,8 +187,6 @@ export class AppComponent implements OnInit, OnDestroy {
       const grupoIds = [...new Set((relGrupos || []).map((r: any) => r.grupo_id))];
       if (!grupoIds.length) return;
 
-      // ✅ MIGRADO: Para asignaturas, usar RPC materias_del_docente
-      // Línea 171 original: .from('users_docentegrupo').select('asignatura_id').eq('docente_id', uid).eq('activo', true)
       const { data: relMaterias, error: errRM } = await this.sesion.supabase
         .rpc('materias_del_docente', { p_token: token });
 
@@ -189,14 +198,12 @@ export class AppComponent implements OnInit, OnDestroy {
       const materiaIds = [...new Set((relMaterias || []).map((r: any) => r.asignatura_id))];
       if (!materiaIds.length) return;
 
-      // RPC existente: combos_asignatura_grupo_docente
       const { data: relAG } = await this.sesion.supabase
         .rpc('combos_asignatura_grupo_docente', { p_token: token, p_docente_id: uid });
 
       const combos = new Set((relAG || []).map((r: any) => `${r.asignatura_id}-${r.grupo_id}`));
       if (combos.size === 0) return;
 
-      // RPC existente: combos_con_lista (ya usa token)
       const hoy = new Date().toISOString().split('T')[0];
       const { data: asistHoy } = await this.sesion.supabase
         .rpc('combos_con_lista', { p_token: token, p_grupo_ids: grupoIds, p_materia_ids: materiaIds, p_fecha: hoy });

@@ -1,5 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import { Platform } from '@ionic/angular';   // <-- Importación añadida
 import { SesionService } from '../../services/sesion.service';
 
 // ── Constantes de seguridad ──────────────────────────────────────────────────
@@ -9,10 +10,6 @@ const DELAY_BASE_MS    = 800;      // demora mínima anti-timing
 const MAX_LEN_USERNAME = 80;
 const MAX_LEN_PASSWORD = 128;
 const MAX_LEN_CODIGO   = 10;
-// Antes este regex era /^[A-Z0-9]{6,10}$/ y no permitía el guion que
-// realmente traen los códigos guardados en users_tutor.codigo_acceso
-// (ej. "TUT-N1A01"), así que el login de tutor rechazaba el código
-// antes de siquiera consultar la base de datos. Se agrega el guion.
 const CODIGO_REGEX     = /^[A-Z0-9-]{6,10}$/;
 const USERNAME_REGEX   = /^[a-zA-Z0-9._@\-]{1,80}$/;
 
@@ -54,7 +51,12 @@ export class LoginPage implements OnDestroy {
   segundosRestantes = 0;
   private _timerRef: any = null;
 
-  constructor(private sesion: SesionService, private router: Router) {}
+  // 🔹 INYECTAMOS PLATFORM
+  constructor(
+    private sesion: SesionService,
+    private router: Router,
+    private platform: Platform   // <-- Añadido
+  ) {}
 
   ngOnDestroy() { this._clearTimer(); }
 
@@ -198,4 +200,25 @@ export class LoginPage implements OnDestroy {
   }
 
   togglePassword() { this.mostrarPassword = !this.mostrarPassword; }
+
+  // ── 🔥 SOLUCIÓN DEFINITIVA PARA EL TECLADO ──
+  onInputFocus(event: any) {
+    if (this.platform.is('ios')) {
+      const input = event.target as HTMLInputElement;
+      // Pequeño retraso para que el sistema de entrada se active
+      setTimeout(() => {
+        // Forzar que el input tenga el foco visible
+        input.focus();
+        // Forzar un reflow suave
+        input.style.transform = 'scale(0.999)';
+        requestAnimationFrame(() => {
+          input.style.transform = '';
+          // Asegurar que el input sigue siendo el elemento activo
+          if (document.activeElement !== input) {
+            input.focus();
+          }
+        });
+      }, 50);
+    }
+  }
 }
