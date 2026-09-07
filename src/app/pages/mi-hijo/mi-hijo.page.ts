@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { SesionService } from '../../services/sesion.service';
 
 export interface MateriaResumen {
@@ -49,7 +51,7 @@ export interface DatosAlumno {
   templateUrl: './mi-hijo.page.html',
   styleUrls: ['./mi-hijo.page.scss'],
 })
-export class MiHijoPage implements OnInit {
+export class MiHijoPage implements OnInit, OnDestroy {
 
   cargando = true;
   error = '';
@@ -58,26 +60,46 @@ export class MiHijoPage implements OnInit {
   materias: MateriaResumen[] = [];
   materiaActiva: number = 0; // índice de la pestaña activa
 
-  constructor(private sesion: SesionService) {}
+  private alumnoIdActual: number | null = null;
+  private paramSub?: Subscription;
+
+  constructor(
+    private sesion: SesionService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit() {
-    this.cargarDatos();
+    // Se suscribe a cambios de :id — cubre el caso en que Ionic/Angular
+    // reutiliza la misma instancia del componente al navegar entre hijos
+    // (ej. tutor con 2+ hijos yendo de uno a otro sin destruir la página).
+    this.paramSub = this.route.paramMap.subscribe(params => {
+      const idParam = params.get('id');
+      const alumnoId = idParam ? Number(idParam) : null;
+
+      if (!alumnoId || isNaN(alumnoId)) {
+        this.error = 'No se encontró información del alumno.';
+        this.cargando = false;
+        return;
+      }
+
+      this.alumnoIdActual = alumnoId;
+      this.cargarDatos(alumnoId);
+    });
+  }
+
+  ngOnDestroy() {
+    this.paramSub?.unsubscribe();
   }
 
   ionViewWillEnter() {
-    this.cargarDatos();
+    if (this.alumnoIdActual) {
+      this.cargarDatos(this.alumnoIdActual);
+    }
   }
 
-  async cargarDatos() {
+  async cargarDatos(alumnoId: number) {
     this.cargando = true;
     this.error = '';
-
-    const alumnoId = this.sesion.tutor?.alumno_id;
-    if (!alumnoId) {
-      this.error = 'No se encontró información del alumno.';
-      this.cargando = false;
-      return;
-    }
 
     try {
       const grupoId = await this.cargarAlumno(alumnoId);
@@ -93,7 +115,7 @@ export class MiHijoPage implements OnInit {
     this.cargando = false;
   }
 
-async cargarAlumno(alumnoId: number): Promise<number | null> {
+  async cargarAlumno(alumnoId: number): Promise<number | null> {
     const token = this.sesion.tutor?.token;
     if (!token) throw new Error('Sesión no válida');
 
@@ -119,7 +141,7 @@ async cargarAlumno(alumnoId: number): Promise<number | null> {
     return g?.id || null;
   }
 
-async cargarMaterias(alumnoId: number, grupoId: number) {
+  async cargarMaterias(alumnoId: number, grupoId: number) {
     const token = this.sesion.tutor?.token;
     if (!token) { this.materias = []; return; }
 
@@ -232,6 +254,10 @@ async cargarMaterias(alumnoId: number, grupoId: number) {
   }
 
   doRefresh(event: any) {
-    this.cargarDatos().then(() => event.target.complete());
+    if (!this.alumnoIdActual) {
+      event.target.complete();
+      return;
+    }
+    this.cargarDatos(this.alumnoIdActual).then(() => event.target.complete());
   }
 }

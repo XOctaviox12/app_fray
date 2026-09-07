@@ -58,7 +58,7 @@ const routes: Routes = [
     loadChildren: () => import('./pages/login/login.module').then( m => m.LoginPageModule)
   },
   {
-    path: 'mi-hijo',
+    path: 'mi-hijo/:id',
     loadChildren: () => import('./pages/mi-hijo/mi-hijo.module').then( m => m.MiHijoPageModule)
   },
   {

@@ -433,9 +433,7 @@
 
     </ng-container>
 
-    <!-- ─────────────────────────────────────────────────────────────────── -->
-    <!-- VISTA TUTOR                                                         -->
-    <!-- ─────────────────────────────────────────────────────────────────── -->
+
     <ng-container *ngIf="esTutor">
 
       <!-- HERO SECTION -->
@@ -452,46 +450,59 @@
         </div>
 
         <div class="tutor-avatar-wrap" role="img" aria-label="Avatar representativo de tutor">
-          <ion-icon name="people-outline" class="tutor-avatar-icon" aria-hidden="true"></ion-icon>
+          <ion-icon name="people-outline" class="tutor-avatar-icon" ></ion-icon>
         </div>
       </section>
 
-      <!-- HIJO HIGHLIGHT CARD -->
-      <a
-        class="hijo-highlight-card"
-        routerLink="/mi-hijo"
-        routerLinkActive="active"
-        role="link"
-        (keypress.enter)="onEnterPress($event)"
-      >
-        <div class="hijo-highlight-left">
-          <div class="hijo-avatar-circle" aria-hidden="true">
-            <ion-icon name="person-outline"></ion-icon>
-          </div>
-          <div class="hijo-info">
-            <p class="hijo-label">Alumno vinculado</p>
-            <h3 class="hijo-nombre">{{ nombreHijo || 'Ver perfil' }}</h3>
-          </div>
+      <div class="hijos-container" aria-label="Resumen de tus hijos">
+        <!-- Si no hay hijos -->
+        <div class="empty-state" *ngIf="alumnosStats.length === 0">
+          <ion-icon name="alert-circle-outline" class="empty-icon" ></ion-icon>
+          <p>No tienes hijos vinculados</p>
         </div>
-        <button
-          type="button"
-          class="hijo-btn"
-          aria-label="Ver perfil y desempeño del alumno"
-          tabindex="-1"
-        >
-          <ion-icon name="trending-up-outline" aria-hidden="true"></ion-icon>
-        </button>
-      </a>
 
-      <!-- STATS ROW (2 columnas) -->
-      <div class="stats-row two-col" aria-label="Resumen de materias y parciales">
+        <!-- Tarjeta para CADA hijo -->
+        <a
+          *ngFor="let alumno of alumnosStats"
+          class="hijo-highlight-card"
+          [routerLink]="['/mi-hijo', alumno.alumno_id]"
+          routerLinkActive="active"
+          role="link"
+          (keypress.enter)="onEnterPress($event)"
+          [attr.aria-label]="'Perfil de ' + alumno.alumno_first_name + ' ' + alumno.alumno_last_name"
+        >
+          <div class="hijo-highlight-left">
+            <div class="hijo-avatar-circle" aria-hidden="true">
+              <ion-icon name="person-outline"></ion-icon>
+            </div>
+            <div class="hijo-info">
+              <p class="hijo-label">{{ alumno.grupo_nombre }}</p>
+              <h3 class="hijo-nombre">{{ alumno.alumno_first_name }} {{ alumno.alumno_last_name }}</h3>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="hijo-btn"
+            [attr.aria-label]="'Ver perfil y desempeño de ' + alumno.alumno_first_name"
+            tabindex="-1"
+          >
+            <ion-icon name="trending-up-outline" aria-hidden="true"></ion-icon>
+          </button>
+        </a>
+      </div>
+
+      <!-- ✅ ACTUALIZADO: Mini STATS (Resumen general) -->
+      <h2 class="section-label" *ngIf="alumnosStats.length > 0">Resumen de mis hijos</h2>
+
+      <!-- Stats compactos si hay hijos -->
+      <div class="stats-row two-col" *ngIf="alumnosStats.length > 0" aria-label="Resumen general">
         <article class="stat-card">
           <div class="stat-icon blue-icon" aria-hidden="true">
             <ion-icon name="book-outline"></ion-icon>
           </div>
           <div class="stat-text">
-            <span class="stat-num">{{ totalMaterias }}</span>
-            <span class="stat-lbl">Materias</span>
+            <span class="stat-num">{{ alumnosStats.length }}</span>
+            <span class="stat-lbl">Hijo{{ alumnosStats.length !== 1 ? 's' : '' }}</span>
           </div>
         </article>
 
@@ -500,35 +511,17 @@
             <ion-icon name="calendar-outline"></ion-icon>
           </div>
           <div class="stat-text">
-            <span class="stat-num">{{ actividadesHoy }}</span>
+            <span class="stat-num">{{ getTotalBoletas() }}</span>
             <span class="stat-lbl">Parciales</span>
           </div>
         </article>
       </div>
 
       <!-- SECTION LABEL -->
-      <h2 class="section-label">Acceso rápido</h2>
+      <h2 class="section-label" *ngIf="alumnosStats.length > 0">Acceso rápido</h2>
 
       <!-- QUICK ACCESS GRID -->
-      <nav class="quick-grid" aria-label="Accesos rápidos para tutores">
-        <!-- Mi Hijo(a) -->
-        <a
-          class="quick-card"
-          routerLink="/mi-hijo"
-          routerLinkActive="active"
-          role="button"
-          tabindex="0"
-        >
-          <div class="quick-card-top">
-            <div class="quick-card-icon orange-icon" aria-hidden="true">
-              <ion-icon name="school-outline"></ion-icon>
-            </div>
-            <ion-icon name="arrow-forward-outline" class="quick-card-arrow" aria-hidden="true"></ion-icon>
-          </div>
-          <h3 class="quick-card-title">Mi Hijo(a)</h3>
-          <p class="quick-card-sub">Calificaciones, asistencia y materias</p>
-        </a>
-
+      <nav class="quick-grid" *ngIf="alumnosStats.length > 0" aria-label="Accesos rápidos para tutores">
         <!-- Comunicados -->
         <a
           class="quick-card"
@@ -566,4 +559,3 @@
 
   </ng-container>
 </ion-content>
-

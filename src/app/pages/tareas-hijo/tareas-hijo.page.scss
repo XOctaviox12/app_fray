@@ -85,7 +85,79 @@ ion-menu-button {
     outline-offset: 2px;
   }
 }
+.vista-segment {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
 
+  .vista-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(70, 130, 180, 0.15);
+    background: transparent;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ion-color-medium);
+    cursor: pointer;
+
+    &.active {
+      background: var(--ion-color-primary);
+      color: white;
+      border-color: var(--ion-color-primary);
+    }
+  }
+}
+
+.tipo-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgba(70, 130, 180, 0.12);
+  color: #4682B4;
+
+  &.tipo-actividad {
+    background: rgba(255, 165, 0, 0.15);
+    color: #cc7a00;
+  }
+}
+.hijo-filter-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin: 8px 0 4px;
+
+  .hijo-chip {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(70, 130, 180, 0.2);
+    background: transparent;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ion-color-medium);
+    white-space: nowrap;
+    cursor: pointer;
+
+    &.active {
+      background: rgba(70, 130, 180, 0.15);
+      border-color: var(--ion-color-primary);
+      color: var(--ion-color-primary);
+    }
+  }
+}
+
+.hijo-badge {
+  background: rgba(46, 125, 50, 0.12);
+  color: #2E7D32;
+}
 .header-title {
   color: var(--p-text);
   font-family: var(--f-display);

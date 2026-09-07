@@ -1,6 +1,19 @@
 ﻿import { Component, OnInit } from '@angular/core';
 import { SesionService } from '../../services/sesion.service';
 
+
+interface AlumnoStats {
+  alumno_id: number;
+  alumno_username: string;
+  alumno_first_name: string;
+  alumno_last_name: string;
+  grupo_nombre: string;
+  totalMaterias: number;
+  tareasPendientes: number;
+  actividadesHoy: number;
+  boletasPublicadas: number;
+}
+
 @Component({
   standalone: false,
   selector: 'app-inicio',
@@ -24,7 +37,7 @@ export class InicioPage implements OnInit {
   actividadesCreadas: number = 0;
 
   // Solo tutor
-  nombreHijo: string = '';
+  alumnosStats: AlumnoStats[] = [];
 
   constructor(private sesion: SesionService) {}
 
@@ -130,39 +143,108 @@ export class InicioPage implements OnInit {
   }
 
   // ── Tutor ──────────────────────────────────────────
-  async cargarStatsTutor() {
-    const alumnoId = this.sesion.tutor?.alumno_id;
-    if (!alumnoId) return;
+async cargarStatsTutor() {
+  const tutorId = this.sesion.tutor?.id;
+  if (!tutorId) {
+    this.error = 'ID de tutor no encontrado.';
+    return;
+  }
 
-    const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
-    if (!token) return;
+  // ⚠️ CRÍTICO: Usar token del tutor, NO del usuario
+  const token = this.sesion.tutor?.token;
+  if (!token) {
+    this.error = 'No hay sesión de tutor activa.';
+    console.error('tutor?.token no definido. Verifica SesionService.');
+    return;
+  }
 
-    const { data: alumno, error: eAl } = await this.sesion.supabase
-      .rpc('perfil_basico_usuario', { p_token: token, p_user_id: alumnoId })
-      .single<{ first_name: string; last_name: string; alumno_grupo_id: number }>();
-    if (eAl) { console.error('Error alumno tutor:', eAl.message); return; }
+  try {
+    console.log('🔍 Buscando alumnos del tutor...', { tutorId, token });
 
-    if (alumno) {
-      this.nombreHijo = `${alumno.first_name} ${alumno.last_name}`.trim();
+    // ✅ PASO 1: Obtener TODOS los alumnos asignados
+    const { data: alumnos, error: eAlumnos } = await this.sesion.supabase
+      .rpc('obtener_alumnos_tutor', { p_token: token });
 
-      const grupoId = (alumno as any).alumno_grupo_id;
-      if (grupoId) {
-        const { count: materias, error: eM } = await this.sesion.supabase
-          .from('academic_asignatura_grupos')
-          .select('*', { count: 'exact', head: true })
-          .eq('grupo_id', grupoId);
-        if (eM) console.error('Error materias tutor:', eM.message);
-        this.totalMaterias = materias || 0;
+    if (eAlumnos) {
+      console.error('❌ Error al obtener alumnos:', eAlumnos.message);
+      this.error = 'Error al obtener tus alumnos: ' + eAlumnos.message;
+      return;
+    }
+
+    if (!alumnos || alumnos.length === 0) {
+      console.warn('⚠️ El tutor no tiene alumnos asignados.');
+      this.alumnosStats = [];
+      this.error = 'No tienes alumnos asignados.';
+      return;
+    }
+
+    console.log('✅ Alumnos encontrados:', alumnos);
+
+    // ✅ PASO 2: Para CADA alumno, cargar sus estadísticas (en paralelo)
+    this.alumnosStats = [];
+
+    for (const alumno of alumnos) {
+      try {
+        console.log(`📊 Cargando stats de: ${alumno.alumno_first_name}`);
+
+        // Llamar todas las RPCs en paralelo
+        const [tareas, actividades, materias, boletas] = await Promise.all([
+          this.sesion.supabase.rpc('contar_tareas_alumno', {
+            p_token: token,
+            p_alumno_id: alumno.alumno_id
+          }),
+          this.sesion.supabase.rpc('contar_actividades_alumno', {
+            p_token: token,
+            p_alumno_id: alumno.alumno_id
+          }),
+          this.sesion.supabase.rpc('obtener_materias_alumno', {
+            p_token: token,
+            p_alumno_id: alumno.alumno_id
+          }),
+          this.sesion.supabase.rpc('contar_boletas_alumno', {
+            p_token: token,
+            p_alumno_id: alumno.alumno_id
+          })
+        ]);
+
+        const stats: AlumnoStats = {
+          alumno_id: alumno.alumno_id,
+          alumno_username: alumno.alumno_username,
+          alumno_first_name: alumno.alumno_first_name,
+          alumno_last_name: alumno.alumno_last_name,
+          grupo_nombre: alumno.grupo_nombre || 'Sin grupo',
+          tareasPendientes: tareas.data || 0,
+          actividadesHoy: actividades.data || 0,
+          totalMaterias: materias.data || 0,
+          boletasPublicadas: boletas.data || 0,
+        };
+
+        console.log(`✅ Stats cargados para ${stats.alumno_first_name}:`, stats);
+        this.alumnosStats.push(stats);
+
+      } catch (e: any) {
+        console.error(`❌ Error cargando stats de ${alumno.alumno_id}:`, e);
+        this.alumnosStats.push({
+          alumno_id: alumno.alumno_id,
+          alumno_username: alumno.alumno_username,
+          alumno_first_name: alumno.alumno_first_name,
+          alumno_last_name: alumno.alumno_last_name,
+          grupo_nombre: alumno.grupo_nombre || 'Sin grupo',
+          tareasPendientes: 0,
+          actividadesHoy: 0,
+          totalMaterias: 0,
+          boletasPublicadas: 0,
+        });
       }
     }
 
-    // Boletas publicadas del alumno
-    const { data: boletas } = token
-      ? await this.sesion.supabase.rpc('boletas_alumno_publicadas', { p_token: token, p_alumno_id: alumnoId })
-      : { data: [] as any[] };
+    console.log('✅ Todos los alumnos cargados:', this.alumnosStats);
 
-    this.actividadesHoy = boletas?.length || 0;
+  } catch (e: any) {
+    console.error('❌ Error en cargarStatsTutor():', e);
+    this.error = 'Error: ' + e.message;
   }
+}
 
   establecerFechaActual() {
     const hoy = new Date();
@@ -197,4 +279,11 @@ export class InicioPage implements OnInit {
       target.click();
     }
   }
+  getTotalBoletas(): number {
+  if (!this.alumnosStats || this.alumnosStats.length === 0) {
+    return 0;
+  }
+
+  return this.alumnosStats.reduce((sum, alumno) => sum + alumno.boletasPublicadas, 0);
+}
 }
