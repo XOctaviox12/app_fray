@@ -1,13 +1,6 @@
-// ============================================
-// TAREAS-HIJO.PAGE.SCSS
-// Adaptado a la Guía de Diseño Responsivo iOS/iPad — FrayHub (Sep 2026)
-// Hero con anillo de progreso, chips tipo píldora, cards redondeadas.
-// ============================================
-
 :host {
-  // ---- Paleta (Sección 1 y 18 de la guía) ----
-  --p-primary: #F57C00;              // primary-container
-  --p-primary-dark: #964900;         // primary
+  --p-primary: #F57C00;
+  --p-primary-dark: #964900;
   --p-primary-soft: rgba(150, 73, 0, 0.08);
   --p-primary-glow: rgba(245, 124, 0, 0.28);
   --p-secondary: #4A59A1;
@@ -31,38 +24,32 @@
   --p-text-2: #6B7280;
   --p-border: #E5E7EB;
 
-  // ---- Border radius (Sección 4) ----
+
   --r-card: 22px;
   --r-card-stat: 18px;
   --r-chip: 9999px;
   --r-input: 14px;
 
-  // ---- Sombras Soft UI (Sección 5) ----
   --sh-soft: 0 20px 50px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0, 0, 0, 0.02);
   --sh-soft-lg: 0 26px 55px -15px rgba(48, 64, 134, 0.14), 0 6px 10px -4px rgba(0, 0, 0, 0.06);
   --sh-btn: 0 8px 20px rgba(245, 124, 0, 0.3);
 
-  // ---- Tipografía (Sección 2) ----
+
   --f-display: -apple-system, "SF Pro Display", "Inter", BlinkMacSystemFont, sans-serif;
   --f-text: -apple-system, "SF Pro Text", "Inter", BlinkMacSystemFont, sans-serif;
 
-  // ---- Touch targets (Sección 6) ----
   --touch-min: 44px;
   --touch-rec: 48px;
 
-  // ---- Safe area bottom (Sección 7 y 12) ----
+
   --page-padding-bottom: 24px;
   @supports (padding: max(0px)) {
     --page-padding-bottom: max(env(safe-area-inset-bottom), 24px);
   }
 
   display: block;
-  overflow-x: hidden; // Sección 13 — nunca scroll horizontal
+  overflow-x: hidden;
 }
-
-// ============================================
-// HEADER
-// ============================================
 
 .header-toolbar {
   --background: rgba(248, 249, 250, 0.88);
@@ -75,7 +62,7 @@
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
 
-// Botón de menú: mínimo 44x44 (Sección 6)
+
 ion-menu-button {
   min-width: var(--touch-min);
   min-height: var(--touch-min);
@@ -168,7 +155,7 @@ ion-menu-button {
 
 .tareas-content {
   --background: var(--p-bg);
-  --overflow: auto; // Sección 13 — previene scroll-jump con teclado
+  --overflow: auto;
   --padding-bottom: var(--page-padding-bottom);
 }
 
@@ -178,7 +165,7 @@ ion-menu-button {
   -webkit-overflow-scrolling: touch;
 }
 
-// ── Error ─────────────────────────────────────
+
 .global-error {
   display: flex;
   align-items: center;
@@ -196,10 +183,6 @@ ion-menu-button {
 
   ion-icon { font-size: 17px; flex-shrink: 0; }
 }
-
-// ============================================
-// HERO — breakpoints: 320 / 390 / 768 / 1024 (Sección 3 y 17)
-// ============================================
 
 .tareas-hero {
   position: relative;
@@ -268,7 +251,6 @@ ion-menu-button {
   @media (min-width: 390px) { font-size: 13px; }
 }
 
-// ── Tarjeta de progreso circular ──────────────
 .progress-card {
   display: flex;
   align-items: center;
@@ -331,7 +313,6 @@ ion-menu-button {
   @media (min-width: 390px) { font-size: 11.5px; }
 }
 
-// ── Chips de filtro tipo píldora (Sección 6 — touch target 44px) ──
 .filter-row {
   display: flex;
   gap: 8px;
@@ -404,7 +385,7 @@ ion-menu-button {
   &.danger.active { background: linear-gradient(to bottom, var(--p-error), #93000a); }
 }
 
-// ── Skeleton ──────────────────────────────────
+
 .skeleton-list {
   padding: 4px 16px 0;
   display: grid;
@@ -432,13 +413,13 @@ ion-menu-button {
   @media (min-width: 390px) { padding: 18px; }
 }
 
-// ── Lista ─────────────────────────────────────
+
 .tasks-list {
   padding: 18px 16px 0;
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
-  align-items: stretch; // filas de igual altura -> tarjetas parejas
+  align-items: stretch;
 
   @media (min-width: 390px) { padding: 20px 20px 0; gap: 20px; }
 
@@ -452,13 +433,11 @@ ion-menu-button {
   }
 }
 
-// ── Task card ─────────────────────────────────
 .task-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  min-width: 0; // permite que el ítem de grid se encoja por debajo
-                // del ancho de su contenido, en vez de forzar la columna
+  min-width: 0;
   background: linear-gradient(145deg, #ffffff, #fdfdfd);
   border-radius: var(--r-card);
   padding: 20px;
@@ -489,7 +468,6 @@ ion-menu-button {
   &.vencida { opacity: 0.85; }
 }
 
-// ── Barra de acento (elemento real, no ::before) ──
 .card-accent {
   height: 4px;
   margin: 0 4px 16px;
@@ -502,7 +480,6 @@ ion-menu-button {
   .task-card.vencida &  { background: var(--p-text-2); }
 }
 
-// ── Encabezado de card (ícono + badge) ────────
 .card-top {
   display: flex;
   align-items: flex-start;
@@ -565,7 +542,7 @@ ion-menu-button {
   &.nota-reprobado { background: var(--p-error-soft-strong); color: var(--p-error); }
 }
 
-// ── Título y meta ─────────────────────────────
+
 .task-title {
   margin: 0 0 6px;
   font-family: var(--f-display);
@@ -587,8 +564,7 @@ ion-menu-button {
   gap: 5px;
   flex-wrap: wrap;
   margin: 0 0 14px;
-  min-width: 0; // permite que sus hijos con nowrap se recorten en vez
-                // de forzar el ancho hacia afuera
+  min-width: 0;
 }
 
 .meta-icon { font-size: 13px; color: var(--p-primary-dark); flex-shrink: 0; }
@@ -596,8 +572,7 @@ ion-menu-button {
 
 .task-materia,
 .task-docente {
-  min-width: 0; // imprescindible para que text-overflow:ellipsis funcione
-                // en un hijo flex — sin esto, el texto nowrap empuja el ancho
+  min-width: 0;
   font-size: 12px;
   color: var(--p-text-2);
   font-family: var(--f-text);
@@ -606,7 +581,6 @@ ion-menu-button {
   text-overflow: ellipsis;
 }
 
-// ── Descripción ───────────────────────────────
 .task-desc {
   font-size: 13px;
   color: var(--p-text-2);
@@ -623,12 +597,12 @@ ion-menu-button {
 }
 
 .ver-mas-btn {
-  align-self: flex-start; // no se estira al ancho del card (contexto flex)
+  align-self: flex-start;
   width: fit-content;
   text-align: left;
   display: block;
   margin: 8px 0 0;
-  padding: 6px 2px; // amplía el área táctil sin alterar el layout visual
+  padding: 6px 2px;
   background: none;
   border: none;
   color: var(--p-primary-dark);
@@ -648,7 +622,6 @@ ion-menu-button {
   }
 }
 
-// ── Alerta crítica ────────────────────────────
 .alerta-critica {
   display: flex;
   align-items: center;
@@ -665,7 +638,6 @@ ion-menu-button {
   ion-icon { font-size: 17px; flex-shrink: 0; color: var(--p-primary-dark); }
 }
 
-// ── Detalle expandido ─────────────────────────
 .task-detalle {
   margin-top: 16px;
   padding: 12px 14px;
@@ -689,7 +661,6 @@ ion-menu-button {
   ion-icon { font-size: 15px; color: var(--p-primary-dark); flex-shrink: 0; }
 }
 
-// ── Feedback ──────────────────────────────────
 .feedback-box {
   display: flex;
   align-items: flex-start;
@@ -716,12 +687,11 @@ ion-menu-button {
   }
 }
 
-// ── Footer ────────────────────────────────────
 .task-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: auto; // empuja el footer al fondo de la tarjeta
+  margin-top: auto;
   padding-top: 16px;
   border-top: 1px solid var(--p-border);
   gap: 10px;
@@ -779,7 +749,6 @@ ion-menu-button {
   &.status-no-entregada { color: var(--p-error); }
 }
 
-// ── Empty state ───────────────────────────────
 .empty-state {
   grid-column: 1 / -1;
   display: flex;
@@ -826,7 +795,6 @@ ion-menu-button {
   @media (min-width: 390px) { font-size: 13px; }
 }
 
-// ── Cargar más (Sección 6 — botón mínimo 44px) ──
 .cargar-mas-btn {
   grid-column: 1 / -1;
   --color: var(--p-primary-dark);
@@ -836,10 +804,6 @@ ion-menu-button {
   font-size: 13px;
   margin: 4px 0 20px;
 }
-
-// ============================================
-// ORIENTACIÓN LANDSCAPE (Sección 11)
-// ============================================
 
 @media (orientation: landscape) and (max-height: 500px) {
   .tareas-hero { padding: 12px 16px 12px; }
@@ -851,10 +815,6 @@ ion-menu-button {
   .task-card, .task-detalle { animation: none; }
 }
 
-// ============================================
-// ANIMACIONES (Sección 9)
-// ============================================
-
 @keyframes cardIn {
   from { opacity: 0; transform: translateY(8px) scale(0.99); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
@@ -865,7 +825,6 @@ ion-menu-button {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-// Reducción de movimiento (accesibilidad)
 @media (prefers-reduced-motion: reduce) {
   .task-card,
   .task-detalle,
@@ -875,10 +834,6 @@ ion-menu-button {
     transition: none !important;
   }
 }
-
-// ============================================
-// DARK MODE (Sección 1)
-// ============================================
 
 @media (prefers-color-scheme: dark) {
   :host {

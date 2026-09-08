@@ -16,12 +16,10 @@
       </ion-button>
     </ion-buttons>
 
-    <!-- Titulo: Vista Selector -->
     <ion-title class="asist-header-title" *ngIf="vista === 'selector'">
-      Tomar Asistencia
+      Asistencia
     </ion-title>
 
-    <!-- Titulo: Vista Tomar (2 lineas) -->
     <ion-title class="asist-header-title-stacked" *ngIf="vista === 'tomar'">
       <span class="title-line-1">{{ materiaNombre }}</span>
       <span class="title-line-2">{{ grupoEtiqueta }}</span>
@@ -39,7 +37,7 @@
       aria-label="Cambiar entre vista de lista e historial">
       <ion-segment-button value="lista" role="tab" aria-selected="segmento === 'lista'">
         <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
-        <ion-label>Tomar lista</ion-label>
+        <ion-label>Lista</ion-label>
       </ion-segment-button>
       <ion-segment-button value="historial" role="tab" aria-selected="segmento === 'historial'">
         <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
@@ -85,33 +83,52 @@
     <!-- Selector Content -->
     <ng-container *ngIf="!cargandoGrupos && !errorGrupos">
 
-      <!-- Intro + Fecha -->
+      <!-- Intro + Resumen de pendientes -->
       <div class="selector-intro">
-        <p class="selector-hint">Elige la materia y el grupo al que le vas a pasar lista</p>
-        <button
-          type="button"
-          class="fecha-pill fecha-pill-selector"
-          (click)="mostrarSelectorFecha = true"
-          [attr.aria-label]="'Seleccionar fecha. Fecha actual: ' + fechaSeleccionadaDisplay">
-          <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
-          {{ esHoy ? 'Hoy · ' : '' }}{{ fechaSeleccionadaDisplay }}
-          <ion-icon name="chevron-down-outline" class="fecha-pill-chevron" aria-hidden="true"></ion-icon>
-        </button>
-        <button
-          type="button"
-          class="link-hoy"
-          *ngIf="!esHoy"
-          (click)="irAHoy()"
-          aria-label="Volver a la fecha de hoy">
-          Volver a hoy
-        </button>
+        <p class="selector-hint">Selecciona un grupo para tomar lista</p>
+
+        <!-- Resumen: orienta de inmediato cuánto falta por hacer — MÁS DESTACADO -->
+        <div class="selector-summary" *ngIf="totalGruposListado > 0" role="status">
+          <div class="summary-badge">
+            <span class="summary-number">{{ gruposPendientes }}</span>
+            <span class="summary-label">pendientes</span>
+          </div>
+          <p class="summary-text">de {{ totalGruposListado }} grupos</p>
+        </div>
+
+        <!-- Controles de fecha y "volver a hoy" juntos -->
+        <div class="selector-fecha-row">
+          <button
+            type="button"
+            class="fecha-pill fecha-pill-selector"
+            [class.distinta]="fechaEsDistinta"
+            (click)="mostrarSelectorFecha = true"
+            [attr.aria-label]="'Seleccionar fecha. Fecha actual: ' + fechaSeleccionadaDisplay">
+            <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+            {{ esHoy ? 'Hoy' : 'Otra fecha' }}
+            <ion-icon name="chevron-down-outline" class="fecha-pill-chevron" aria-hidden="true"></ion-icon>
+          </button>
+          <button
+            type="button"
+            class="link-hoy"
+            *ngIf="!esHoy"
+            (click)="irAHoy()"
+            aria-label="Volver a la fecha de hoy">
+            ← Hoy
+          </button>
+        </div>
+
+        <!-- Muestra la fecha completa debajo si es distinta -->
+        <p class="selector-fecha-display" *ngIf="!esHoy">
+          {{ fechaSeleccionadaDisplay }}
+        </p>
       </div>
 
       <!-- Empty State -->
       <div class="empty-state" *ngIf="materias.length === 0" role="status">
         <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
         <h3>No tienes materias o grupos asignados</h3>
-        <p>Verifica tu asignación de materias y grupos en el panel web.</p>
+        <p>Verifica tu asignación en el panel web.</p>
       </div>
 
       <!-- Materias + Grupos -->
@@ -126,7 +143,7 @@
               [class.tomada]="g.tomada"
               *ngFor="let g of materia.grupos"
               (click)="seleccionarGrupo(materia, g)"
-              [attr.aria-label]="'Seleccionar grupo ' + g.grado + '° ' + g.nombre + ' con ' + g.totalAlumnos + ' alumno' + (g.totalAlumnos === 1 ? '' : 's')">
+              [attr.aria-label]="'Seleccionar grupo ' + g.grado + '° ' + g.nombre + ' con ' + g.totalAlumnos + ' alumno' + (g.totalAlumnos === 1 ? '' : 's') + (g.tomada ? ' — lista ya tomada' : ' — pendiente')">
 
               <div class="grupo-card-icon" [ngClass]="{ tomada: g.tomada }">
                 <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
@@ -142,7 +159,7 @@
               </div>
 
               <div class="grupo-card-estado" [ngClass]="{ tomada: g.tomada }">
-                <ion-icon [name]="g.tomada ? 'checkmark-circle' : 'time-outline'" aria-hidden="true"></ion-icon>
+                <ion-icon [name]="g.tomada ? 'checkmark-circle' : 'clock-outline'" aria-hidden="true"></ion-icon>
                 {{ g.tomada ? 'Tomada' : 'Pendiente' }}
               </div>
 
@@ -177,76 +194,62 @@
 
     <ng-container *ngIf="!cargando && !error">
 
-      <!-- Banner: Fecha distinta -->
-      <div class="banner-fecha-distinta" *ngIf="!esHoy" role="alert">
-        <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
-        <span>Estás viendo/editando la lista del <strong>{{ fechaSeleccionadaDisplay }}</strong>, no la de hoy.</span>
-      </div>
-
-      <!-- Banner: Lista guardada -->
-      <div class="banner-guardada" *ngIf="yaGuardada && !hayCambiosSinGuardar" role="status">
-        <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
-        <span>Lista de este día ya registrada. Puedes editarla y volver a guardar.</span>
-      </div>
-
-      <!-- Banner: Cambios sin guardar -->
-      <div class="banner-sin-guardar" *ngIf="hayCambiosSinGuardar" role="alert">
-        <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
-        <span>Tienes cambios sin guardar.</span>
-      </div>
-
-      <!-- Header Info (Fecha + Contadores) -->
-      <div class="asist-header-info">
-        <div class="header-info-row">
+      <!-- ┌─ HEADER FIJO: STICKY pero MINIMALISTA
+           │ Solo: fecha (clickeable) + contador flotante compacto + banner de estado
+           │ SIN grupoEtiqueta reduntante (ya está en toolbar)
+           └─ -->
+      <div class="asist-sticky-header">
+        <div class="sticky-top-row">
           <button
             type="button"
             class="fecha-pill"
+            [class.distinta]="fechaEsDistinta"
             (click)="mostrarSelectorFecha = true"
-            [attr.aria-label]="'Seleccionar fecha. Fecha actual: ' + fechaSeleccionadaDisplay">
+            [attr.aria-label]="'Cambiar fecha. Actual: ' + fechaSeleccionadaDisplay">
             <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
-            {{ esHoy ? 'Hoy · ' : '' }}{{ fechaSeleccionadaDisplay }}
+            {{ esHoy ? 'Hoy' : formatFechaCorta(fechaSeleccionada) }}
             <ion-icon name="chevron-down-outline" class="fecha-pill-chevron" aria-hidden="true"></ion-icon>
           </button>
-          <div class="grupo-meta-pill" [attr.aria-label]="'Grupo ' + grupoEtiqueta">
-            <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
-            {{ grupoEtiqueta }}
+
+          <!-- Contador flotante MINI (solo 3 números grandes + %) -->
+          <div class="contador-flotante" role="status" aria-label="Resumen de asistencia">
+            <div class="cnt-mini verde" [attr.aria-label]="totalPresentes + ' presentes'">
+              <span class="cnt-mini-num">{{ totalPresentes }}</span>
+              <span class="cnt-mini-lbl">P</span>
+            </div>
+            <div class="cnt-mini naranja" [attr.aria-label]="totalRetardos + ' retardos'">
+              <span class="cnt-mini-num">{{ totalRetardos }}</span>
+              <span class="cnt-mini-lbl">R</span>
+            </div>
+            <div class="cnt-mini rojo" [attr.aria-label]="totalAusentes + ' ausentes'">
+              <span class="cnt-mini-num">{{ totalAusentes }}</span>
+              <span class="cnt-mini-lbl">A</span>
+            </div>
+            <div class="cnt-mini pct" [attr.aria-label]="porcentaje + '% de asistencia'">
+              <span class="cnt-mini-num">{{ porcentaje }}%</span>
+            </div>
           </div>
         </div>
 
-        <!-- Contadores -->
-        <div class="contadores">
-          <div class="contador verde" role="status">
-            <span class="cnt-num" aria-label="Presentes">{{ totalPresentes }}</span>
-            <span class="cnt-lbl">P</span>
-          </div>
-          <div class="contador naranja" role="status">
-            <span class="cnt-num" aria-label="Retardos">{{ totalRetardos }}</span>
-            <span class="cnt-lbl">R</span>
-          </div>
-          <div class="contador rojo" role="status">
-            <span class="cnt-num" aria-label="Ausentes">{{ totalAusentes }}</span>
-            <span class="cnt-lbl">A</span>
-          </div>
-          <div class="contador pct" role="status">
-            <span class="cnt-num" aria-label="Porcentaje de asistencia">{{ porcentaje }}%</span>
-            <span class="cnt-lbl">asist.</span>
-          </div>
+        <!-- Banner de estado: uno solo, con prioridad clara -->
+        <div class="banner-estado" *ngIf="bannerActivo" [ngClass]="bannerActivo" role="status"
+             [attr.aria-live]="bannerActivo === 'sin-guardar' ? 'assertive' : 'polite'">
+          <ion-icon
+            [name]="bannerActivo === 'sin-guardar' ? 'alert-circle' : bannerActivo === 'sin-revisar' ? 'eye' : 'checkmark-circle'"
+            aria-hidden="true"></ion-icon>
+          <span *ngIf="bannerActivo === 'sin-guardar'">Cambios sin guardar</span>
+          <span *ngIf="bannerActivo === 'sin-revisar'">{{ totalSinRevisar }} sin revisar</span>
+          <span *ngIf="bannerActivo === 'guardada'">Lista guardada</span>
         </div>
       </div>
 
-      <!-- Banner: Sin revisar -->
-      <div class="banner-sin-revisar" *ngIf="totalSinRevisar > 0 && !filtroAlumno" role="alert">
-        <ion-icon name="eye-outline" aria-hidden="true"></ion-icon>
-        <span>{{ totalSinRevisar }} alumno{{ totalSinRevisar === 1 ? '' : 's' }} sin revisar aún.</span>
-      </div>
-
-      <!-- Buscador -->
-      <div class="buscador-wrap" *ngIf="alumnos.length > 5">
+      <!-- Buscador — SIEMPRE VISIBLE (pero compacto si hay pocos alumnos) -->
+      <div class="buscador-wrap" [class.compacto]="alumnos.length <= 5">
         <ion-icon name="search-outline" class="buscador-icon" aria-hidden="true"></ion-icon>
         <input
           type="text"
           class="buscador-input"
-          placeholder="Buscar alumno por nombre..."
+          placeholder="Buscar por nombre..."
           [(ngModel)]="filtroAlumno"
           aria-label="Filtro para buscar alumnos por nombre"
           autocomplete="off"
@@ -261,66 +264,63 @@
         </button>
       </div>
 
-      <!-- Acciones Rápidas -->
-      <div class="acciones-rapidas" *ngIf="!filtroAlumno" role="group" aria-label="Acciones rápidas para marcar todos">
+      <!-- Acciones Rápidas — Solo si NO hay búsqueda y NO hay filtro -->
+      <div class="acciones-rapidas" *ngIf="!filtroAlumno && alumnos.length > 0" role="group" aria-label="Marcar todos">
         <button type="button" class="accion-btn verde" (click)="confirmarMarcarTodos('P')" aria-label="Marcar todos como presentes">
-          <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon> Todos presentes
+          <span class="accion-icon">✓</span> Todos P
         </button>
         <button type="button" class="accion-btn naranja" (click)="confirmarMarcarTodos('R')" aria-label="Marcar todos con retardo">
-          <ion-icon name="time-outline" aria-hidden="true"></ion-icon> Todos con retardo
+          <span class="accion-icon">⧗</span> Todos R
         </button>
         <button type="button" class="accion-btn rojo" (click)="confirmarMarcarTodos('A')" aria-label="Marcar todos como ausentes">
-          <ion-icon name="close-circle-outline" aria-hidden="true"></ion-icon> Todos ausentes
+          <span class="accion-icon">✕</span> Todos A
         </button>
       </div>
-      <p class="filtro-activo-hint" *ngIf="filtroAlumno">
-        Acciones masivas ocultas mientras hay una búsqueda activa.
-      </p>
 
       <!-- Empty: Sin alumnos -->
       <div class="empty-state" *ngIf="alumnos.length === 0" role="status">
         <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
-        <h3>Sin alumnos en este grupo</h3>
-        <p>Verifica la asignación de alumnos en el panel web.</p>
+        <h3>Sin alumnos</h3>
+        <p>Verifica la asignación en el panel web.</p>
       </div>
 
       <!-- Empty: Sin resultados búsqueda -->
       <div class="empty-state" *ngIf="alumnos.length > 0 && filtroAlumno && alumnosFiltrados.length === 0" role="status">
         <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
         <h3>Sin resultados</h3>
-        <p>No se encontró ningún alumno con ese nombre.</p>
+        <p>No hay alumno con ese nombre.</p>
       </div>
 
-      <!-- Lista de Alumnos -->
+      <!-- Lista de Alumnos — REDISEÑADA -->
       <div class="alumnos-list" *ngIf="alumnosFiltrados.length > 0" role="list">
         <div
           class="alumno-card"
           [ngClass]="alumno.estado"
           *ngFor="let alumno of alumnosFiltrados"
           role="listitem"
-          [attr.aria-label]="'Alumno ' + alumno.nombre + ' ' + alumno.apellido + ', estado actual: ' + (alumno.estado === 'P' ? 'Presente' : alumno.estado === 'R' ? 'Retardo' : 'Ausente')">
+          [attr.aria-label]="'Alumno ' + alumno.apellido + ', ' + alumno.nombre + ' — ' + (alumno.estado === 'P' ? 'Presente' : alumno.estado === 'R' ? 'Retardo' : 'Ausente')">
 
-          <!-- Avatar + Info -->
-          <div class="alumno-info">
+          <!-- Avatar + Nombre (izquierda) -->
+          <div class="alumno-left">
             <div class="alumno-avatar" [ngClass]="alumno.estado">
               <img *ngIf="alumno.foto" [src]="alumno.foto" [alt]="'Foto de ' + alumno.nombre">
               <span *ngIf="!alumno.foto" class="avatar-initials">{{ iniciales(alumno) }}</span>
-              <span class="sin-revisar-dot" *ngIf="!alumno.revisado" aria-label="Sin revisar"></span>
+              <span class="sin-revisar-badge" *ngIf="!alumno.revisado" aria-label="Sin revisar"></span>
             </div>
             <div class="alumno-text">
-              <span class="alumno-num" aria-hidden="true">#{{ alumno.numero }}</span>
               <span class="alumno-nombre">{{ alumno.apellido }}, {{ alumno.nombre }}</span>
+              <span class="alumno-numero">#{{ alumno.numero }}</span>
             </div>
           </div>
 
-          <!-- Botones P / R / A -->
-          <div class="estado-btns" role="group" [attr.aria-label]="'Marcar estado para ' + alumno.nombre + ' ' + alumno.apellido">
+          <!-- Estado Buttons (derecha) — MÁS SEPARADOS Y GRANDES -->
+          <div class="estado-btns" role="group" [attr.aria-label]="'Marcar estado para ' + alumno.nombre">
             <button
               type="button"
               class="estado-btn P"
               [class.activo]="alumno.estado === 'P'"
               (click)="setEstado(alumno, 'P')"
-              aria-label="Marcar como presente"
+              aria-label="Presente"
               [attr.aria-pressed]="alumno.estado === 'P'">
               P
             </button>
@@ -329,7 +329,7 @@
               class="estado-btn R"
               [class.activo]="alumno.estado === 'R'"
               (click)="setEstado(alumno, 'R')"
-              aria-label="Marcar con retardo"
+              aria-label="Retardo"
               [attr.aria-pressed]="alumno.estado === 'R'">
               R
             </button>
@@ -338,7 +338,7 @@
               class="estado-btn A"
               [class.activo]="alumno.estado === 'A'"
               (click)="setEstado(alumno, 'A')"
-              aria-label="Marcar como ausente"
+              aria-label="Ausente"
               [attr.aria-pressed]="alumno.estado === 'A'">
               A
             </button>
@@ -347,17 +347,18 @@
         </div>
       </div>
 
-      <!-- FAB Guardar -->
+      <!-- FAB Guardar — Mejorado con feedback visual -->
       <div class="fab-guardar-wrap" *ngIf="alumnos.length > 0">
         <button
           type="button"
           class="fab-guardar"
+          [class.cambios]="hayCambiosSinGuardar"
           (click)="guardarLista()"
           [disabled]="guardando"
           [attr.aria-label]="guardando ? 'Guardando lista...' : 'Guardar lista'">
           <ion-spinner *ngIf="guardando" name="crescent" aria-hidden="true"></ion-spinner>
-          <ion-icon *ngIf="!guardando" name="checkmark-done-outline" aria-hidden="true"></ion-icon>
-          {{ guardando ? 'Guardando...' : 'Guardar lista' }}
+          <ion-icon *ngIf="!guardando" [name]="yaGuardada ? 'checkmark-done-outline' : 'checkmark-outline'" aria-hidden="true"></ion-icon>
+          {{ guardando ? 'Guardando...' : yaGuardada ? 'Actualizar' : 'Guardar' }}
         </button>
       </div>
 
@@ -382,7 +383,7 @@
       <p>Aún no hay listas guardadas para este grupo.</p>
     </div>
 
-    <!-- Historial -->
+    <!-- Historial — MÁS RESPIRABLE -->
     <div class="historial-list" *ngIf="!cargandoHistorial && historial.length > 0" role="list">
       <ng-container *ngFor="let grupo of historialPorParcial">
         <p class="historial-parcial-header">Parcial {{ grupo.parcial }}</p>
@@ -393,16 +394,18 @@
           *ngFor="let item of grupo.items"
           (click)="abrirDiaHistorial(item.fecha)"
           role="listitem"
-          [attr.aria-label]="'Asistencia del ' + formatFecha(item.fecha) + ': ' + item.presentes + ' presentes, ' + item.retardos + ' retardos, ' + item.ausentes + ' ausentes, ' + porcentajeHistorial(item) + '% asistencia'">
+          [attr.aria-label]="'Asistencia del ' + formatFecha(item.fecha) + ': ' + item.presentes + 'P ' + item.retardos + 'R ' + item.ausentes + 'A (' + porcentajeHistorial(item) + '%)'">
 
-          <div class="hist-fecha-col">
-            <span class="hist-dia" aria-hidden="true">{{ item.fecha.split('-')[2] }}</span>
-            <span class="hist-mes" aria-hidden="true">{{ formatFecha(item.fecha).split(' ')[1] }}</span>
+          <!-- Columna izquierda: fecha grande -->
+          <div class="hist-fecha">
+            <span class="hist-dia">{{ item.fecha.split('-')[2] }}</span>
+            <span class="hist-mes">{{ formatFecha(item.fecha).split(' ')[1] }}</span>
           </div>
 
-          <div class="hist-info">
+          <!-- Columna centro: barra + números -->
+          <div class="hist-content">
             <div class="hist-bar-wrap">
-              <div class="hist-bar" role="img" [attr.aria-label]="'Distribución: ' + ((item.presentes / item.total) * 100 | number: '1.0-0') + '% presentes, ' + ((item.retardos / item.total) * 100 | number: '1.0-0') + '% retardos, ' + ((item.ausentes / item.total) * 100 | number: '1.0-0') + '% ausentes'">
+              <div class="hist-bar" role="img" [attr.aria-label]="'Distribución: ' + ((item.presentes / item.total) * 100 | number: '1.0-0') + '% P, ' + ((item.retardos / item.total) * 100 | number: '1.0-0') + '% R, ' + ((item.ausentes / item.total) * 100 | number: '1.0-0') + '% A'">
                 <div class="hist-bar-seg verde"
                      [style.width.%]="(item.presentes / item.total) * 100"
                      aria-hidden="true"></div>
@@ -414,14 +417,14 @@
                      aria-hidden="true"></div>
               </div>
             </div>
-            <div class="hist-nums">
-              <span class="hist-n verde">{{ item.presentes }}P</span>
-              <span class="hist-n naranja">{{ item.retardos }}R</span>
-              <span class="hist-n rojo">{{ item.ausentes }}A</span>
-              <span class="hist-total">/ {{ item.total }}</span>
+            <div class="hist-summary">
+              <span class="hist-num verde">{{ item.presentes }}P</span>
+              <span class="hist-num naranja">{{ item.retardos }}R</span>
+              <span class="hist-num rojo">{{ item.ausentes }}A</span>
             </div>
           </div>
 
+          <!-- Columna derecha: porcentaje -->
           <div class="hist-pct" [ngClass]="{
             verde:   porcentajeHistorial(item) >= 85,
             naranja: porcentajeHistorial(item) >= 70 && porcentajeHistorial(item) < 85,

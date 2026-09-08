@@ -41,7 +41,6 @@ interface Tarea {
   archivos: ArchivoSubido[]; publicada: boolean;
   totalEntregas?: number; totalAlumnos?: number;
 
-  // ── Alumno: su propia entrega ──
   entregaPropia?: Entrega | null;
   mostrarFormEntrega?: boolean;
   comentarioEntrega?: string;
@@ -50,7 +49,7 @@ interface Tarea {
   progresoEntrega?: number;
   errorEntrega?: string;
 
-  // ── Docente: panel de calificación ──
+
   panelAbierto?: boolean;
   cargandoEntregas?: boolean;
   entregasAlumnos?: AlumnoEntregaRow[];
@@ -71,11 +70,6 @@ const EXT_IMAGEN = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
   styleUrls: ['./tareas.page.scss'],
 })
 export class TareasPage implements OnInit {
-
-  // ═══════════════════════════════════════════
-  // DOCENTE
-  // ═══════════════════════════════════════════
-
   showForm = false;
   editingTarea: Tarea | null = null;
 
@@ -106,10 +100,6 @@ export class TareasPage implements OnInit {
 
   private formSnapshot = '';
 
-  // ═══════════════════════════════════════════
-  // ALUMNO
-  // ═══════════════════════════════════════════
-
   tareasAlumno: Tarea[] = [];
   cargandoTareasAlumno = false;
   errorTareasAlumno: string | null = null;
@@ -130,9 +120,7 @@ export class TareasPage implements OnInit {
     return new Date().toISOString().split('T')[0];
   }
 
-  // Abre un archivo (o enlace externo) normalizando su URL primero.
-  // Antes esto mandaba la URL cruda a Capacitor Browser: si venía como
-  // ruta relativa de Cloudinary ("image/upload/v.../archivo.pdf") no abría nada.
+
   abrirArchivo(url: string) {
     const normalizada = this.urlArchivo(url);
     if (normalizada) this.visorArchivos.abrir(normalizada);
@@ -155,9 +143,6 @@ export class TareasPage implements OnInit {
     else done();
   }
 
-  // ─────────────────────────────────────────────
-  // DOCENTE: MATERIAS Y GRUPOS
-  // ─────────────────────────────────────────────
   async cargarMaterias() {
     if (!this.esDocente) return;
     this.cargandoOpciones = true;
@@ -196,10 +181,6 @@ export class TareasPage implements OnInit {
     if (!g) return '—';
     return g.aula ? `${g.grado}° ${g.nombre} — Aula ${g.aula}` : `${g.grado}° ${g.nombre}`;
   }
-
-  // ─────────────────────────────────────────────
-  // DOCENTE: CARGAR TAREAS
-  // ─────────────────────────────────────────────
   async cargarTareas() {
     this.cargandoTareas = true;
     this.errorTareas = null;
@@ -237,7 +218,6 @@ export class TareasPage implements OnInit {
     }
   }
 
-  // Corregido: la columna real es tarea_id, no actividad_id.
   private async cargarConteoEntregas() {
     if (!this.tareas.length) return;
     const ids = this.tareas.map(t => t.id);
@@ -273,10 +253,6 @@ export class TareasPage implements OnInit {
   }
 
   esVencida(t: Tarea): boolean { return t.fecha_entrega < this.fechaMinima; }
-
-  // ─────────────────────────────────────────────
-  // DOCENTE: PANEL DE CALIFICACIÓN
-  // ─────────────────────────────────────────────
   async togglePanelEntregas(tarea: Tarea) {
     tarea.panelAbierto = !tarea.panelAbierto;
     if (tarea.panelAbierto && !tarea.entregasAlumnos) {
@@ -359,9 +335,6 @@ export class TareasPage implements OnInit {
     return (entrega?.estado || '').toUpperCase() === ESTADO_CALIFICADA;
   }
 
-  // ─────────────────────────────────────────────
-  // DOCENTE: FILTROS
-  // ─────────────────────────────────────────────
   get materiasFiltro() { const m = new Map<number, string>(); this.tareas.forEach(t => m.set(t.materia_id, t.materia_nombre)); return [...m.entries()].map(([id, nombre]) => ({ id, nombre })); }
   get gruposFiltro() { const m = new Map<number, string>(); this.tareas.forEach(t => m.set(t.grupo_id, t.grupo_nombre)); return [...m.entries()].map(([id, nombre]) => ({ id, nombre })); }
   get hayFiltrosActivos() { return !!(this.searchTerm || this.filtroMateriaId || this.filtroGrupoId || this.filtroEstado !== 'todas'); }
@@ -381,10 +354,6 @@ export class TareasPage implements OnInit {
   limpiarFiltros() { this.searchTerm = ''; this.filtroMateriaId = null; this.filtroGrupoId = null; this.filtroEstado = 'todas'; }
   getPendientes() { return this.tareas.filter(t => !this.esVencida(t)).length; }
   getVencidas() { return this.tareas.filter(t => this.esVencida(t)).length; }
-
-  // ─────────────────────────────────────────────
-  // DOCENTE: FORMULARIO CREAR/EDITAR
-  // ─────────────────────────────────────────────
   abrirFormularioNuevo() { this.editingTarea = null; this.resetForm(); this.showForm = true; this.snap(); }
 
   async abrirFormularioEditar(t: Tarea) {
@@ -507,14 +476,9 @@ private async actualizar(archivos: ArchivoSubido[], mat?: Materia, grp?: Grupo) 
         text: 'Eliminar', role: 'destructive',
         handler: async () => {
           try {
-            // 1) Los comentarios de la tarea se eliminan en cascada desde la base de datos.
-
-            // 2) Borrar entregas de los alumnos
             const { error: eEnt } = await this.sesion.supabase
               .rpc('borrar_entregas_de_tarea', { p_token: this.sesion.usuario?.token, p_tarea_id: tarea.id });
             if (eEnt) throw eEnt;
-
-            // 3) Ahora sí, borrar la tarea
             const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
             const { error } = await this.sesion.supabase.rpc('eliminar_tarea', { p_token: token, p_tarea_id: tarea.id });
             if (error) throw error;
@@ -539,10 +503,6 @@ private async actualizar(archivos: ArchivoSubido[], mat?: Materia, grp?: Grupo) 
     tarea.publicada = !tarea.publicada;
     this.toast(tarea.publicada ? 'Tarea publicada.' : 'Guardada como borrador.', 'success');
   }
-
-  // ─────────────────────────────────────────────
-  // DOCENTE: ARCHIVOS DE LA TAREA (múltiples)
-  // ─────────────────────────────────────────────
   onDragOver(e: DragEvent) { e.preventDefault(); e.stopPropagation(); this.isDragging = true; }
   onDragLeave(e: DragEvent) { e.preventDefault(); e.stopPropagation(); this.isDragging = false; }
   onDrop(e: DragEvent) { e.preventDefault(); e.stopPropagation(); this.isDragging = false; if (e.dataTransfer?.files.length) this.subirArchivos(Array.from(e.dataTransfer.files)); }
@@ -577,18 +537,11 @@ private async actualizar(archivos: ArchivoSubido[], mat?: Materia, grp?: Grupo) 
       .then(r => { item.subiendo = false; item.resultado = r; })
       .catch(() => { item.subiendo = false; item.error = true; });
   }
-
-  // ═══════════════════════════════════════════
-  // ALUMNO: CARGAR SUS TAREAS + SU ENTREGA
-  // ═══════════════════════════════════════════
   async cargarTareasAlumno() {
     this.cargandoTareasAlumno = true;
     this.errorTareasAlumno = null;
     try {
       const uid = this.sesion.usuario!.id;
-
-      // Antes: const grupoId = this.sesion.usuario?.alumno_grupo_id;
-      // Ahora: se consulta fresco, igual que en inicio.page
       const { data: usu, error: eU } = await this.sesion.supabase
         .rpc('perfil_basico_usuario', { p_token: this.sesion.usuario?.token, p_user_id: uid })
         .single();
@@ -708,17 +661,11 @@ private async actualizar(archivos: ArchivoSubido[], mat?: Materia, grp?: Grupo) 
   tareaBloqueada(tarea: Tarea): boolean {
     return this.esVencida(tarea) || this.esCalificada(tarea.entregaPropia);
   }
-  // ─────────────────────────────────────────────
-  // COMPARTIDOS
-  // ─────────────────────────────────────────────
   getFileIcon(name: string): string {
     const ext = name.split('.').pop()?.toLowerCase();
     const m: Record<string, string> = { pdf: 'document-text-outline', doc: 'reader-outline', docx: 'reader-outline', jpg: 'image-outline', jpeg: 'image-outline', png: 'image-outline', mp4: 'videocam-outline', mov: 'videocam-outline', zip: 'archive-outline', rar: 'archive-outline' };
     return m[ext || ''] || 'document-outline';
   }
-
-  // Extrae la extensión real de una URL, ignorando query params
-  // (ej. Cloudinary a veces agrega ?v=123 o similares al final).
   private extension(url: string): string {
     const sinQuery = (url || '').split('?')[0].split('#')[0];
     return sinQuery.split('.').pop()?.toLowerCase() || '';
@@ -731,9 +678,6 @@ private async actualizar(archivos: ArchivoSubido[], mat?: Materia, grp?: Grupo) 
   esPDF(url: string): boolean {
     return this.extension(url) === 'pdf';
   }
-
-  // true si el archivo se puede previsualizar inline (imagen o pdf);
-  // si es false, se muestra solo el enlace "Abrir archivo".
   esPrevisualizable(url: string): boolean {
     return this.esImagen(url) || this.esPDF(url);
   }
@@ -753,13 +697,6 @@ private async actualizar(archivos: ArchivoSubido[], mat?: Materia, grp?: Grupo) 
   irADetalle(tarea: Tarea) {
     this.router.navigate(['/tareas', tarea.id]);
   }
-
-  // Normaliza el valor guardado en "archivo" para poder abrirlo/mostrarlo.
-  // 1) Si ya trae "http" en algún punto, corta todo lo anterior (limpia prefijos
-  //    corruptos, ej. "raw/upload/https://...").
-  // 2) Si no trae "http" para nada (ruta relativa "pura" de Cloudinary, ej.
-  //    "image/upload/v.../archivo.pdf" o "raw/upload/v.../archivo.pdf"),
-  //    reconstruye la URL completa usando el cloud_name de environment.
   urlArchivo(raw: string | null | undefined): string {
     if (!raw) return '';
     const idx = raw.indexOf('http');

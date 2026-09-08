@@ -3,10 +3,10 @@ import { environment } from 'src/environments/environment';
 
 export interface ArchivoSubido {
   name:     string;
-  url:      string;    // secure_url de Cloudinary
+  url:      string;
   size:     number;
   type:     string;
-  publicId: string;    // para borrar después si hace falta
+  publicId: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -15,11 +15,7 @@ export class CloudinaryService {
   private readonly uploadUrl =
     `https://api.cloudinary.com/v1_1/${environment.cloudinaryCloudName}/auto/upload`;
 
-  /**
-   * Sube un archivo usando un upload preset SIN FIRMA (configurado en el
-   * dashboard de Cloudinary como "Unsigned"). No expone el API_SECRET.
-   * onProgress recibe 0-100 para mostrar barra de avance.
-   */
+
   subirArchivo(file: File, onProgress?: (pct: number) => void): Promise<ArchivoSubido> {
     return new Promise((resolve, reject) => {
       const fd = new FormData();
@@ -45,7 +41,7 @@ export class CloudinaryService {
             reject(new Error('Respuesta inválida de Cloudinary.'));
           }
         } else {
-          // Causa más común: el preset no existe o no es "Unsigned" en el dashboard.
+
           reject(new Error(`Error ${xhr.status} subiendo archivo. Verifica el upload preset.`));
         }
       };
@@ -55,7 +51,7 @@ export class CloudinaryService {
     });
   }
 
-  /** Sube varios archivos en secuencia reportando progreso por índice. */
+   
   async subirVarios(files: File[], onProgress?: (i: number, pct: number) => void): Promise<ArchivoSubido[]> {
     const resultados: ArchivoSubido[] = [];
     for (let i = 0; i < files.length; i++) {

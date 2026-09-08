@@ -7,13 +7,9 @@ import {
   PreguntaActividad
 } from '../pages/clase/clase.page';
 
-// Fin del día (23:59:59) de una fecha dada.
-// Se usa como fecha_entrega por defecto cuando una actividad
-// se crea desde un bloque de clase que no pide fecha límite propia.
-// ✅ CORREGIDO: construir directamente en ISO para evitar desplazamiento de zona horaria
+
 function finDelDia(fechaIso: string): string {
   const soloFecha = fechaIso.split('T')[0];
-  // Directamente en ISO 8601 sin conversión de zona horaria
   return `${soloFecha}T23:59:59.999Z`;
 }
 
@@ -26,20 +22,6 @@ export class ActividadSyncService {
 
   constructor(private sesion: SesionService) {}
 
-  // ============================================================
-  // SINCRONIZAR BLOQUE DE ACTIVIDAD
-  // ============================================================
-
-  // Crea o actualiza la academic_actividad ligada a este bloque
-  // y sincroniza sus preguntas/opciones vía RPC.
-  //
-  // Es seguro llamarlo repetidamente:
-  // reutiliza filas existentes mediante:
-  //   - bloque_origen_id (para academic_actividad)
-  //   - origen_pregunta_id (para academic_preguntaactividad)
-  //
-  // Por lo tanto no pierde las entregas ya realizadas por alumnos.
-  // ✅ CORREGIDO: devuelve {success, error} en lugar de Promise<void>
   async sincronizarBloque(
     bloque: BloqueClase,
     sesionActiva: SesionClase
@@ -56,13 +38,13 @@ export class ActividadSyncService {
       p => p.pregunta?.trim()
     );
 
-    // ✅ CORREGIDO: advertencia en lugar de silent return
+
     if (!preguntasValidas.length) {
       console.warn(
         `[sincronizarBloque] Bloque ${bloque.id} no tiene preguntas válidas. ` +
         `Solo se sincronizarán las instrucciones (sin autocalificación).`
       );
-      // Continuar igual — la actividad se crea con instrucciones, sin preguntas
+
     }
 
     const actividadId = await this.upsertActividad(
@@ -75,7 +57,7 @@ export class ActividadSyncService {
       return { success: false, error: 'No se pudo crear/actualizar la actividad' };
     }
 
-    // Usar RPC para sincronizar todas las preguntas de una vez
+
     if (preguntasValidas.length > 0) {
       const syncResult = await this.sincronizarPreguntasViaRpc(
         actividadId,
@@ -90,14 +72,6 @@ export class ActividadSyncService {
     return { success: true };
   }
 
-  // ============================================================
-  // DESPUBLICAR ACTIVIDAD
-  // ============================================================
-
-  // Se llama al desactivar un bloque de actividad.
-  // Usa RPC para garantizar seguridad.
-  // No elimina el historial de calificaciones:
-  // únicamente oculta la actividad de Tareas.
   async despublicarPorBloque(
     bloqueId: number
   ): Promise<void> {
@@ -123,9 +97,7 @@ export class ActividadSyncService {
     }
   }
 
-  // ============================================================
-  // PARSEAR ACTIVIDAD
-  // ============================================================
+
 
   private parsearActividad(
     contenidoRaw: string
@@ -141,13 +113,7 @@ export class ActividadSyncService {
     }
   }
 
-  // ============================================================
-  // CREAR / ACTUALIZAR ACTIVIDAD
-  // ============================================================
 
-  // NOTA: academic_actividad aún permite INSERT/UPDATE directo
-  // porque necesita ser creada antes de sincronizar preguntas.
-  // Se migrará a RPC cuando se haga el REVOKE en BD.
 
   private async upsertActividad(
     bloque: BloqueClase,
@@ -155,9 +121,7 @@ export class ActividadSyncService {
     act: ActividadContenido
   ): Promise<number | null> {
 
-    // Antes: "p_bloque_origen_id:" se mandaba vacío (nunca se pasaba
-    // bloque.id), así que la búsqueda de la actividad existente nunca
-    // encontraba nada y siempre se creaba una actividad nueva.
+
     const { data: _ex, error: errorBusqueda } = await this.sesion.supabase.rpc(
       'id_actividad_por_bloque_origen',
       {
@@ -190,9 +154,6 @@ export class ActividadSyncService {
       creada_en: new Date().toISOString(),
     };
 
-    // ----------------------------------------------------------
-    // Actualizar actividad existente
-    // ----------------------------------------------------------
 
     if (existente) {
 
@@ -210,14 +171,7 @@ export class ActividadSyncService {
       return (existente as any).id;
     }
 
-    // ----------------------------------------------------------
-    // Crear actividad nueva
-    // ----------------------------------------------------------
 
-    // Antes: "p_payload: {}" mandaba un objeto vacío en vez del
-    // "payload" ya armado arriba, así que la actividad se creaba sin
-    // título, instrucciones, asignatura, grupo, docente ni referencia
-    // al bloque de origen.
 const { data: nueva, error } = await this.sesion.supabase
   .rpc('insertar_actividad_json', {
     p_token: (this.sesion.usuario?.token || this.sesion.tutor?.token),
@@ -228,7 +182,7 @@ if (error) {
   throw error;
 }
 
-// El resultado es un objeto JSON: { id: 123, titulo: "...", ... }
+
 if (nueva && typeof nueva === 'object') {
   const id = (nueva as any).id;
   if (id) {
@@ -239,26 +193,12 @@ if (nueva && typeof nueva === 'object') {
 return null;
   }
 
-  // ============================================================
-  // SINCRONIZAR PREGUNTAS VÍA RPC
-  // ============================================================
 
-  // Usa sync_preguntas_actividad para sincronizar todas las preguntas
-  // de una actividad de una sola vez.
-  //
-  // Esta RPC:
-  // - Elimina preguntas que ya no están en el payload
-  // - Crea nuevas preguntas
-  // - Actualiza preguntas existentes
-  // - Sincroniza opciones automáticamente
-
-  // ✅ CORREGIDO: devuelve {success, error} en lugar de Promise<void>
   private async sincronizarPreguntasViaRpc(
     actividadId: number,
     preguntas: PreguntaActividad[]
   ): Promise<{ success: boolean; error?: string }> {
 
-    // ✅ CORREGIDO: usar fallback de tutor
     const token = this.sesion.usuario?.token || this.sesion.tutor?.token;
 
     if (!token) {
@@ -268,7 +208,7 @@ return null;
       };
     }
 
-    // Convertir preguntas al formato esperado por la RPC
+
     const preguntasPayload = preguntas.map(
       (p, idx) => {
         const tipoBD = this.convertirTipoPregunta(p.tipo);
@@ -304,22 +244,6 @@ return null;
     return { success: true };
   }
 
-  // ============================================================
-  // HELPER: CONVERTIR TIPO DE PREGUNTA
-  // ============================================================
-
-  // Convierte el tipo del modelo de clase al tipo de BD.
-  //
-  // Frontend/clase.page.ts:
-  //   opcion_multiple
-  //   verdadero_falso
-  //   respuesta_corta
-  //
-  // BD:
-  //   MULTIPLE
-  //   VF
-  //   ABIERTA
-
   private convertirTipoPregunta(tipoFrontend: string): string {
     switch (tipoFrontend) {
       case 'opcion_multiple':
@@ -333,27 +257,9 @@ return null;
     }
   }
 
-  // ============================================================
-  // HELPER: CONSTRUIR OPCIONES
-  // ============================================================
-
-  // Construye el array de opciones para guardar_opciones_pregunta().
-  //
-  // Formato esperado:
-  //   [{
-  //     texto: string,
-  //     es_correcta: boolean
-  //   }, ...]
-  //
-  // Respuesta abierta devuelve [] (sin opciones).
-
   private construirOpciones(
     p: PreguntaActividad
   ): Array<{ texto: string; es_correcta: boolean }> {
-
-    // ----------------------------------------------------------
-    // Opción múltiple
-    // ----------------------------------------------------------
 
     if (
       p.tipo === 'opcion_multiple' &&
@@ -372,10 +278,6 @@ return null;
           o => o.texto?.trim()
         );
 
-    // ----------------------------------------------------------
-    // Verdadero / Falso
-    // ----------------------------------------------------------
-
     } else if (
       p.tipo === 'verdadero_falso'
     ) {
@@ -392,11 +294,6 @@ return null;
             p.respuestaCorrecta === false
         }
       ];
-
-    // ----------------------------------------------------------
-    // Respuesta corta / ABIERTA
-    // ----------------------------------------------------------
-
     } else {
       return [];
     }

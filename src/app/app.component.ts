@@ -13,24 +13,22 @@ import { NetworkStatusService } from '../environments/network-status.service';
 })
 export class AppComponent implements OnInit, OnDestroy {
 
-  // Año dinámico para el footer del menú
   currentYear = new Date().getFullYear();
 
-  // Fallback de avatar
+
   private avatarFallback = 'assets/img/default-avatar.png';
   private avatarErrorOcurrido = false;
   private ultimaAvatarUrlCruda: string | null = null;
   private avatarCacheBuster = 0;
 
-  // Badges
   hayAsistenciaPendienteHoy = false;
   hayClaseEnVivoActiva = false;
 
-  // Estado de conexión
+
   sinConexion = false;
   private networkSub?: Subscription;
 
-  // Keep-alive para iOS (mantiene el WebView activo)
+
   private keepAliveInterval: any;
 
   constructor(
@@ -49,7 +47,7 @@ export class AppComponent implements OnInit, OnDestroy {
       this.sinConexion = !isOnline;
     });
 
-    // Iniciar keep-alive solo en iOS
+
     this.platform.ready().then(() => {
       if (this.platform.is('ios')) {
         this.startKeepAlive();
@@ -62,11 +60,11 @@ export class AppComponent implements OnInit, OnDestroy {
     this.stopKeepAlive();
   }
 
-  // ── Keep-alive: mantiene el WebView activo ────────────────────────────────
+
   private startKeepAlive() {
     this.stopKeepAlive();
     this.keepAliveInterval = setInterval(() => {
-      // Operación trivial que fuerza un reflow
+
       document.body.getBoundingClientRect();
     }, 500);
   }
@@ -78,7 +76,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ── HostListener: fuerza el foco en inputs al tocarlos (iOS) ──────────────
+
   @HostListener('document:touchstart', ['$event'])
   onTouchStart(event: TouchEvent) {
     if (this.platform.is('ios')) {
@@ -92,7 +90,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ── Getters ─────────────────────────────────────────────────────────────────
+
   get usuario(): Usuario | null {
     return this.sesion.usuario;
   }
@@ -118,7 +116,7 @@ export class AppComponent implements OnInit, OnDestroy {
     return `${urlCruda}${separador}v=${this.avatarCacheBuster}`;
   }
 
-  // ── Roles ──────────────────────────────────────────────────────────────────
+
   get esAlumno(): boolean {
     return this.sesion.rolActual === 'ALUMNO';
   }
@@ -168,7 +166,7 @@ export class AppComponent implements OnInit, OnDestroy {
     return this.sesion.iniciarSesion(username, password);
   }
 
-  // ── Badge "HOY" ────────────────────────────────────────────────────────────
+ 
   private async chequearAsistenciaPendienteHoy() {
     try {
       const uid = this.sesion.usuario?.id;

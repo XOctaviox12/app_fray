@@ -3,6 +3,7 @@ import { NavController, ToastController, AlertController, IonicSafeString } from
 import { SesionService } from '../../services/sesion.service';
 
 type Estado = 'P' | 'A' | 'R';
+type BannerEstado = 'sin-guardar' | 'sin-revisar' | 'guardada' | null;
 
 interface Alumno {
   id: number;
@@ -111,6 +112,33 @@ export class AsistenciaPage implements OnInit {
   get hayCambiosSinGuardar(): boolean {
     if (!this.alumnos.length) return false;
     return this.alumnos.some(a => this.snapshotEstados.get(a.id) !== a.estado);
+  }
+
+  // ── Estado unificado de banner ───────────────────────────
+  // Antes se mostraban hasta 3 banners apilados (guardada / sin-guardar / sin-revisar)
+  // al mismo tiempo, compitiendo por atención. Ahora se muestra solo el más
+  // relevante, en orden de prioridad: cambios sin guardar (riesgo de perder
+  // trabajo) > alumnos sin revisar (calidad del dato) > lista ya guardada
+  // (informativo). "Fecha distinta a hoy" pasó a ser un estado visual del
+  // propio chip de fecha, no una alerta aparte (ver getter `fechaEsDistinta`).
+  get bannerActivo(): BannerEstado {
+    if (this.hayCambiosSinGuardar) return 'sin-guardar';
+    if (this.totalSinRevisar > 0 && !this.filtroAlumno) return 'sin-revisar';
+    if (this.yaGuardada) return 'guardada';
+    return null;
+  }
+
+  get fechaEsDistinta(): boolean {
+    return !this.esHoy;
+  }
+
+  // ── Resumen del selector ──────────────────────────────────
+  get totalGruposListado(): number {
+    return this.materias.reduce((acc, m) => acc + m.grupos.length, 0);
+  }
+
+  get gruposPendientes(): number {
+    return this.materias.reduce((acc, m) => acc + m.grupos.filter(g => !g.tomada).length, 0);
   }
 
   get grupoEtiqueta(): string {
@@ -485,40 +513,6 @@ export class AsistenciaPage implements OnInit {
 
     await this.confirmarResumenYGuardar();
   }
-
-  private async confirmarResumenYGuardar() {
-    const pctAusentes = this.alumnos.length
-      ? Math.round((this.totalAusentes / this.alumnos.length) * 100)
-      : 0;
-
-    let mensaje =
-      `<strong>${this.materiaNombre} · Grupo ${this.grupoNombre}</strong><br>` +
-      `${this.fechaSeleccionadaDisplay}<br>` +
-      `${this.totalPresentes} presentes · ${this.totalRetardos} retardos · ${this.totalAusentes} ausentes`;
-
-    if (pctAusentes >= 30) {
-      mensaje += `<br><br>⚠️ ${pctAusentes}% de ausentismo, verifica antes de guardar.`;
-    }
-    if (this.totalSinRevisar > 0) {
-      mensaje += `<br><br>⚠️ ${this.totalSinRevisar} alumno(s) sin revisar (quedaron en "Presente" por defecto).`;
-    }
-
-    const alert = await this.alertCtrl.create({
-      header: 'Confirmar asistencia',
-      // Antes se mandaba "mensaje" como string plano: Angular lo escapa
-      // por seguridad y las etiquetas <strong>/<br> salían literales en
-      // pantalla. IonicSafeString le dice al AlertController "esto ya
-      // está sanitizado, ríndelo como HTML".
-      message: new IonicSafeString(mensaje),
-      cssClass: 'asist-alert',
-      buttons: [
-        { text: 'Revisar de nuevo', role: 'cancel' },
-        { text: 'Guardar', handler: () => this.ejecutarGuardado() },
-      ],
-    });
-    await alert.present();
-  }
-
   private async ejecutarGuardado() {
     this.guardando = true;
     const fechaStr = this.toDateStr(this.fechaSeleccionada);
@@ -610,11 +604,6 @@ export class AsistenciaPage implements OnInit {
     this.cargandoHistorial = false;
   }
 
-  formatFecha(iso: string): string {
-    const [y, m, d] = iso.split('-');
-    return `${d} ${MESES_CORTO[+m - 1]} ${y}`;
-  }
-
   porcentajeHistorial(item: HistorialItem): number {
     if (!item.total) return 0;
     return Math.round(((item.presentes + item.retardos * 0.5) / item.total) * 100);
@@ -634,4 +623,67 @@ export class AsistenciaPage implements OnInit {
     });
     await t.present();
   }
+  // ═══════════════════════════════════════════════════════════════════════════════════
+// MÉTODOS NUEVOS / MODIFICADOS PARA LA VERSIÓN OPTIMIZADA
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+// Añadir este método al componente existente:
+
+formatFechaCorta(d: Date): string {
+  // Para el sticky header — formato compacto: "1 Ago"
+  const dia = d.getDate();
+  const mes = MESES_CORTO[d.getMonth()];
+  return `${dia} ${mes}`;
+}
+
+// Este método ya existe, pero lo incluyo para referencia:
+formatFecha(iso: string): string {
+  // Para el historial — formato medio: "1 Ago 2026"
+  const [y, m, d] = iso.split('-');
+  return `${d} ${MESES_CORTO[+m - 1]} ${y}`;
+}
+
+private async confirmarResumenYGuardar() {
+  const pctAusentes = this.alumnos.length
+    ? Math.round((this.totalAusentes / this.alumnos.length) * 100)
+    : 0;
+
+  // CONSTRUCCIÓN MODULAR DEL MENSAJE
+  let mensaje = `<strong>${this.materiaNombre} · ${this.grupoNombre}</strong><br>`;
+
+  if (!this.esHoy) {
+    mensaje += `📅 ${this.fechaSeleccionadaDisplay}<br>`;
+  }
+
+  mensaje += `<br>${this.totalPresentes}P · ${this.totalRetardos}R · ${this.totalAusentes}A`;
+
+  // ADVERTENCIAS (en orden de importancia)
+  const advertencias: string[] = [];
+
+  if (pctAusentes >= 30) {
+    advertencias.push(`⚠️ ${pctAusentes}% de ausentismo`);
+  }
+  if (this.totalSinRevisar > 0) {
+    advertencias.push(`⚠️ ${this.totalSinRevisar} sin revisar`);
+  }
+  if (this.yaGuardada) {
+    advertencias.push(`ℹ️ Ya existe lista guardada — se sobrescribirá`);
+  }
+
+  if (advertencias.length > 0) {
+    mensaje += `<br><br>${advertencias.join('<br>')}`;
+  }
+
+  const alert = await this.alertCtrl.create({
+    header: 'Confirmar asistencia',
+    message: new IonicSafeString(mensaje),
+    cssClass: 'asist-alert',
+    buttons: [
+      { text: 'Revisar', role: 'cancel' },
+      { text: 'Guardar', handler: () => this.ejecutarGuardado() },
+    ],
+  });
+  await alert.present();
+}
+
 }

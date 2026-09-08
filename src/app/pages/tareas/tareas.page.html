@@ -16,10 +16,6 @@
   </ion-refresher>
 
   <div class="page-shell app-container">
-
-  <!-- ═══════════════════════════════════════════ -->
-  <!-- VISTA DOCENTE                               -->
-  <!-- ═══════════════════════════════════════════ -->
   <ng-container *ngIf="esDocente">
 
     <div class="tareas-hero">
@@ -42,8 +38,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Buscador, filtros y botón "Nueva Tarea" (inline en tablet/desktop) -->
     <div class="filters-bar" *ngIf="!cargandoTareas && !errorTareas">
 
       <ng-container *ngIf="tareas.length > 0">
@@ -90,8 +84,6 @@
         Nueva Tarea
       </button>
     </div>
-
-    <!-- Formulario nueva tarea / editar tarea -->
     <div class="new-task-form" *ngIf="showForm">
       <div class="form-header">
         <h3 class="form-title text-truncate">{{ editingTarea ? 'Editar Tarea' : 'Nueva Tarea' }}</h3>
@@ -282,8 +274,6 @@
         </div>
 
         <p class="task-desc text-clamp-2" *ngIf="tarea.descripcion" [title]="tarea.descripcion">{{ tarea.descripcion }}</p>
-
-        <!-- Progreso de entregas -->
         <div class="progreso-entregas-wrap" *ngIf="tarea.totalAlumnos !== undefined && tarea.totalAlumnos > 0">
           <div class="progreso-entregas-label">
             <span>Progreso de entregas</span>
@@ -322,15 +312,11 @@
             </span>
           </div>
         </div>
-
-        <!-- ── Botón ver/calificar entregas ── -->
         <button class="btn-ver-entregas" (click)="togglePanelEntregas(tarea); $event.stopPropagation()"
                 [attr.aria-expanded]="tarea.panelAbierto">
           <ion-icon [name]="tarea.panelAbierto ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
           {{ tarea.panelAbierto ? 'Ocultar entregas' : 'Ver y calificar entregas' }}
         </button>
-
-        <!-- ── Panel de entregas ── -->
         <div class="panel-entregas" *ngIf="tarea.panelAbierto" (click)="$event.stopPropagation()">
 
           <div class="loading-entregas" *ngIf="tarea.cargandoEntregas">
@@ -413,10 +399,6 @@
     </ion-fab>
 
   </ng-container>
-
-  <!-- ═══════════════════════════════════════════ -->
-  <!-- VISTA ALUMNO                                -->
-  <!-- ═══════════════════════════════════════════ -->
   <ng-container *ngIf="esAlumno">
 
     <div class="tareas-hero">
@@ -498,8 +480,6 @@
             {{ esVencida(tarea) ? 'Vencida' : 'Activa' }}
           </span>
         </div>
-
-        <!-- ── Estado de mi entrega ── -->
         <div class="mi-entrega-status" *ngIf="tarea.entregaPropia" (click)="$event.stopPropagation()">
           <div class="mi-entrega-header">
             <span class="section-eyebrow" style="margin:0;">Mi entrega</span>
@@ -534,14 +514,10 @@
             Reemplazar entrega
           </button>
         </div>
-
-        <!-- ── Botón entregar (si aún no ha entregado) ── -->
         <button class="btn-entregar" *ngIf="!tarea.entregaPropia && !tarea.mostrarFormEntrega" (click)="toggleFormEntrega(tarea); $event.stopPropagation()">
           <ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon>
           Entregar tarea
         </button>
-
-        <!-- ── Formulario de entrega ── -->
         <div class="form-entrega" *ngIf="tarea.mostrarFormEntrega" (click)="$event.stopPropagation()">
           <div class="input-group">
             <label class="input-label" [attr.for]="'comentario-' + tarea.id">Comentario (opcional)</label>

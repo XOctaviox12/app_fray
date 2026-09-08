@@ -18,7 +18,7 @@ export interface Usuario {
   estatus?: string;
   is_active?: boolean;
   alumno_grupo_id?: number;
-  token?: string;   // ← nuevo: token de sesión emitido por Supabase (RPC crear_sesion)
+  token?: string;
   [key: string]: any;
 }
 
@@ -31,7 +31,7 @@ export interface SesionTutor {
   telefono:   string;
   alumno_id:  number;
   rol:        'TUTOR';
-  token?:     string;   // ← nuevo
+  token?:     string;
 }
 
 const STORAGE_KEY = 'usuario_sesion';
@@ -60,9 +60,7 @@ cargarSesionLocal(): void {
       this.tutor = parsed;
       this.loggedIn = true;
     } else {
-      // Si la sesión guardada no tiene 'estatus', es una sesión vieja
-      // de antes de que agregáramos ese campo al select. Forzamos
-      // nuevo login para traer los datos completos.
+
       if (parsed.estatus === undefined) {
         localStorage.removeItem(STORAGE_KEY);
         return;
@@ -75,7 +73,7 @@ cargarSesionLocal(): void {
   }
 }
 
-// ── Login alumno / maestro ───────────────────────────────
+
 async iniciarSesion(username: string, password: string): Promise<boolean> {
   try {
     const { data, error } = await this.supabase
@@ -86,8 +84,7 @@ async iniciarSesion(username: string, password: string): Promise<boolean> {
 
     const seguro = { ...data } as any;
 
-    // Emitir token de sesión vía RPC (para poder usar RLS en tablas sensibles
-    // sin depender de supabase.auth, que este proyecto no usa)
+
     const { data: token, error: eToken } = await this.supabase.rpc('crear_sesion', { p_user_id: seguro.id });
     if (eToken) { console.error('No se pudo crear la sesion:', eToken.message); return false; }
 
@@ -98,11 +95,10 @@ async iniciarSesion(username: string, password: string): Promise<boolean> {
   } catch (e: any) { console.error(e.message); return false; }
 }
 
-// ── Login tutor por código de acceso ─────────────────────
-// users_tutor.codigo_acceso es un campo generado por Django en Tutor.save()
+
 async iniciarSesionTutor(codigo: string): Promise<boolean> {
   try {
-    // ⭐ CÓDIGO ESPECIAL PARA REVISIÓN DE APPLE - REMOVE DESPUÉS DE APROBACIÓN
+
     if (codigo === 'APPSTORETE') {
       const sesion: SesionTutor = {
         _tipo: 'TUTOR', id: 999, nombre: 'Tutor Demo', parentesco: 'Padre/Madre',
@@ -114,14 +110,14 @@ async iniciarSesionTutor(codigo: string): Promise<boolean> {
       return true;
     }
 
-    // Validación normal con servidor
+
     const { data, error } = await this.supabase
       .rpc('verificar_codigo_tutor', { p_codigo: codigo })
       .single<{ id: number; nombre: string; parentesco: string; correo: string | null; telefono: string; alumno_id: number }>();
 
     if (error || !data) { console.error('Login tutor fallido:', error?.message); return false; }
 
-    // Tutor no tiene fila en users_user, así que se le pasa un flag propio a crear_sesion
+
     const { data: token, error: eToken } = await this.supabase.rpc('crear_sesion_tutor', { p_tutor_id: data.id });
     if (eToken) { console.error('No se pudo crear la sesion del tutor:', eToken.message); return false; }
 
@@ -136,21 +132,21 @@ async iniciarSesionTutor(codigo: string): Promise<boolean> {
   } catch (e: any) { console.error(e.message); return false; }
 }
 
-// ── Cerrar sesión ────────────────────────────────────────
+
 async cerrarSesion(): Promise<void> {
   const token = this.usuario?.token || this.tutor?.token;
   if (token) {
     try {
       await this.supabase.rpc('cerrar_sesion', { p_token: token });
     } catch {
-      // no crítico: si falla, el token simplemente expira solo por su expira_en
+
     }
   }
   this.usuario = null; this.tutor = null; this.loggedIn = false;
   localStorage.removeItem(STORAGE_KEY);
 }
 
-// ── Rol ──────────────────────────────────────────────────
+
 get rolActual(): string {
   if (this.tutor) return 'TUTOR';
   return (this.usuario?.rol || '').toUpperCase();
@@ -160,7 +156,7 @@ esDocente(): boolean { return ['DOCENTE','COORD','DIRECTOR'].includes(this.rolAc
 esAlumno():  boolean { return this.rolActual === 'ALUMNO'; }
 esTutor():   boolean { return this.rolActual === 'TUTOR'; }
 
-// ── Display ──────────────────────────────────────────────
+ 
 getNombreDisplay(): string {
   if (this.tutor) return this.tutor.nombre;
   if (!this.usuario) return '';

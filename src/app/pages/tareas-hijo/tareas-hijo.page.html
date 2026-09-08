@@ -16,14 +16,10 @@
   </ion-refresher>
 
   <div class="page-shell">
-
-    <!-- ── Error ── -->
     <div *ngIf="error" class="global-error" role="alert">
       <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
       {{ error }}
     </div>
-
-    <!-- ── Hero ── -->
     <div class="tareas-hero">
 
       <div class="hero-top">
@@ -31,8 +27,6 @@
           <h2 class="hero-title">Seguimiento Académico</h2>
           <p class="hero-sub">Monitorea entregas y calificaciones</p>
         </div>
-
-        <!-- Anillo de progreso (del hijo + vista seleccionados) -->
         <div class="progress-card" *ngIf="itemsBase.length > 0">
           <div class="progress-ring" role="img"
                [attr.aria-label]="'Progreso general ' + ((((totalEntregadas + totalCalificadas) / itemsBase.length) * 100) | number:'1.0-0') + ' por ciento'">
@@ -51,8 +45,6 @@
           </div>
         </div>
       </div>
-
-      <!-- ── Chips de hijo (solo si hay más de uno) ── -->
       <div class="hijo-filter-row" role="tablist" aria-label="Filtrar por hijo" *ngIf="hijos.length > 1">
         <button class="hijo-chip" [class.active]="hijoSeleccionado === 'TODOS'" (click)="seleccionarHijo('TODOS')"
                 role="tab" [attr.aria-selected]="hijoSeleccionado === 'TODOS'">
@@ -69,8 +61,6 @@
           {{ primerNombre(h.nombre) }}
         </button>
       </div>
-
-      <!-- ── Segmento: Tareas vs Actividades ── -->
       <div class="vista-segment" role="tablist" aria-label="Cambiar entre tareas y actividades">
         <button
           class="vista-tab"
@@ -93,8 +83,6 @@
           Actividades ({{ actividades.length }})
         </button>
       </div>
-
-      <!-- Chips de filtro -->
       <div class="filter-row" role="tablist" aria-label="Filtrar">
         <button class="filter-chip" [class.active]="filtro === 'TODAS'" (click)="cambiarFiltro('TODAS')"
                 role="tab" [attr.aria-selected]="filtro === 'TODAS'">
@@ -128,8 +116,6 @@
         </button>
       </div>
     </div>
-
-    <!-- ── Skeleton ── -->
     <ng-container *ngIf="cargando">
       <div class="skeleton-list" aria-hidden="true">
         <div class="skeleton-card" *ngFor="let i of [1,2,3,4]">
@@ -143,11 +129,8 @@
         </div>
       </div>
     </ng-container>
-
-    <!-- ── Lista (tareas o actividades, según 'vista') ── -->
     <div class="tasks-list" *ngIf="!cargando">
 
-      <!-- Empty state -->
       <div class="empty-state" *ngIf="itemsFiltrados.length === 0">
         <div class="empty-icon-wrap">
           <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
@@ -163,8 +146,6 @@
             : 'Prueba cambiando el filtro de arriba' }}
         </p>
       </div>
-
-      <!-- Tarjetas -->
       <div
         class="task-card"
         *ngFor="let t of itemsPaginados"

@@ -70,8 +70,6 @@ export class PerfilPage implements OnInit {
     this.usuario = this.sesion.usuario;
     this.avatarUrl = this.sesion.getAvatarUrl();
   }
-
-  // ── Edición ──────────────────────────────────
   toggleEdicion() {
     if (this.editando) {
       this.editando = false;
@@ -90,8 +88,6 @@ export class PerfilPage implements OnInit {
     if (!this.usuario) return;
     this.guardando = true;
     this.errorGuardado = '';
-
-    // Validación simple de teléfono si viene algo
     const tel = this.formEdicion.telefono?.trim();
     if (tel && !/^\d{7,15}$/.test(tel.replace(/[\s-]/g, ''))) {
       this.errorGuardado = 'El teléfono no parece válido.';
@@ -112,8 +108,6 @@ try {
           });
 
       if (error) throw error;
-
-      // Reflejar cambios localmente sin recargar toda la sesión
       this.usuario = {
         ...this.usuario,
         telefono: tel || undefined,
@@ -135,8 +129,6 @@ try {
       this.guardando = false;
     }
   }
-
-  // ── Foto de perfil ──────────────────────────
   seleccionarFoto() {
     this.fileInput?.nativeElement.click();
   }
@@ -173,8 +165,6 @@ const subido = await this.cloudinary.subirArchivo(archivo, pct => this.progresoF
     this.usuario = { ...this.usuario, foto_perfil: subido.url };
     this.sesion.usuario = this.usuario;
     this.avatarUrl = subido.url;
-
-    // Mantener localStorage sincronizado, como hace SesionService al iniciar sesión
     localStorage.setItem('usuario_sesion', JSON.stringify(this.usuario));
   } catch (e: any) {
     this.errorGuardado = 'No se pudo actualizar la foto: ' + (e.message || 'error desconocido');
@@ -187,8 +177,6 @@ const subido = await this.cloudinary.subirArchivo(archivo, pct => this.progresoF
   onErrorImagen() {
     this.avatarUrl = 'assets/img/default-avatar.png';
   }
-
-  // ── Getters de display ──────────────────────
   getNombreCompleto(): string {
     if (!this.usuario) return '';
     const nombre = `${this.usuario.first_name || ''} ${this.usuario.last_name || ''}`.trim();
@@ -204,12 +192,10 @@ esActivo(): boolean {
   const est = this.usuario?.estatus?.toString().trim().toLowerCase();
 
   if (est) {
-    // Cubre variantes comunes que a veces se usan en la BD
     const valoresActivos = ['activo', 'active', 'activa', '1', 'true'];
     return valoresActivos.includes(est);
   }
 
-  // Fallback si no hay estatus, usa is_active
   return !!this.usuario?.is_active;
 }
 
@@ -226,8 +212,6 @@ esActivo(): boolean {
       year: 'numeric', month: 'long', day: 'numeric',
     });
   }
-
-  // ── Logout ───────────────────────────────────
   async confirmarCerrarSesion() {
     const alert = await this.alertCtrl.create({
       header: '¿Cerrar sesión?',

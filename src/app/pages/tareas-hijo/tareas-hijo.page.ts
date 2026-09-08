@@ -14,7 +14,7 @@ export interface ItemAcademico {
   publicada: boolean;
   vencida: boolean;
   entrega: {
-    estado: string;       // PENDIENTE | ENTREGADA | CALIFICADA | TARDE (TARDE solo aplica a tareas)
+    estado: string;       
     calificacion: number | null;
     feedback: string;
     entregada_en: string | null;
@@ -37,11 +37,10 @@ export class TareasHijoPage implements OnInit {
   cargando = true;
   error = '';
 
-  // ── Hijos del tutor ──────────────────────
+
   hijos: HijoResumen[] = [];
   hijoSeleccionado: number | 'TODOS' = 'TODOS';
 
-  // ── Vista activa: separa Tareas de Actividades ──
   vista: 'TAREAS' | 'ACTIVIDADES' = 'TAREAS';
 
   tareas: ItemAcademico[] = [];
@@ -49,10 +48,8 @@ export class TareasHijoPage implements OnInit {
 
   filtro: 'TODAS' | 'PENDIENTE' | 'ENTREGADA' | 'CALIFICADA' | 'TARDE' | 'NO_ENTREGADA' = 'TODAS';
 
-  // ── Detalle expandible ──
   expandidoId: number | null = null;
 
-  // ── Paginación ──
   pageSize = 10;
   paginaActual = 1;
 
@@ -76,7 +73,6 @@ export class TareasHijoPage implements OnInit {
     }
 
     try {
-      // 1. Todos los hijos asignados al tutor
       const { data: alumnos, error: eAlumnos } = await this.sesion.supabase
         .rpc('obtener_alumnos_tutor', { p_token: token });
 
@@ -96,12 +92,11 @@ export class TareasHijoPage implements OnInit {
         nombre: `${a.alumno_first_name || ''} ${a.alumno_last_name || ''}`.trim(),
       }));
 
-      // 2. Tareas y actividades de CADA hijo, en paralelo
+
       const resultados = await Promise.all(
         alumnos.map((a: any) => this.cargarDeUnHijo(a, token))
       );
 
-      // 3. Aplanar y combinar todas las listas
       this.tareas = resultados.flatMap(r => r.tareas);
       this.actividades = resultados.flatMap(r => r.actividades);
 
@@ -128,7 +123,7 @@ export class TareasHijoPage implements OnInit {
     }
   }
 
-  // ── TAREAS: por alumno_id directo ────────────────────────────
+
   private async cargarTareasList(alumnoId: number, alumnoNombre: string, token: string): Promise<ItemAcademico[]> {
     const { data: tareasData, error: tareasErr } = await this.sesion.supabase
       .rpc('tareas_del_alumno', { p_token: token, p_alumno_id: alumnoId });
@@ -177,7 +172,7 @@ export class TareasHijoPage implements OnInit {
     });
   }
 
-  // ── ACTIVIDADES: por grupo_id ─────────────────────────────────
+
   private async cargarActividadesList(grupoId: number, alumnoId: number, alumnoNombre: string, token: string): Promise<ItemAcademico[]> {
     const { data: actsRaw, error } = await this.sesion.supabase
       .rpc('leer_actividades_grupo', { p_token: token, p_grupo_id: grupoId });
@@ -247,7 +242,7 @@ export class TareasHijoPage implements OnInit {
     });
   }
 
-  // ── Selectores de vista ──────────────────
+
   cambiarVista(v: 'TAREAS' | 'ACTIVIDADES') {
     this.vista = v;
     this.filtro = 'TODAS';
@@ -268,7 +263,6 @@ export class TareasHijoPage implements OnInit {
     return lista.filter(t => t.alumno_id === this.hijoSeleccionado);
   }
 
-  // ── Filtros ──────────────────────────────
   get itemsFiltrados(): ItemAcademico[] {
     const lista = this.itemsBase;
     if (this.filtro === 'TODAS') return lista;
@@ -281,7 +275,6 @@ export class TareasHijoPage implements OnInit {
     return lista.filter(t => t.entrega?.estado === this.filtro);
   }
 
-  // ── Paginación ───────────────────────────
   get itemsPaginados(): ItemAcademico[] {
     return this.itemsFiltrados.slice(0, this.pageSize * this.paginaActual);
   }
@@ -299,12 +292,9 @@ export class TareasHijoPage implements OnInit {
     this.paginaActual = 1;
   }
 
-  // ── Detalle expandible ───────────────────
   toggleDetalle(id: number) {
     this.expandidoId = this.expandidoId === id ? null : id;
   }
-
-  // ── Contadores (sobre itemsBase: respeta hijo + vista, no el filtro de estado) ──
   get totalPendientes(): number {
     return this.itemsBase.filter(t => !t.vencida && (!t.entrega || t.entrega.estado === 'PENDIENTE')).length;
   }
@@ -321,7 +311,6 @@ export class TareasHijoPage implements OnInit {
     return this.itemsBase.filter(t => t.entrega?.estado === 'TARDE').length;
   }
 
-  // ── Helpers visuales ─────────────────────
   getEstadoLabel(t: ItemAcademico): string {
     if (!t.entrega) return t.vencida ? 'No entregada' : 'Pendiente';
     const map: Record<string, string> = {

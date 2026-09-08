@@ -16,7 +16,6 @@
 
     <ion-content>
 
-      <!-- Tarjeta de usuario -->
       <div *ngIf="loggedIn" class="user-card-container">
         <div class="user-card">
           <div class="avatar-section">
@@ -36,7 +35,6 @@
         </ion-menu-toggle>
       </div>
 
-      <!-- Skeleton sin sesión -->
       <div *ngIf="!loggedIn" class="user-card-skeleton">
         <ion-skeleton-text animated style="width: 56px; height: 56px; border-radius: 16px;"></ion-skeleton-text>
         <div style="flex: 1; margin-left: 12px;">
@@ -57,7 +55,6 @@
           </ion-item>
         </ion-menu-toggle>
 
-        <!-- ===================== ALUMNO ===================== -->
         <ng-container *ngIf="esAlumno">
 
           <p class="nav-section-label">Aprendizaje</p>
@@ -111,7 +108,6 @@
 
         </ng-container>
 
-        <!-- ===================== DOCENTE ===================== -->
         <ng-container *ngIf="esDocente">
 
           <p class="nav-section-label">Académico</p>
@@ -184,7 +180,6 @@
 
         </ng-container>
 
-        <!-- ============= COMUNICACIÓN (compartida alumno / docente) ============= -->
         <ng-container *ngIf="esAlumno || esDocente">
 
           <p class="nav-section-label">Comunicación</p>
@@ -199,7 +194,6 @@
 
         </ng-container>
 
-        <!-- ===================== TUTOR ===================== -->
         <ng-container *ngIf="esTutor">
 
           <p class="nav-section-label">Seguimiento</p>
@@ -225,8 +219,6 @@
 
         <p class="nav-section-label">Cuenta</p>
 
-        <!-- Sin ion-menu-toggle a propósito: el menú se cierra manualmente
-             desde cerrarSesion() solo después de confirmar, no al primer toque. -->
         <ion-item button (click)="cerrarSesion()" class="logout-item" lines="none" aria-label="Cerrar sesión">
           <ion-icon name="log-out-outline" slot="start"></ion-icon>
           <ion-label>Cerrar sesión</ion-label>
