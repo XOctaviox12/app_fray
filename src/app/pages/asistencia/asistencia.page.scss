@@ -1998,3 +1998,190 @@ $azul:         #0D47A1;
     gap: 16px;
   }
 }
+
+// ═════════════════════════════════════════════════════════════
+// LIQUID GLASS — capa visual final, paleta institucional
+// ═════════════════════════════════════════════════════════════
+.asist-toolbar {
+  --background: rgba(255,255,255,.78);
+  --color: #1F2937;
+  border-bottom-color: rgba(150,73,0,.11);
+  backdrop-filter: blur(22px) saturate(165%);
+  -webkit-backdrop-filter: blur(22px) saturate(165%);
+}
+
+.header-accent-bar { height:2px; background:linear-gradient(90deg,#F57C00,#964900 48%,#4A59A1); opacity:.9; }
+
+.asist-content {
+  --background:#F8F9FA;
+  position:relative;
+  background:radial-gradient(circle at 8% 0%,rgba(245,124,0,.12),transparent 27%),radial-gradient(circle at 98% 40%,rgba(74,89,161,.10),transparent 28%),#F8F9FA;
+}
+.asist-atmosphere { position:absolute; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+.asist-content > :not(.asist-atmosphere) { position:relative; z-index:1; }
+.asist-orb { position:absolute; width:300px; height:300px; border-radius:50%; opacity:.16; filter:blur(78px); animation:asistFloat 12s ease-in-out infinite alternate; }
+.asist-orb-orange { top:-145px; left:-120px; background:#F57C00; }
+.asist-orb-blue { right:-145px; bottom:12%; background:#4A59A1; animation-delay:-5s; }
+.asist-grid { position:absolute; inset:0; opacity:.35; background-image:linear-gradient(rgba(74,89,161,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(74,89,161,.055) 1px,transparent 1px); background-size:36px 36px; mask-image:linear-gradient(to bottom,black,transparent 74%); }
+
+.selector-intro,.materias-container,.asist-sticky-header,.buscador-wrap,.acciones-rapidas,.alumnos-list,.historial-list,.loading-overlay,.error-state,.empty-state { width:min(calc(100% - 32px),1120px); margin-left:auto; margin-right:auto; }
+.selector-intro { margin-top:16px; margin-bottom:18px; padding:22px 20px; overflow:hidden; border:1px solid rgba(150,73,0,.13); border-radius:24px; background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(255,249,244,.84)); box-shadow:0 16px 34px rgba(87,66,53,.08),inset 0 1px 0 rgba(255,255,255,.96); animation:asistReveal .55s cubic-bezier(.16,1,.3,1) both; }
+.selector-hint { color:#1F2937; font-size:clamp(18px,4.5vw,27px); font-weight:760; letter-spacing:-.6px; }
+.selector-summary { border:1px solid rgba(245,124,0,.16); background:rgba(255,255,255,.62); box-shadow:inset 0 1px 0 rgba(255,255,255,.9); backdrop-filter:blur(12px); }
+.summary-badge { background:linear-gradient(135deg,#F57C00,#964900); color:#fff; box-shadow:0 6px 14px rgba(150,73,0,.18); }
+.fecha-pill { border-color:rgba(245,124,0,.22); background:rgba(255,255,255,.68); box-shadow:0 5px 12px rgba(87,66,53,.06); transition:transform .2s ease,box-shadow .2s ease; }
+.fecha-pill:active,.link-hoy:active { transform:scale(.96); }
+.materia-section-title,.historial-parcial-header { color:#574235; font-weight:800; letter-spacing:1.1px; }
+.grupo-card,.alumno-card,.historial-card { border:1px solid rgba(87,66,53,.12); border-radius:19px; background:rgba(255,255,255,.94); box-shadow:0 8px 18px rgba(15,23,42,.05),inset 0 1px 0 rgba(255,255,255,.9); transition:transform .22s cubic-bezier(.2,.9,.3,1),box-shadow .22s ease,border-color .22s ease; }
+.grupo-card:active,.alumno-card:active,.historial-card:active { transform:scale(.985); }
+.grupo-card.tomada { border-color:rgba(46,125,50,.22); }
+.asist-sticky-header { margin-top:12px; padding:11px; border:1px solid rgba(255,255,255,.78); border-radius:21px; background:rgba(255,255,255,.62); box-shadow:0 10px 22px rgba(87,66,53,.07),inset 0 1px 0 rgba(255,255,255,.92); backdrop-filter:blur(16px) saturate(150%); }
+.contador-flotante { border:1px solid rgba(255,255,255,.8); background:rgba(255,255,255,.72); box-shadow:0 5px 11px rgba(87,66,53,.06); }
+.buscador-wrap { margin-top:14px; margin-bottom:12px; border-color:rgba(87,66,53,.14); background:rgba(255,255,255,.88); box-shadow:0 8px 18px rgba(15,23,42,.05),inset 0 1px 0 rgba(255,255,255,.9); transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease; }
+.buscador-wrap:focus-within { transform:translateY(-2px); border-color:rgba(245,124,0,.72); box-shadow:0 0 0 4px rgba(245,124,0,.10),0 10px 20px rgba(150,73,0,.08); }
+.acciones-rapidas { gap:9px; margin-bottom:15px; }
+.accion-btn { border-radius:14px; transition:transform .18s ease,box-shadow .18s ease; }
+.accion-btn:active,.estado-btn:active { transform:scale(.92); }
+.alumnos-list { gap:10px; margin-bottom:26px; }
+.alumno-card { animation:alumnoRise .4s cubic-bezier(.16,1,.3,1) both; }
+.estado-btn { transition:transform .17s ease,box-shadow .17s ease,background .17s ease; }
+.estado-btn.activo { box-shadow:0 5px 12px rgba(15,23,42,.12); }
+.fab-guardar { background:linear-gradient(135deg,#F57C00,#964900); box-shadow:0 9px 0 #B85900,0 17px 28px rgba(150,73,0,.24); transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s ease; }
+.fab-guardar:active:not(:disabled) { transform:translateY(5px) scale(.98); box-shadow:0 3px 0 #B85900,0 7px 12px rgba(150,73,0,.16); }
+.loading-overlay,.error-state,.empty-state { border-radius:23px; background:rgba(255,255,255,.78); box-shadow:0 13px 28px rgba(87,66,53,.07),inset 0 1px 0 rgba(255,255,255,.9); backdrop-filter:blur(15px); }
+
+@media (min-width:768px) {
+  .selector-intro,.asist-sticky-header { margin-top:22px; padding:27px 29px; border-radius:28px; }
+  .materias-container { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+  .materia-section { margin:0; }
+  .alumnos-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px; }
+}
+@media (min-width:1180px) { .materias-container,.alumnos-list { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width:389px) { .selector-intro,.materias-container,.asist-sticky-header,.buscador-wrap,.acciones-rapidas,.alumnos-list,.historial-list,.loading-overlay,.error-state,.empty-state { width:calc(100% - 24px); } .selector-intro { margin-top:12px; padding:18px 16px; border-radius:20px; } }
+@media (orientation:landscape) and (max-height:600px) { .selector-intro { margin-top:8px; padding:15px 18px; } .asist-sticky-header { margin-top:8px; } .asist-orb { opacity:.10; } }
+@media (hover:hover) and (pointer:fine) { .grupo-card:hover,.alumno-card:hover,.historial-card:hover { transform:translateY(-4px); border-color:rgba(245,124,0,.28); box-shadow:0 16px 28px rgba(87,66,53,.11); } }
+@media (prefers-color-scheme:dark) { .asist-content { --background:#F8F9FA; background:#F8F9FA; } .asist-toolbar { --background:rgba(255,255,255,.78); } }
+@keyframes asistReveal { from { opacity:0; transform:translateY(15px) scale(.985); } to { opacity:1; transform:translateY(0) scale(1); } }
+@keyframes alumnoRise { from { opacity:0; transform:translateY(11px); } to { opacity:1; transform:translateY(0); } }
+
+// ============================================================================
+// LISTA DE ASISTENCIA · UNA FILA POR ALUMNO
+// La vista no debe convertirse en cuadrícula en tablet ni escritorio.
+// ============================================================================
+
+.alumnos-list {
+  display: flex !important;
+  flex-direction: column;
+  grid-template-columns: none !important;
+  width: min(calc(100% - 32px), 1120px);
+  margin: 0 auto 30px;
+  gap: 10px;
+}
+
+// Luego, las media queries y refinamientos adicionales
+@media (min-width: 768px) {
+  .alumnos-list {
+    max-width: 1120px;
+    padding-left: 0;
+    padding-right: 0;
+    gap: 12px;
+  }
+  // ... otros estilos
+}
+
+// Refuerzo para anular la cuadrícula de 2 y 3 columnas declarada anteriormente.
+.alumnos-list {
+  display: flex !important;
+  flex-direction: column;
+  grid-template-columns: none !important;
+  width: min(calc(100% - 32px), 1120px);
+  margin: 0 auto 30px;
+}
+
+.alumno-card {
+  width: 100%;
+  min-height: 74px;
+  padding: 12px 16px;
+  gap: 16px;
+}
+
+.alumno-left {
+  gap: 13px;
+}
+
+.alumno-text {
+  min-width: 0;
+}
+
+.alumno-nombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.estado-btns {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+@media (min-width: 768px) {
+  .alumnos-list {
+    max-width: 1120px;
+    padding-left: 0;
+    padding-right: 0;
+    gap: 12px;
+  }
+
+  .alumno-card {
+    min-height: 78px;
+    padding: 14px 20px;
+    border-radius: 20px;
+  }
+
+  .alumno-avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .alumno-nombre {
+    font-size: 0.98rem;
+  }
+
+  .estado-btn {
+    min-width: 46px;
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 389px) {
+  .alumnos-list {
+    width: calc(100% - 24px);
+  }
+
+  .alumno-card {
+    min-height: 66px;
+    padding: 9px 10px;
+    gap: 8px;
+  }
+
+  .alumno-left {
+    gap: 8px;
+  }
+
+  .alumno-avatar {
+    width: 37px;
+    height: 37px;
+  }
+
+  .estado-btns {
+    gap: 5px;
+  }
+
+  .estado-btn {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+  }
+}
+@keyframes asistFloat { from { transform:translate3d(0,0,0) scale(1); } to { transform:translate3d(25px,-19px,0) scale(1.11); } }
+@media (prefers-reduced-motion:reduce) { .asist-atmosphere,.asist-orb,.selector-intro,.alumno-card { animation:none !important; transition:none !important; } }

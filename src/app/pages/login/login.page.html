@@ -1,21 +1,22 @@
 <ion-content class="login-content">
-  <div class="login-wrapper">
-
-    <!-- ══════════════════════════════════════════════════════════════ -->
-    <!-- FONDOS DECORATIVOS                                             -->
-    <!-- ══════════════════════════════════════════════════════════════ -->
+  <main class="login-wrapper">
+    <!-- Fondo animado -->
     <div class="bg-blob blob-top" aria-hidden="true"></div>
     <div class="bg-blob blob-bottom" aria-hidden="true"></div>
 
-    <!-- ══════════════════════════════════════════════════════════════ -->
-    <!-- CARD PRINCIPAL                                                 -->
-    <!-- ══════════════════════════════════════════════════════════════ -->
-    <div class="login-card">
+    <div class="orbital-scene" aria-hidden="true">
+      <span class="orbit orbit-one"></span>
+      <span class="orbit orbit-two"></span>
+      <span class="spark spark-one"></span>
+      <span class="spark spark-two"></span>
+      <span class="spark spark-three"></span>
+    </div>
 
-      <!-- ────────────────────────────────────────────────────────── -->
-      <!-- SECCIÓN LOGO                                               -->
-      <!-- ────────────────────────────────────────────────────────── -->
-      <div class="logo-section">
+    <section class="login-card" aria-label="Acceso al portal">
+      <div class="card-light" aria-hidden="true"></div>
+
+      <!-- Logo -->
+      <header class="logo-section">
         <div class="logo-tile">
           <img
             src="assets/img/logotipo_lisboa.webp"
@@ -25,14 +26,13 @@
             decoding="sync"
           />
         </div>
+
         <h1 class="app-title">Universidad Lisboa</h1>
         <p class="app-subtitle">Portal Estudiantil</p>
-      </div>
+      </header>
 
-      <!-- ────────────────────────────────────────────────────────── -->
-      <!-- SELECTOR DE MODO (Estudiante/Tutor)                        -->
-      <!-- ────────────────────────────────────────────────────────── -->
-      <div class="mode-selector" role="tablist">
+      <!-- Selector de tipo de acceso -->
+      <div class="mode-selector" role="tablist" aria-label="Tipo de acceso">
         <div
           class="mode-selector-glider"
           [class.glider-tutor]="modo === 'tutor'"
@@ -64,33 +64,38 @@
         </button>
       </div>
 
-      <!-- ════════════════════════════════════════════════════════════ -->
-      <!-- FORMULARIO                                                   -->
-      <!-- ════════════════════════════════════════════════════════════ -->
-      <form class="form-section" (ngSubmit)="modo === 'escolar' ? login() : loginTutor()" novalidate>
-
-        <!-- ────────────────────────────────────────────────────────── -->
-        <!-- MENSAJES DE ESTADO (Banner Bloqueo, Error, Advertencia)   -->
-        <!-- ────────────────────────────────────────────────────────── -->
-
-        <!-- Banner de bloqueo temporal -->
+      <!-- Formulario -->
+      <form
+        class="form-section"
+        (ngSubmit)="modo === 'escolar' ? login() : loginTutor()"
+        novalidate
+      >
+        <!-- Bloqueo -->
         <div class="lockout-banner" *ngIf="bloqueado" role="alert">
           <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+
           <div class="lockout-text">
             <strong>Acceso bloqueado</strong>
-            <span>Espera {{ segundosRestantes }} segundos para volver a intentarlo.</span>
+            <span>
+              Espera {{ segundosRestantes }} segundos para volver a intentarlo.
+            </span>
           </div>
         </div>
 
-        <!-- Banner de error de login -->
+        <!-- Error -->
         <div class="error-banner" *ngIf="error && !bloqueado" role="alert">
           <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
           <span>{{ error }}</span>
         </div>
 
-        <!-- Advertencia de intentos restantes -->
-        <div class="warn-banner" *ngIf="mostrarAdvertenciaIntentos" role="alert">
+        <!-- Advertencia de intentos -->
+        <div
+          class="warn-banner"
+          *ngIf="mostrarAdvertenciaIntentos"
+          role="alert"
+        >
           <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
+
           <span>
             {{
               intentosRestantes === 1
@@ -100,16 +105,18 @@
           </span>
         </div>
 
-        <!-- ════════════════════════════════════════════════════════════ -->
-        <!-- MODO: ESTUDIANTE / MAESTRO                                   -->
-        <!-- ════════════════════════════════════════════════════════════ -->
+        <!-- Acceso escolar -->
         <ng-container *ngIf="modo === 'escolar'">
-
-          <!-- Input: Usuario -->
           <div class="input-group">
             <label class="input-label" for="username-input">Usuario</label>
+
             <div class="input-wrapper" [class.input-disabled]="bloqueado">
-              <ion-icon name="person-outline" class="input-icon" aria-hidden="true"></ion-icon>
+              <ion-icon
+                name="person-outline"
+                class="input-icon"
+                aria-hidden="true"
+              ></ion-icon>
+
               <input
                 id="username-input"
                 type="text"
@@ -128,15 +135,16 @@
             </div>
           </div>
 
-          <!-- Input: Contraseña -->
           <div class="input-group">
             <label class="input-label" for="password-input">Contraseña</label>
+
             <div class="input-wrapper" [class.input-disabled]="bloqueado">
               <ion-icon
                 name="lock-closed-outline"
                 class="input-icon"
                 aria-hidden="true"
               ></ion-icon>
+
               <input
                 id="password-input"
                 [type]="mostrarPassword ? 'text' : 'password'"
@@ -151,12 +159,15 @@
                 maxlength="128"
                 aria-label="Campo de contraseña"
               />
+
               <button
                 type="button"
                 class="toggle-password-btn"
                 (click)="togglePassword()"
                 [disabled]="bloqueado"
-                [attr.aria-label]="mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                [attr.aria-label]="
+                  mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                "
               >
                 <ion-icon
                   [name]="mostrarPassword ? 'eye-off-outline' : 'eye-outline'"
@@ -165,25 +176,33 @@
               </button>
             </div>
           </div>
-
         </ng-container>
 
-        <!-- ════════════════════════════════════════════════════════════ -->
-        <!-- MODO: TUTOR                                                  -->
-        <!-- ════════════════════════════════════════════════════════════ -->
+        <!-- Acceso para tutores -->
         <ng-container *ngIf="modo === 'tutor'">
-
-          <!-- Hint informativo -->
           <div class="tutor-hint" role="complementary">
-            <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
-            <span>Ingresa el código de acceso que te proporcionó la institución.</span>
+            <ion-icon
+              name="information-circle-outline"
+              aria-hidden="true"
+            ></ion-icon>
+
+            <span>
+              Ingresa el código de acceso que te proporcionó la institución.
+            </span>
           </div>
 
-          <!-- Input: Código de acceso -->
           <div class="input-group">
-            <label class="input-label" for="tutor-code-input">Código de acceso</label>
+            <label class="input-label" for="tutor-code-input">
+              Código de acceso
+            </label>
+
             <div class="input-wrapper" [class.input-disabled]="bloqueado">
-              <ion-icon name="key-outline" class="input-icon" aria-hidden="true"></ion-icon>
+              <ion-icon
+                name="key-outline"
+                class="input-icon"
+                aria-hidden="true"
+              ></ion-icon>
+
               <input
                 id="tutor-code-input"
                 type="text"
@@ -201,12 +220,9 @@
               />
             </div>
           </div>
-
         </ng-container>
 
-        <!-- ════════════════════════════════════════════════════════════ -->
-        <!-- BOTÓN PRINCIPAL DE LOGIN                                     -->
-        <!-- ════════════════════════════════════════════════════════════ -->
+        <!-- Botón de ingreso -->
         <button
           type="submit"
           class="btn-login"
@@ -219,7 +235,6 @@
               : 'Iniciar sesión'
           "
         >
-          <!-- Spinner de carga -->
           <ion-spinner
             *ngIf="cargando"
             name="crescent"
@@ -227,40 +242,32 @@
             aria-hidden="true"
           ></ion-spinner>
 
-          <!-- Texto botón: Normal -->
           <ng-container *ngIf="!cargando && !bloqueado">
             <ion-icon name="log-in-outline" aria-hidden="true"></ion-icon>
             <span>Iniciar sesión</span>
           </ng-container>
 
-          <!-- Texto botón: Bloqueado -->
           <ng-container *ngIf="!cargando && bloqueado">
             <ion-icon name="timer-outline" aria-hidden="true"></ion-icon>
             <span>Bloqueado ({{ segundosRestantes }}s)</span>
           </ng-container>
         </button>
-
       </form>
 
-      <!-- ════════════════════════════════════════════════════════════ -->
-      <!-- BADGES DE SEGURIDAD                                           -->
-      <!-- ════════════════════════════════════════════════════════════ -->
-      <div class="security-badges" aria-label="Indicadores de seguridad">
+      <!-- Indicadores -->
+      <footer class="security-badges" aria-label="Indicadores de seguridad">
         <div class="badge">
           <div class="dot" aria-hidden="true"></div>
           <span>Conexión segura</span>
         </div>
+
         <div class="badge">
           <div class="dot" aria-hidden="true"></div>
           <span>Cifrado</span>
         </div>
-      </div>
+      </footer>
+    </section>
 
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════════════ -->
-    <!-- ONDA DECORATIVA INFERIOR                                       -->
-    <!-- ══════════════════════════════════════════════════════════════ -->
     <div class="bg-wave" aria-hidden="true">
       <svg
         viewBox="0 0 1000 100"
@@ -268,9 +275,10 @@
         xmlns="http://www.w3.org/2000/svg"
         role="presentation"
       >
-        <path d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 L1000,100 L0,100 Z"></path>
+        <path
+          d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 L1000,100 L0,100 Z"
+        ></path>
       </svg>
     </div>
-
-  </div>
+  </main>
 </ion-content>

@@ -12,6 +12,12 @@
 
 <ion-content class="hijo-content" role="main" aria-label="Mi hijo o hija">
 
+  <div class="hijo-atmosphere" aria-hidden="true">
+    <span class="hijo-orb hijo-orb-orange"></span>
+    <span class="hijo-orb hijo-orb-blue"></span>
+    <span class="hijo-grid"></span>
+  </div>
+
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" aria-label="Actualizar información">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>

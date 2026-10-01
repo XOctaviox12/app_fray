@@ -9,6 +9,12 @@
 </ion-header>
 
 <ion-content class="detalle-actividad-content">
+  <div class="detalle-actividad-atmosphere" aria-hidden="true">
+    <span class="detalle-actividad-orb detalle-actividad-orb-orange"></span>
+    <span class="detalle-actividad-orb detalle-actividad-orb-blue"></span>
+    <span class="detalle-actividad-grid"></span>
+  </div>
+
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>

@@ -12,6 +12,12 @@
 </ion-header>
 
 <ion-content class="detalle-tarea-content">
+  <div class="detalle-tarea-atmosphere" aria-hidden="true">
+    <span class="detalle-tarea-orb detalle-tarea-orb-orange"></span>
+    <span class="detalle-tarea-orb detalle-tarea-orb-blue"></span>
+    <span class="detalle-tarea-grid"></span>
+  </div>
+
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>

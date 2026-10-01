@@ -3,21 +3,21 @@ import { CanActivate, Router, UrlTree } from '@angular/router';
 import { SesionService } from '../services/sesion.service';
 
 /**
- * Protege todas las rutas excepto /login.
- * Si no hay sesión local válida, redirige a /login.
+ * Solo para /login.
+ * Si ya hay una sesión local válida (usuario o tutor), manda directo a /inicio
+ * y la pantalla de login nunca llega a mostrarse.
  */
 @Injectable({
   providedIn: 'root'
 })
-export class AuthGuard implements CanActivate {
+export class GuestGuard implements CanActivate {
   constructor(private sesion: SesionService, private router: Router) {}
 
   async canActivate(): Promise<boolean | UrlTree> {
     await this.sesion.listo;
 
-    if (this.sesion.loggedIn && (this.sesion.usuario || this.sesion.tutor)) {
-      return true;
-    }
-    return this.router.parseUrl('/login');
+    const haySesion = !!(this.sesion.loggedIn && (this.sesion.usuario || this.sesion.tutor));
+
+    return haySesion ? this.router.parseUrl('/inicio') : true;
   }
 }

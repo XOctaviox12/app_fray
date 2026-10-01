@@ -1,23 +1,3 @@
-// ============================================
-// COMUNIDAD.PAGE.SCSS
-// Adaptación visual iPad · alineada al diseño del mockup (Tailwind design tokens)
-// + Reglas de diseño responsivo FrayHub (GUIA_DISEÑO_RESPONSIVO_FRAYUB.md):
-//   5 breakpoints, padding/tipografía escalados, safe-area, dark mode,
-//   reduced motion, landscape, touch targets >= 44px.
-//
-// AJUSTES aplicados en esta pasada según la guía (comentados con "// GUÍA:"):
-//   1) Font stack: -apple-system primero (Sección 2)
-//   2) Fix bug de zoom iOS: textarea y select ahora font-size 16px (Sección 8, crítico)
-//   3) Safe-area-bottom en comunidad.page — la guía la listaba como pendiente (Sección 12)
-//   4) -webkit-tap-highlight-color en elementos interactivos (Sección 8)
-//   5) :focus-visible en botones/inputs/select (Sección 10 + checklist a11y)
-//   6) Hover de escritorio en botón principal (Sección 10, @media hover:hover)
-//   7) Landscape: alturas de input/botón reducidas a 40-44px (Sección 11, tabla)
-//   8) will-change en elementos animados (Sección 14, GPU acceleration)
-//   9) Animación de entrada cardIn en post-card (Sección 9)
-// (Ninguna clase, evento o binding del HTML fue modificado)
-// ============================================
-
 :host {
   // ── Paleta tomada del mockup (design tokens) ──
   --fh-primary: #964900;          // primary — acentos, texto de marca, iconos
@@ -1220,4 +1200,228 @@
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+// ============================================================================
+// CAPA VISUAL · COMUNIDAD LIQUID GLASS
+// Paleta institucional: naranja #964900/#F57C00 y azul #4A59A1.
+// ============================================================================
+
+.comunidad-content {
+  --background: #fff8f5;
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 100% 3%, rgba(245, 124, 0, 0.13), transparent 27rem),
+    radial-gradient(circle at 0% 58%, rgba(74, 89, 161, 0.1), transparent 24rem),
+    #fff8f5;
+}
+
+.comunidad-content > :not(.comunidad-atmosphere) {
+  position: relative;
+  z-index: 1;
+}
+
+.comunidad-atmosphere {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.comunidad-orb {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  filter: blur(2px);
+  animation: comunidad-float 15s ease-in-out infinite alternate;
+}
+
+.comunidad-orb-orange {
+  width: clamp(15rem, 35vw, 31rem);
+  height: clamp(15rem, 35vw, 31rem);
+  top: -11rem;
+  right: -10rem;
+  background: radial-gradient(circle at 35% 34%, rgba(255, 202, 107, 0.64), rgba(245, 124, 0, 0.14) 57%, transparent 71%);
+}
+
+.comunidad-orb-blue {
+  width: clamp(12rem, 29vw, 25rem);
+  height: clamp(12rem, 29vw, 25rem);
+  top: 48rem;
+  left: -11rem;
+  background: radial-gradient(circle at 58% 40%, rgba(120, 139, 207, 0.36), rgba(74, 89, 161, 0.08) 60%, transparent 71%);
+  animation-delay: -7s;
+}
+
+.comunidad-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.25;
+  background-image: linear-gradient(rgba(150, 73, 0, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(74, 89, 161, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, black, transparent 60rem);
+}
+
+.header-toolbar {
+  --background: rgba(255, 251, 248, 0.82);
+  --border-color: transparent;
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: blur(20px) saturate(145%);
+  box-shadow: 0 10px 26px rgba(77, 37, 5, 0.1);
+}
+
+.header-accent-bar {
+  height: 3px;
+  background: linear-gradient(90deg, #964900, #f57c00 46%, #4a59a1);
+  box-shadow: 0 2px 12px rgba(245, 124, 0, 0.32);
+}
+
+.global-error,
+.publish-card,
+.post-card,
+.empty-state,
+.skeleton-card {
+  border-color: rgba(255, 255, 255, 0.76) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+  backdrop-filter: blur(16px) saturate(125%);
+  box-shadow: 0 14px 34px rgba(79, 39, 12, 0.1), inset 0 1px rgba(255, 255, 255, 0.82);
+}
+
+.publish-card,
+.post-card,
+.empty-state {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.publish-card {
+  overflow: hidden;
+}
+
+.publish-card-header {
+  position: relative;
+  overflow: hidden;
+}
+
+.publish-card-header::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+  background: linear-gradient(110deg, rgba(255, 255, 255, 0.26), transparent 48%, rgba(255, 255, 255, 0.12));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .post-card:hover,
+  .publish-card:not(.collapsed):hover {
+    transform: translateY(-4px) rotateX(1deg);
+    border-color: rgba(245, 124, 0, 0.34) !important;
+    box-shadow: 0 20px 42px rgba(79, 39, 12, 0.16), inset 0 1px rgba(255, 255, 255, 0.9);
+  }
+}
+
+.posts-container {
+  perspective: 1000px;
+}
+
+.post-card {
+  animation: comunidad-card-in 440ms both;
+}
+
+.post-card:nth-child(2n) { animation-delay: 70ms; }
+.post-card:nth-child(3n) { animation-delay: 130ms; }
+
+.post-avatar,
+.publish-icon,
+.empty-icon-wrap {
+  box-shadow: 0 8px 18px rgba(150, 73, 0, 0.16);
+}
+
+.tabs-row {
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-color: rgba(150, 73, 0, 0.12);
+  box-shadow: 0 8px 20px rgba(79, 39, 12, 0.07);
+}
+
+.tab-btn {
+  transition: color 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.tab-btn:active,
+.publish-btn:active,
+.attach-btn:active,
+.post-delete-btn:active,
+.quitar-adjunto:active {
+  transform: scale(0.96);
+}
+
+.input-titulo,
+.post-textarea,
+.select-wrap,
+.grupo-selector,
+.file-upload-zone,
+.dest-opt,
+.aud-opt {
+  border-color: rgba(150, 73, 0, 0.16);
+}
+
+.input-titulo:focus,
+.post-textarea:focus,
+.select-wrap:focus-within,
+.grupo-selector:focus-within {
+  border-color: rgba(245, 124, 0, 0.78);
+  box-shadow: 0 0 0 4px rgba(245, 124, 0, 0.12), 0 8px 18px rgba(150, 73, 0, 0.08);
+}
+
+.publish-btn {
+  box-shadow: 0 10px 20px rgba(150, 73, 0, 0.24);
+  transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+}
+
+.publish-btn:active {
+  filter: brightness(0.96);
+  box-shadow: 0 4px 10px rgba(150, 73, 0, 0.16);
+}
+
+@keyframes comunidad-float {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-1.2rem, 1.5rem, 0) scale(1.08); }
+}
+
+@keyframes comunidad-card-in {
+  from { opacity: 0; transform: translateY(12px) rotateX(-3deg); }
+  to { opacity: 1; transform: translateY(0) rotateX(0); }
+}
+
+@media (max-width: 389px) {
+  .comunidad-grid { background-size: 22px 22px; }
+  .comunidad-orb-orange { right: -12rem; }
+  .publish-actions { gap: 0.55rem; }
+  .tab-btn { font-size: 0.74rem; }
+}
+
+@media (min-width: 768px) {
+  .comunidad-content { --padding-start: clamp(1.25rem, 4vw, 3.5rem); --padding-end: clamp(1.25rem, 4vw, 3.5rem); }
+  .posts-container { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+  .posts-container > .post-card { margin: 0; }
+}
+
+@media (min-width: 1180px) {
+  .comunidad-content { --padding-start: max(3rem, calc((100% - 1180px) / 2)); --padding-end: max(3rem, calc((100% - 1180px) / 2)); }
+  .posts-container { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (prefers-color-scheme: dark) {
+  .comunidad-content {
+    --background: #fff8f5;
+    background: radial-gradient(circle at 100% 3%, rgba(245, 124, 0, 0.13), transparent 27rem), radial-gradient(circle at 0% 58%, rgba(74, 89, 161, 0.1), transparent 24rem), #fff8f5;
+  }
+  .header-toolbar { --background: rgba(255, 251, 248, 0.88); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comunidad-orb,
+  .post-card { animation: none !important; }
 }

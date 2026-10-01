@@ -2004,3 +2004,317 @@
     transform: none;
   }
 }
+
+// ============================================
+// LIQUID GLASS — capa final visual y responsive
+// Conserva la paleta institucional naranja / azul.
+// ============================================
+
+.header-toolbar {
+  --background: rgba(255, 255, 255, .76);
+  --min-height: 64px;
+  border-bottom: 1px solid rgba(150, 73, 0, .10);
+  backdrop-filter: blur(22px) saturate(165%);
+  -webkit-backdrop-filter: blur(22px) saturate(165%);
+}
+
+.header-home-btn {
+  --background: rgba(245, 124, 0, .10);
+  --background-activated: rgba(245, 124, 0, .18);
+  --border-radius: 13px;
+  --color: #964900;
+  margin-left: 7px;
+  width: 42px;
+  height: 42px;
+
+  ion-icon { font-size: 20px; }
+}
+
+.header-accent-bar {
+  height: 2px;
+  opacity: .9;
+  background: linear-gradient(90deg, #F57C00 0%, #964900 48%, #4A59A1 100%);
+}
+
+.actividad-content {
+  --background: #F8F9FB;
+  position: relative;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(245, 124, 0, .12), transparent 28%),
+    radial-gradient(circle at 98% 38%, rgba(74, 89, 161, .10), transparent 27%),
+    #F8F9FB;
+}
+
+.activity-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.actividad-content > :not(.activity-atmosphere) {
+  position: relative;
+  z-index: 1;
+}
+
+.activity-orb {
+  position: absolute;
+  width: 310px;
+  height: 310px;
+  border-radius: 50%;
+  opacity: .17;
+  filter: blur(76px);
+  animation: liquidFloat 12s ease-in-out infinite alternate;
+}
+
+.orb-orange { top: -150px; left: -125px; background: #F57C00; }
+.orb-blue { right: -145px; bottom: 16%; background: #4A59A1; animation-delay: -5s; }
+
+.activity-grid {
+  position: absolute;
+  inset: 0;
+  opacity: .38;
+  background-image:
+    linear-gradient(rgba(74, 89, 161, .055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 89, 161, .055) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: linear-gradient(to bottom, black, transparent 72%);
+}
+
+.hero-section,
+.quick-stats,
+.act-form,
+.activities-container,
+.global-error,
+.skeleton-card {
+  width: min(calc(100% - 32px), 1180px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero-section {
+  position: relative;
+  overflow: hidden;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  padding: 24px 20px;
+  border: 1px solid rgba(150, 73, 0, .13);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255,255,255,.94), rgba(255,249,244,.83));
+  box-shadow: 0 16px 34px rgba(87, 66, 53, .08), inset 0 1px 0 rgba(255,255,255,.96);
+  animation: liquidReveal .55s cubic-bezier(.16, 1, .3, 1) both;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -95%;
+    right: -12%;
+    width: 35%;
+    height: 260%;
+    opacity: .45;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.78), transparent);
+    transform: rotate(22deg);
+    animation: glassSweep 9s ease-in-out infinite;
+    pointer-events: none;
+  }
+}
+
+.hero-info,
+.progress-ring-container { position: relative; z-index: 1; }
+
+.hero-title {
+  font-size: clamp(22px, 5vw, 32px);
+  letter-spacing: -.8px;
+  color: var(--p-text);
+}
+
+.hero-sub { max-width: 620px; font-size: clamp(12px, 2.5vw, 14px); line-height: 1.5; }
+
+.progress-ring-container {
+  filter: drop-shadow(0 11px 15px rgba(245,124,0,.16));
+  animation: ringPop .7s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.ring-fill {
+  stroke: #F57C00;
+  filter: drop-shadow(0 0 5px rgba(245,124,0,.38));
+  transition: stroke-dashoffset .8s cubic-bezier(.2,.8,.2,1);
+}
+
+.quick-stats {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 22px;
+  padding: 8px;
+  overflow-x: auto;
+  border: 1px solid rgba(255,255,255,.75);
+  border-radius: 21px;
+  background: rgba(255,255,255,.55);
+  box-shadow: 0 9px 20px rgba(87,66,53,.06), inset 0 1px 0 rgba(255,255,255,.88);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.stat-bubble {
+  flex: 1 0 82px;
+  min-height: 66px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+
+  &.active {
+    border-color: rgba(245,124,0,.22);
+    background: rgba(255,255,255,.82);
+    box-shadow: 0 6px 13px rgba(87,66,53,.09);
+    .stat-num { color: #964900; }
+  }
+
+  &:active { transform: scale(.94); }
+}
+
+.stat-num { font-size: 19px; font-weight: 800; }
+.stat-label { font-size: 9px; font-weight: 750; letter-spacing: .45px; text-transform: uppercase; }
+
+.btn-nueva-act-inline,
+.btn-nueva-act,
+.btn-save {
+  color: #fff;
+  background: linear-gradient(135deg, #F57C00, #964900);
+  box-shadow: 0 8px 0 #B85900, 0 15px 24px rgba(150,73,0,.20);
+  transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s ease, filter .18s ease;
+
+  &:active:not(:disabled) {
+    transform: translateY(5px) scale(.98);
+    box-shadow: 0 3px 0 #B85900, 0 7px 11px rgba(150,73,0,.15);
+  }
+}
+
+.act-form {
+  margin-bottom: 24px;
+  border: 1px solid rgba(150,73,0,.14);
+  border-radius: 25px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 19px 42px rgba(87,66,53,.10), inset 0 1px 0 rgba(255,255,255,.96);
+  animation: formLift .42s cubic-bezier(.16,1,.3,1) both;
+}
+
+.input-wrap {
+  background: #F8F9FB;
+  border-color: rgba(87,66,53,.15);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease;
+
+  &:focus-within {
+    transform: translateY(-2px);
+    background: #fff;
+    border-color: rgba(245,124,0,.72);
+    box-shadow: 0 0 0 4px rgba(245,124,0,.10), 0 9px 17px rgba(150,73,0,.08);
+  }
+}
+
+.tipo-opt {
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+  &:active { transform: scale(.96); }
+  &.selected { box-shadow: 0 6px 14px rgba(150,73,0,.12); }
+}
+
+.activities-container {
+  margin-bottom: 32px;
+  gap: 12px;
+}
+
+.activity-card {
+  overflow: hidden;
+  border: 1px solid rgba(87,66,53,.12);
+  border-radius: 21px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 8px 19px rgba(15,23,42,.05), inset 0 1px 0 rgba(255,255,255,.9);
+  animation: cardRise .45s cubic-bezier(.16,1,.3,1) both;
+  transition: transform .24s cubic-bezier(.2,.9,.3,1), box-shadow .24s ease, border-color .24s ease;
+
+  &:active { transform: scale(.985); }
+  &.critica { border-color: rgba(211,47,47,.25); }
+  &.draft { border-style: dashed; }
+}
+
+.activity-title { font-size: 16px; letter-spacing: -.2px; }
+.card-footer { background: linear-gradient(to bottom, transparent, rgba(248,249,251,.75)); }
+
+.empty-state {
+  border: 1px dashed rgba(150,73,0,.25);
+  border-radius: 24px;
+  background: rgba(255,255,255,.64);
+}
+
+.empty-icon-wrap { animation: softBob 3s ease-in-out infinite; }
+
+@media (max-width: 389px) {
+  .hero-section, .quick-stats, .act-form, .activities-container, .global-error, .skeleton-card { width: calc(100% - 24px); }
+  .hero-section { margin-top: 12px; padding: 19px 16px; border-radius: 20px; }
+  .progress-ring-container { transform: scale(.84); transform-origin: right center; }
+  .stat-bubble { flex-basis: 72px; }
+  .activity-card { border-radius: 17px; }
+}
+
+@media (min-width: 768px) {
+  .header-toolbar { --min-height: 72px; }
+  .hero-section { margin-top: 22px; padding: 31px 34px; border-radius: 29px; }
+  .quick-stats { padding: 10px; border-radius: 23px; }
+  .stat-bubble { min-height: 76px; padding: 12px; }
+  .stat-num { font-size: 22px; }
+  .stat-label { font-size: 10px; }
+  .activities-container { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .activity-card { border-radius: 23px; }
+}
+
+@media (min-width: 1180px) {
+  .activities-container { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .hero-section { margin-top: 8px; padding: 15px 19px; }
+  .hero-title { font-size: 20px; }
+  .progress-ring-container { transform: scale(.74); transform-origin: right center; }
+  .quick-stats { margin-bottom: 14px; }
+  .stat-bubble { min-height: 56px; padding: 7px; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .activity-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(245,124,0,.28);
+    box-shadow: 0 19px 34px rgba(87,66,53,.12), 0 5px 12px rgba(150,73,0,.07);
+  }
+
+  .stat-bubble:hover { transform: translateY(-2px); background: rgba(255,255,255,.74); }
+}
+
+// Conserva la identidad clara de Universidad Lisboa incluso si el dispositivo usa modo oscuro.
+@media (prefers-color-scheme: dark) {
+  :host {
+    --p-bg: #F8F9FB;
+    --p-bg-2: #EEF2F7;
+    --p-white: #FFFFFF;
+    --p-text: #1F2937;
+    --p-text-2: #6B7280;
+    --p-border: #E5E7EB;
+  }
+}
+
+@keyframes liquidReveal { from { opacity: 0; transform: translateY(15px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes formLift { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes cardRise { from { opacity: 0; transform: translateY(13px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes liquidFloat { from { transform: translate3d(0,0,0) scale(1); } to { transform: translate3d(26px,-19px,0) scale(1.12); } }
+@keyframes ringPop { from { opacity: 0; transform: scale(.78) rotate(-18deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+@keyframes softBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes glassSweep { 0%,50%,100% { transform: translateX(280%) rotate(22deg); } 72% { transform: translateX(-450%) rotate(22deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .activity-atmosphere, .activity-orb, .hero-section, .act-form, .activity-card, .progress-ring-container, .empty-icon-wrap {
+    animation: none !important;
+    transition: none !important;
+  }
+}

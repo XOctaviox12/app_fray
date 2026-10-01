@@ -15,6 +15,11 @@
 </ion-header>
 
 <ion-content class="aula-content">
+  <div class="aula-atmosphere" aria-hidden="true">
+    <span class="aula-orb aula-orb-orange"></span>
+    <span class="aula-orb aula-orb-blue"></span>
+    <span class="aula-grid"></span>
+  </div>
 
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content

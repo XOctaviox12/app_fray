@@ -5,16 +5,14 @@
         <ion-icon name="menu-outline" aria-hidden="true"></ion-icon>
       </ion-menu-button>
     </ion-buttons>
+
     <ion-title class="header-title">Inicio</ion-title>
   </ion-toolbar>
+
   <div class="header-accent-bar" aria-hidden="true"></div>
 </ion-header>
 
 <ion-content class="inicio-content">
-  <!-- ─────────────────────────────────────────────────────────────────────── -->
-<!-- CONTENIDO PRINCIPAL                                                     -->
-<!-- ─────────────────────────────────────────────────────────────────────── -->
-  <!-- Pull-to-refresh -->
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content
       pulling-icon="chevron-down-circle-outline"
@@ -22,526 +20,420 @@
     ></ion-refresher-content>
   </ion-refresher>
 
-  <!-- ═════════════════════════════════════════════════════════════════════ -->
-  <!-- BANNER DE ERROR                                                       -->
-  <!-- ═════════════════════════════════════════════════════════════════════ -->
-  <div class="error-banner" *ngIf="error" role="alert">
-    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
-    <p>{{ error }}</p>
-  </div>
+  <main class="dashboard-shell">
+    <div class="dashboard-orb orb-orange" aria-hidden="true"></div>
+    <div class="dashboard-orb orb-blue" aria-hidden="true"></div>
+    <div class="dashboard-grid" aria-hidden="true"></div>
 
-  <!-- ═════════════════════════════════════════════════════════════════════ -->
-  <!-- SKELETON LOADERS (mientras carga)                                     -->
-  <!-- ═════════════════════════════════════════════════════════════════════ -->
-  <ng-container *ngIf="cargando">
-    <div class="hero-section">
-      <div class="hero-text">
-        <ion-skeleton-text animated [style.width.%]="40" style="height: 12px;"></ion-skeleton-text>
-        <ion-skeleton-text animated [style.width.%]="60" style="height: 24px; margin-top: 8px;"></ion-skeleton-text>
-      </div>
-      <div class="hero-avatar-wrap">
-        <ion-skeleton-text animated style="width: 100%; height: 100%; border-radius: 50%;"></ion-skeleton-text>
-      </div>
+    <div class="error-banner" *ngIf="error" role="alert">
+      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+      <p>{{ error }}</p>
     </div>
 
-    <div class="stats-row">
-      <div class="stat-card">
-        <ion-skeleton-text animated style="width: 100%;"></ion-skeleton-text>
-      </div>
-      <div class="stat-card">
-        <ion-skeleton-text animated style="width: 100%;"></ion-skeleton-text>
-      </div>
-      <div class="stat-card">
-        <ion-skeleton-text animated style="width: 100%;"></ion-skeleton-text>
-      </div>
-    </div>
-  </ng-container>
-
-  <!-- ═════════════════════════════════════════════════════════════════════ -->
-  <!-- CONTENIDO CARGADO                                                     -->
-  <!-- ═════════════════════════════════════════════════════════════════════ -->
-  <ng-container *ngIf="!cargando">
-
-    <!-- ─────────────────────────────────────────────────────────────────── -->
-    <!-- VISTA ALUMNO / MAESTRO                                              -->
-    <!-- ─────────────────────────────────────────────────────────────────── -->
-    <ng-container *ngIf="!esTutor && !esDocente">
-
-      <!-- HERO SECTION -->
-      <section class="hero-section" aria-label="Saludo y perfil del alumno">
+    <!-- Carga -->
+    <ng-container *ngIf="cargando">
+      <section class="hero-section skeleton-hero">
         <div class="hero-text">
-          <p class="hero-greeting" [attr.aria-label]="'Fecha: ' + fechaActual">
-            {{ fechaActual }}
-          </p>
-          <h1 class="hero-title">
-            Hola,
-            <span class="hero-name">{{ getNombre() }}</span>
-          </h1>
-          <p class="hero-sub">Semestre Primavera 2025</p>
+          <ion-skeleton-text animated [style.width.%]="35" style="height: 12px;"></ion-skeleton-text>
+          <ion-skeleton-text animated [style.width.%]="70" style="height: 28px; margin-top: 9px;"></ion-skeleton-text>
+          <ion-skeleton-text animated [style.width.%]="50" style="height: 12px; margin-top: 10px;"></ion-skeleton-text>
         </div>
 
-        <div class="hero-avatar-wrap" role="img" [attr.aria-label]="'Avatar de ' + getNombre()">
-          <div class="hero-avatar-glow" aria-hidden="true"></div>
-          <div class="hero-avatar">
-            <img
-              [src]="avatarUrl"
-              (error)="onErrorImagen()"
-              class="hero-avatar-img"
-              alt="Foto de perfil"
-              loading="lazy"
-              decoding="async"
-              width="56"
-              height="56"
-            />
-          </div>
-          <span class="hero-avatar-dot" aria-label="Estado en línea" aria-hidden="true"></span>
+        <div class="hero-avatar-wrap">
+          <ion-skeleton-text
+            animated
+            style="width: 100%; height: 100%; border-radius: 50%;"
+          ></ion-skeleton-text>
         </div>
       </section>
 
-      <!-- STATS ROW -->
-      <div class="stats-row" aria-label="Resumen de tareas, materias y actividades">
-        <article class="stat-card">
-          <div class="stat-icon orange-icon" aria-hidden="true">
-            <ion-icon name="document-text-outline"></ion-icon>
-          </div>
-          <div class="stat-text">
-            <span class="stat-num">{{ tareasPendientes }}</span>
-            <span class="stat-lbl">Tareas</span>
-          </div>
-        </article>
-
-        <article class="stat-card">
-          <div class="stat-icon blue-icon" aria-hidden="true">
-            <ion-icon name="book-outline"></ion-icon>
-          </div>
-          <div class="stat-text">
-            <span class="stat-num">{{ totalMaterias }}</span>
-            <span class="stat-lbl">Materias</span>
-          </div>
-        </article>
-
-        <article class="stat-card">
-          <div class="stat-icon green-icon" aria-hidden="true">
-            <ion-icon name="time-outline"></ion-icon>
-          </div>
-          <div class="stat-text">
-            <span class="stat-num">{{ actividadesHoy }}</span>
-            <span class="stat-lbl">Actividades</span>
-          </div>
-        </article>
+      <div class="stats-row">
+        <div class="stat-card"><ion-skeleton-text animated style="width: 100%;"></ion-skeleton-text></div>
+        <div class="stat-card"><ion-skeleton-text animated style="width: 100%;"></ion-skeleton-text></div>
+        <div class="stat-card"><ion-skeleton-text animated style="width: 100%;"></ion-skeleton-text></div>
       </div>
-
-      <!-- SECTION LABEL -->
-      <h2 class="section-label">Acceso rápido</h2>
-
-      <!-- QUICK ACCESS GRID -->
-      <nav class="quick-grid" aria-label="Accesos rápidos">
-        <!-- Tareas -->
-        <a
-          class="quick-card"
-          routerLink="/tareas"
-          routerLinkActive="active"
-          role="button"
-          tabindex="0"
-        >
-          <div class="quick-card-top">
-            <div class="quick-card-icon orange-icon" aria-hidden="true">
-              <ion-icon name="document-text-outline"></ion-icon>
-            </div>
-            <ion-icon name="arrow-forward-outline" class="quick-card-arrow" aria-hidden="true"></ion-icon>
-          </div>
-          <h3 class="quick-card-title">Tareas Pendientes</h3>
-          <p class="quick-card-sub">{{ tareasPendientes }} tareas sin completar</p>
-        </a>
-
-        <!-- Actividades -->
-        <a
-          class="quick-card"
-          routerLink="/actividad"
-          routerLinkActive="active"
-          role="button"
-          tabindex="0"
-        >
-          <div class="quick-card-top">
-            <div class="quick-card-icon blue-icon" aria-hidden="true">
-              <ion-icon name="time-outline"></ion-icon>
-            </div>
-            <ion-icon name="arrow-forward-outline" class="quick-card-arrow" aria-hidden="true"></ion-icon>
-          </div>
-          <h3 class="quick-card-title">Actividad de Clases</h3>
-          <p class="quick-card-sub">Nueva actividad disponible</p>
-        </a>
-
-        <!-- Herramientas -->
-        <a
-          class="quick-card"
-          routerLink="/herramientas"
-          routerLinkActive="active"
-          role="button"
-          tabindex="0"
-        >
-          <div class="quick-card-top">
-            <div class="quick-card-icon green-icon" aria-hidden="true">
-              <ion-icon name="construct-outline"></ion-icon>
-            </div>
-            <ion-icon name="arrow-forward-outline" class="quick-card-arrow" aria-hidden="true"></ion-icon>
-          </div>
-          <h3 class="quick-card-title">Herramientas Digitales</h3>
-          <p class="quick-card-sub">Materiales y contenido educativo</p>
-        </a>
-
-        <!-- Comunidad -->
-        <a
-          class="quick-card"
-          routerLink="/comunidad"
-          routerLinkActive="active"
-          role="button"
-          tabindex="0"
-        >
-          <div class="quick-card-top">
-            <div class="quick-card-icon tertiary-icon" aria-hidden="true">
-              <ion-icon name="people-outline"></ion-icon>
-            </div>
-            <ion-icon name="arrow-forward-outline" class="quick-card-arrow" aria-hidden="true"></ion-icon>
-          </div>
-          <h3 class="quick-card-title">Comunidad</h3>
-          <p class="quick-card-sub">Conecta con tus compañeros</p>
-        </a>
-      </nav>
-
-      <!-- EXPLORE BUTTON -->
-      <ion-button
-        expand="block"
-        fill="outline"
-        class="btn-explore"
-        href="https://universidadlisboa.edu.mx/"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Ir a portal institucional (se abre en nueva pestaña)"
-      >
-        <ion-icon name="globe-outline" slot="start" aria-hidden="true"></ion-icon>
-        <span>Explorar Portal Institucional</span>
-      </ion-button>
-
     </ng-container>
 
-    <!-- ─────────────────────────────────────────────────────────────────── -->
-    <!-- VISTA DOCENTE                                                       -->
-    <!-- ─────────────────────────────────────────────────────────────────── -->
-    <ng-container *ngIf="esDocente">
+    <ng-container *ngIf="!cargando">
+      <!-- ALUMNO -->
+      <ng-container *ngIf="!esTutor && !esDocente">
+        <section class="hero-section hero-student" aria-label="Resumen del alumno">
+          <div class="hero-copy">
+            <p class="hero-greeting">{{ fechaActual }}</p>
 
-      <!-- HERO SECTION -->
-      <section class="hero-section" aria-label="Saludo y perfil del docente">
-        <div class="hero-text">
-          <p class="hero-greeting" [attr.aria-label]="'Fecha: ' + fechaActual">
-            {{ fechaActual }}
-          </p>
-          <h1 class="hero-title">
-            Hola,
-            <span class="hero-name">{{ getNombre() }}</span>
-          </h1>
-          <p class="hero-sub">Panel Docente</p>
-        </div>
+            <h1 class="hero-title">
+              Hola, <span class="hero-name">{{ getNombre() }}</span>
+            </h1>
 
-        <div class="hero-avatar-wrap" role="img" [attr.aria-label]="'Avatar de ' + getNombre()">
-          <div class="hero-avatar-glow" aria-hidden="true"></div>
-          <div class="hero-avatar">
-            <img
-              [src]="avatarUrl"
-              (error)="onErrorImagen()"
-              class="hero-avatar-img"
-              alt="Foto de perfil"
-              loading="lazy"
-              decoding="async"
-              width="56"
-              height="56"
-            />
+            <p class="hero-sub">
+              <ion-icon name="sparkles-outline" aria-hidden="true"></ion-icon>
+              Semestre Primavera 2025
+            </p>
           </div>
-          <span class="hero-avatar-dot" aria-label="Estado en línea" aria-hidden="true"></span>
-        </div>
-      </section>
 
-      <!-- STATS ROW -->
-      <div class="stats-row" aria-label="Resumen de grupos, materias y tareas">
-        <article class="stat-card">
-          <div class="stat-icon orange-icon" aria-hidden="true">
-            <ion-icon name="school-outline"></ion-icon>
-          </div>
-          <div class="stat-text">
-            <span class="stat-num">{{ totalGrupos }}</span>
-            <span class="stat-lbl">Grupos</span>
-          </div>
-        </article>
-
-        <article class="stat-card">
-          <div class="stat-icon blue-icon" aria-hidden="true">
-            <ion-icon name="book-outline"></ion-icon>
-          </div>
-          <div class="stat-text">
-            <span class="stat-num">{{ totalMaterias }}</span>
-            <span class="stat-lbl">Materias</span>
-          </div>
-        </article>
-
-        <article class="stat-card">
-          <div class="stat-icon green-icon" aria-hidden="true">
-            <ion-icon name="document-text-outline"></ion-icon>
-          </div>
-          <div class="stat-text">
-            <span class="stat-num">{{ tareasPendientes }}</span>
-            <span class="stat-lbl">Tareas</span>
-          </div>
-        </article>
-      </div>
-
-      <!-- SECTION LABEL -->
-      <h2 class="section-label">Acceso rápido</h2>
-
-      <!-- QUICK ACCESS GRID -->
-      <nav class="quick-grid" aria-label="Accesos rápidos para docentes">
-        <!-- Mis Grupos -->
-        <a
-          class="quick-card"
-          routerLink="/aula"
-          routerLinkActive="active"
-          role="button"
-          tabindex="0"
-        >
-          <div class="quick-card-top">
-            <div class="quick-card-icon orange-icon" aria-hidden="true">
-              <ion-icon name="school-outline"></ion-icon>
-            </div>
-            <ion-icon name="arrow-forward-outline" class="quick-card-arrow" aria-hidden="true"></ion-icon>
-          </div>
-          <h3 class="quick-card-title">Mis Grupos</h3>
-          <p class="quick-card-sub">
-            {{ totalGrupos }} grupo{{ totalGrupos !== 1 ? 's' : '' }}
-            asignado{{ totalGrupos !== 1 ? 's' : '' }}
-          </p>
-        </a>
-
-        <!-- Mis Materias -->
-        <a
-          class="quick-card"
-          routerLink="/materias"
-          routerLinkActive="active"
-          role="button"
-          tabindex="0"
-        >
-          <div class="quick-card-top">
-            <div class="quick-card-icon blue-icon" aria-hidden="true">
-              <ion-icon name="book-outline"></ion-icon>
-            </div>
-            <ion-icon name="arrow-forward-outline" class="quick-card-arrow" aria-hidden="true"></ion-icon>
-          </div>
-          <h3 class="quick-card-title">Mis Materias</h3>
-          <p class="quick-card-sub">
-            {{ totalMaterias }} asignatura{{ totalMaterias !== 1 ? 's' : '' }}
-            activa{{ totalMaterias !== 1 ? 's' : '' }}
-          </p>
-        </a>
-
-        <!-- Tareas Pendientes -->
-        <a
-          class="quick-card"
-          routerLink="/tareas"
-          routerLinkActive="active"
-          role="button"
-          tabindex="0"
-        >
-          <div class="quick-card-top">
-            <div class="quick-card-icon orange-icon" aria-hidden="true">
-              <ion-icon name="document-text-outline"></ion-icon>
-            </div>
-            <ion-icon name="arrow-forward-outline" class="quick-card-arrow" aria-hidden="true"></ion-icon>
-          </div>
-          <h3 class="quick-card-title">Tareas Pendientes</h3>
-          <p class="quick-card-sub">{{ tareasPendientes }} tareas sin completar</p>
-        </a>
-
-        <!-- Actividades -->
-        <a
-          class="quick-card"
-          routerLink="/actividad"
-          routerLinkActive="active"
-          role="button"
-          tabindex="0"
-        >
-          <div class="quick-card-top">
-            <div class="quick-card-icon blue-icon" aria-hidden="true">
-              <ion-icon name="checkmark-done-outline"></ion-icon>
-            </div>
-            <ion-icon name="arrow-forward-outline" class="quick-card-arrow" aria-hidden="true"></ion-icon>
-          </div>
-          <h3 class="quick-card-title">Actividades</h3>
-          <p class="quick-card-sub">
-            {{ actividadesCreadas }} actividad{{ actividadesCreadas !== 1 ? 'es' : '' }}
-            creada{{ actividadesCreadas !== 1 ? 's' : '' }}
-          </p>
-        </a>
-
-        <!-- Material de Apoyo -->
-        <a
-          class="quick-card"
-          routerLink="/herramientas"
-          routerLinkActive="active"
-          role="button"
-          tabindex="0"
-        >
-          <div class="quick-card-top">
-            <div class="quick-card-icon green-icon" aria-hidden="true">
-              <ion-icon name="folder-open-outline"></ion-icon>
-            </div>
-            <ion-icon name="arrow-forward-outline" class="quick-card-arrow" aria-hidden="true"></ion-icon>
-          </div>
-          <h3 class="quick-card-title">Material de Apoyo</h3>
-          <p class="quick-card-sub">Sube y gestiona recursos educativos</p>
-        </a>
-
-        <!-- Comunidad -->
-        <a
-          class="quick-card"
-          routerLink="/comunidad"
-          routerLinkActive="active"
-          role="button"
-          tabindex="0"
-        >
-          <div class="quick-card-top">
-            <div class="quick-card-icon tertiary-icon" aria-hidden="true">
-              <ion-icon name="people-outline"></ion-icon>
-            </div>
-            <ion-icon name="arrow-forward-outline" class="quick-card-arrow" aria-hidden="true"></ion-icon>
-          </div>
-          <h3 class="quick-card-title">Comunidad</h3>
-          <p class="quick-card-sub">Avisos y comunicados escolares</p>
-        </a>
-      </nav>
-
-      <!-- EXPLORE BUTTON -->
-      <ion-button
-        expand="block"
-        fill="outline"
-        class="btn-explore"
-        href="https://universidadlisboa.edu.mx/"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Ir a portal institucional (se abre en nueva pestaña)"
-      >
-        <ion-icon name="globe-outline" slot="start" aria-hidden="true"></ion-icon>
-        <span>Explorar Portal Institucional</span>
-      </ion-button>
-
-    </ng-container>
-
-
-    <ng-container *ngIf="esTutor">
-
-      <!-- HERO SECTION -->
-      <section class="hero-section" aria-label="Saludo al tutor">
-        <div class="hero-text">
-          <p class="hero-greeting" [attr.aria-label]="'Fecha: ' + fechaActual">
-            {{ fechaActual }}
-          </p>
-          <h1 class="hero-title">
-            Hola,
-            <span class="hero-name">{{ getNombre() }}</span>
-          </h1>
-          <p class="hero-sub">Portal de Seguimiento</p>
-        </div>
-
-        <div class="tutor-avatar-wrap" role="img" aria-label="Avatar representativo de tutor">
-          <ion-icon name="people-outline" class="tutor-avatar-icon" ></ion-icon>
-        </div>
-      </section>
-
-      <div class="hijos-container" aria-label="Resumen de tus hijos">
-        <!-- Si no hay hijos -->
-        <div class="empty-state" *ngIf="alumnosStats.length === 0">
-          <ion-icon name="alert-circle-outline" class="empty-icon" ></ion-icon>
-          <p>No tienes hijos vinculados</p>
-        </div>
-
-        <!-- Tarjeta para CADA hijo -->
-        <a
-          *ngFor="let alumno of alumnosStats"
-          class="hijo-highlight-card"
-          [routerLink]="['/mi-hijo', alumno.alumno_id]"
-          routerLinkActive="active"
-          role="link"
-          (keypress.enter)="onEnterPress($event)"
-          [attr.aria-label]="'Perfil de ' + alumno.alumno_first_name + ' ' + alumno.alumno_last_name"
-        >
-          <div class="hijo-highlight-left">
-            <div class="hijo-avatar-circle" aria-hidden="true">
-              <ion-icon name="person-outline"></ion-icon>
-            </div>
-            <div class="hijo-info">
-              <p class="hijo-label">{{ alumno.grupo_nombre }}</p>
-              <h3 class="hijo-nombre">{{ alumno.alumno_first_name }} {{ alumno.alumno_last_name }}</h3>
-            </div>
-          </div>
-          <button
-            type="button"
-            class="hijo-btn"
-            [attr.aria-label]="'Ver perfil y desempeño de ' + alumno.alumno_first_name"
-            tabindex="-1"
+          <div
+            class="hero-avatar-wrap"
+            role="img"
+            [attr.aria-label]="'Avatar de ' + getNombre()"
           >
-            <ion-icon name="trending-up-outline" aria-hidden="true"></ion-icon>
-          </button>
-        </a>
-      </div>
+            <div class="hero-avatar-glow" aria-hidden="true"></div>
 
-      <!-- ✅ ACTUALIZADO: Mini STATS (Resumen general) -->
-      <h2 class="section-label" *ngIf="alumnosStats.length > 0">Resumen de mis hijos</h2>
-
-      <!-- Stats compactos si hay hijos -->
-      <div class="stats-row two-col" *ngIf="alumnosStats.length > 0" aria-label="Resumen general">
-        <article class="stat-card">
-          <div class="stat-icon blue-icon" aria-hidden="true">
-            <ion-icon name="book-outline"></ion-icon>
-          </div>
-          <div class="stat-text">
-            <span class="stat-num">{{ alumnosStats.length }}</span>
-            <span class="stat-lbl">Hijo{{ alumnosStats.length !== 1 ? 's' : '' }}</span>
-          </div>
-        </article>
-
-        <article class="stat-card">
-          <div class="stat-icon orange-icon" aria-hidden="true">
-            <ion-icon name="calendar-outline"></ion-icon>
-          </div>
-          <div class="stat-text">
-            <span class="stat-num">{{ getTotalBoletas() }}</span>
-            <span class="stat-lbl">Parciales</span>
-          </div>
-        </article>
-      </div>
-
-      <!-- SECTION LABEL -->
-      <h2 class="section-label" *ngIf="alumnosStats.length > 0">Acceso rápido</h2>
-
-      <!-- QUICK ACCESS GRID -->
-      <nav class="quick-grid" *ngIf="alumnosStats.length > 0" aria-label="Accesos rápidos para tutores">
-        <!-- Comunicados -->
-        <a
-          class="quick-card"
-          routerLink="/comunidad"
-          routerLinkActive="active"
-          role="button"
-          tabindex="0"
-        >
-          <div class="quick-card-top">
-            <div class="quick-card-icon blue-icon" aria-hidden="true">
-              <ion-icon name="megaphone-outline"></ion-icon>
+            <div class="hero-avatar">
+              <img
+                [src]="avatarUrl"
+                (error)="onErrorImagen()"
+                class="hero-avatar-img"
+                alt="Foto de perfil"
+                loading="lazy"
+                decoding="async"
+                width="56"
+                height="56"
+              />
             </div>
-            <ion-icon name="arrow-forward-outline" class="quick-card-arrow" aria-hidden="true"></ion-icon>
-          </div>
-          <h3 class="quick-card-title">Comunicados</h3>
-          <p class="quick-card-sub">Avisos de la institución</p>
-        </a>
-      </nav>
 
-      <!-- EXPLORE BUTTON -->
+            <span class="hero-avatar-dot" aria-hidden="true"></span>
+          </div>
+        </section>
+
+        <section class="stats-row" aria-label="Resumen académico">
+          <article class="stat-card">
+            <div class="stat-icon orange-icon">
+              <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <div class="stat-text">
+              <span class="stat-num">{{ tareasPendientes }}</span>
+              <span class="stat-lbl">Tareas</span>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon blue-icon">
+              <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <div class="stat-text">
+              <span class="stat-num">{{ totalMaterias }}</span>
+              <span class="stat-lbl">Materias</span>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon green-icon">
+              <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <div class="stat-text">
+              <span class="stat-num">{{ actividadesHoy }}</span>
+              <span class="stat-lbl">Hoy</span>
+            </div>
+          </article>
+        </section>
+
+        <h2 class="section-label">Tu espacio de aprendizaje</h2>
+
+        <nav class="quick-grid" aria-label="Accesos rápidos para alumno">
+          <a class="quick-card orange-card" routerLink="/tareas" routerLinkActive="active">
+            <div class="quick-card-top">
+              <div class="quick-card-icon orange-icon">
+                <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <ion-icon class="quick-card-arrow" name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <h3 class="quick-card-title">Tareas</h3>
+            <p class="quick-card-sub">{{ tareasPendientes }} pendientes por completar</p>
+          </a>
+
+          <a class="quick-card blue-card" routerLink="/actividad" routerLinkActive="active">
+            <div class="quick-card-top">
+              <div class="quick-card-icon blue-icon">
+                <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <ion-icon class="quick-card-arrow" name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <h3 class="quick-card-title">Actividades</h3>
+            <p class="quick-card-sub">Consulta tus actividades de clase</p>
+          </a>
+
+          <a class="quick-card green-card" routerLink="/herramientas" routerLinkActive="active">
+            <div class="quick-card-top">
+              <div class="quick-card-icon green-icon">
+                <ion-icon name="construct-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <ion-icon class="quick-card-arrow" name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <h3 class="quick-card-title">Herramientas</h3>
+            <p class="quick-card-sub">Materiales y recursos digitales</p>
+          </a>
+
+          <a class="quick-card neutral-card" routerLink="/comunidad" routerLinkActive="active">
+            <div class="quick-card-top">
+              <div class="quick-card-icon tertiary-icon">
+                <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <ion-icon class="quick-card-arrow" name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <h3 class="quick-card-title">Comunidad</h3>
+            <p class="quick-card-sub">Conecta con tu comunidad escolar</p>
+          </a>
+        </nav>
+      </ng-container>
+
+      <!-- DOCENTE -->
+      <ng-container *ngIf="esDocente">
+        <section class="hero-section hero-teacher" aria-label="Resumen docente">
+          <div class="hero-copy">
+            <p class="hero-greeting">{{ fechaActual }}</p>
+
+            <h1 class="hero-title">
+              Hola, <span class="hero-name">{{ getNombre() }}</span>
+            </h1>
+
+            <p class="hero-sub">
+              <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
+              Panel Docente
+            </p>
+          </div>
+
+          <div
+            class="hero-avatar-wrap"
+            role="img"
+            [attr.aria-label]="'Avatar de ' + getNombre()"
+          >
+            <div class="hero-avatar-glow" aria-hidden="true"></div>
+
+            <div class="hero-avatar">
+              <img
+                [src]="avatarUrl"
+                (error)="onErrorImagen()"
+                class="hero-avatar-img"
+                alt="Foto de perfil"
+                loading="lazy"
+                decoding="async"
+                width="56"
+                height="56"
+              />
+            </div>
+
+            <span class="hero-avatar-dot" aria-hidden="true"></span>
+          </div>
+        </section>
+
+        <section class="stats-row" aria-label="Resumen docente">
+          <article class="stat-card">
+            <div class="stat-icon orange-icon">
+              <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <div class="stat-text">
+              <span class="stat-num">{{ totalGrupos }}</span>
+              <span class="stat-lbl">Grupos</span>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon blue-icon">
+              <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <div class="stat-text">
+              <span class="stat-num">{{ totalMaterias }}</span>
+              <span class="stat-lbl">Materias</span>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon green-icon">
+              <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <div class="stat-text">
+              <span class="stat-num">{{ tareasPendientes }}</span>
+              <span class="stat-lbl">Tareas</span>
+            </div>
+          </article>
+        </section>
+
+        <h2 class="section-label">Gestión académica</h2>
+
+        <nav class="quick-grid" aria-label="Accesos rápidos para docentes">
+          <a class="quick-card orange-card" routerLink="/aula" routerLinkActive="active">
+            <div class="quick-card-top">
+              <div class="quick-card-icon orange-icon">
+                <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <ion-icon class="quick-card-arrow" name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <h3 class="quick-card-title">Mis Grupos</h3>
+            <p class="quick-card-sub">
+              {{ totalGrupos }} grupo{{ totalGrupos !== 1 ? 's' : '' }} asignado{{ totalGrupos !== 1 ? 's' : '' }}
+            </p>
+          </a>
+
+          <a class="quick-card blue-card" routerLink="/materias" routerLinkActive="active">
+            <div class="quick-card-top">
+              <div class="quick-card-icon blue-icon">
+                <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <ion-icon class="quick-card-arrow" name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <h3 class="quick-card-title">Mis Materias</h3>
+            <p class="quick-card-sub">
+              {{ totalMaterias }} asignatura{{ totalMaterias !== 1 ? 's' : '' }} activa{{ totalMaterias !== 1 ? 's' : '' }}
+            </p>
+          </a>
+
+          <a class="quick-card orange-card" routerLink="/tareas" routerLinkActive="active">
+            <div class="quick-card-top">
+              <div class="quick-card-icon orange-icon">
+                <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <ion-icon class="quick-card-arrow" name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <h3 class="quick-card-title">Tareas</h3>
+            <p class="quick-card-sub">{{ tareasPendientes }} tareas sin revisar</p>
+          </a>
+
+          <a class="quick-card blue-card" routerLink="/actividad" routerLinkActive="active">
+            <div class="quick-card-top">
+              <div class="quick-card-icon blue-icon">
+                <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <ion-icon class="quick-card-arrow" name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <h3 class="quick-card-title">Actividades</h3>
+            <p class="quick-card-sub">
+              {{ actividadesCreadas }} actividad{{ actividadesCreadas !== 1 ? 'es' : '' }} creada{{ actividadesCreadas !== 1 ? 's' : '' }}
+            </p>
+          </a>
+
+          <a class="quick-card green-card" routerLink="/herramientas" routerLinkActive="active">
+            <div class="quick-card-top">
+              <div class="quick-card-icon green-icon">
+                <ion-icon name="folder-open-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <ion-icon class="quick-card-arrow" name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <h3 class="quick-card-title">Material de Apoyo</h3>
+            <p class="quick-card-sub">Recursos para tus grupos</p>
+          </a>
+
+          <a class="quick-card neutral-card" routerLink="/comunidad" routerLinkActive="active">
+            <div class="quick-card-top">
+              <div class="quick-card-icon tertiary-icon">
+                <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <ion-icon class="quick-card-arrow" name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <h3 class="quick-card-title">Comunidad</h3>
+            <p class="quick-card-sub">Avisos y comunicados escolares</p>
+          </a>
+        </nav>
+      </ng-container>
+
+      <!-- TUTOR / PADRE DE FAMILIA -->
+      <ng-container *ngIf="esTutor">
+        <section class="hero-section hero-family" aria-label="Resumen para padres de familia">
+          <div class="hero-copy">
+            <p class="hero-greeting">{{ fechaActual }}</p>
+
+            <h1 class="hero-title">
+              Hola, <span class="hero-name">{{ getNombre() }}</span>
+            </h1>
+
+            <p class="hero-sub">
+              <ion-icon name="heart-outline" aria-hidden="true"></ion-icon>
+              Portal de Seguimiento Familiar
+            </p>
+          </div>
+
+          <div class="tutor-avatar-wrap" aria-hidden="true">
+            <ion-icon name="people-outline" class="tutor-avatar-icon"></ion-icon>
+          </div>
+        </section>
+
+        <section class="family-panel" aria-label="Seguimiento de estudiantes">
+          <div class="family-panel-head">
+            <div>
+              <p class="family-kicker">Mi familia</p>
+              <h2>Seguimiento académico</h2>
+            </div>
+
+            <ion-icon name="heart-outline" aria-hidden="true"></ion-icon>
+          </div>
+
+          <div class="empty-state" *ngIf="alumnosStats.length === 0">
+            <div class="empty-icon">
+              <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <div>
+              <strong>No tienes hijos vinculados</strong>
+              <p>Comunícate con la institución para solicitar acceso.</p>
+            </div>
+          </div>
+
+          <a
+            *ngFor="let alumno of alumnosStats"
+            class="hijo-highlight-card"
+            [routerLink]="['/mi-hijo', alumno.alumno_id]"
+            routerLinkActive="active"
+            [attr.aria-label]="'Ver perfil de ' + alumno.alumno_first_name + ' ' + alumno.alumno_last_name"
+          >
+            <div class="hijo-highlight-left">
+              <div class="hijo-avatar-circle" aria-hidden="true">
+                <ion-icon name="person-outline"></ion-icon>
+              </div>
+
+              <div class="hijo-info">
+                <p class="hijo-label">{{ alumno.grupo_nombre }}</p>
+                <h3 class="hijo-nombre">
+                  {{ alumno.alumno_first_name }} {{ alumno.alumno_last_name }}
+                </h3>
+              </div>
+            </div>
+
+            <span class="hijo-btn" aria-hidden="true">
+              <ion-icon name="trending-up-outline"></ion-icon>
+            </span>
+          </a>
+        </section>
+
+        <ng-container *ngIf="alumnosStats.length > 0">
+          <h2 class="section-label">Resumen familiar</h2>
+
+          <section class="stats-row two-col" aria-label="Resumen general de hijos">
+            <article class="stat-card">
+              <div class="stat-icon blue-icon">
+                <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <div class="stat-text">
+                <span class="stat-num">{{ alumnosStats.length }}</span>
+                <span class="stat-lbl">Hijo{{ alumnosStats.length !== 1 ? 's' : '' }}</span>
+              </div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-icon orange-icon">
+                <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <div class="stat-text">
+                <span class="stat-num">{{ getTotalBoletas() }}</span>
+                <span class="stat-lbl">Parciales</span>
+              </div>
+            </article>
+          </section>
+
+          <h2 class="section-label">Información escolar</h2>
+
+          <nav class="quick-grid family-grid" aria-label="Accesos rápidos para padres">
+            <a class="quick-card blue-card" routerLink="/comunidad" routerLinkActive="active">
+              <div class="quick-card-top">
+                <div class="quick-card-icon blue-icon">
+                  <ion-icon name="megaphone-outline" aria-hidden="true"></ion-icon>
+                </div>
+                <ion-icon class="quick-card-arrow" name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <h3 class="quick-card-title">Comunicados</h3>
+              <p class="quick-card-sub">Avisos importantes de la institución</p>
+            </a>
+          </nav>
+        </ng-container>
+      </ng-container>
+
       <ion-button
         expand="block"
         fill="outline"
@@ -549,13 +441,11 @@
         href="https://universidadlisboa.edu.mx/"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Ir a portal institucional (se abre en nueva pestaña)"
+        aria-label="Ir al portal institucional; se abre en una nueva pestaña"
       >
         <ion-icon name="globe-outline" slot="start" aria-hidden="true"></ion-icon>
         <span>Explorar Portal Institucional</span>
       </ion-button>
-
     </ng-container>
-
-  </ng-container>
+  </main>
 </ion-content>

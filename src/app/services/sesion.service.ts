@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { Preferences } from '@capacitor/preferences';
 import { environment } from 'src/environments/environment';
 
 export interface Usuario {
@@ -43,130 +44,120 @@ export class SesionService {
   usuario:  Usuario    | null = null;
   tutor:    SesionTutor | null = null;
   loggedIn  = false;
+  listo: Promise<void>;
 
   constructor() {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
     });
-    this.cargarSesionLocal();
+    this.listo = this.cargarSesionLocal();
   }
 
-cargarSesionLocal(): void {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return;
-  try {
-    const parsed = JSON.parse(raw);
-    if (parsed._tipo === 'TUTOR') {
-      this.tutor = parsed;
-      this.loggedIn = true;
-    } else {
-
-      if (parsed.estatus === undefined) {
-        localStorage.removeItem(STORAGE_KEY);
-        return;
+  async cargarSesionLocal(): Promise<void> {
+    const { value: raw } = await Preferences.get({ key: STORAGE_KEY });
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed._tipo === 'TUTOR') {
+        this.tutor = parsed;
+        this.loggedIn = true;
+      } else {
+        if (parsed.estatus === undefined) {
+          await Preferences.remove({ key: STORAGE_KEY });
+          return;
+        }
+        this.usuario = parsed;
+        this.loggedIn = true;
       }
-      this.usuario = parsed;
-      this.loggedIn = true;
+    } catch {
+      await Preferences.remove({ key: STORAGE_KEY });
     }
-  } catch {
-    localStorage.removeItem(STORAGE_KEY);
   }
-}
 
+  async iniciarSesion(username: string, password: string): Promise<boolean> {
+    try {
+      const { data, error } = await this.supabase
+        .rpc('verificar_login', { p_username: username, p_password: password })
+        .single<Usuario>();
 
-async iniciarSesion(username: string, password: string): Promise<boolean> {
-  try {
-    const { data, error } = await this.supabase
-      .rpc('verificar_login', { p_username: username, p_password: password })
-      .single<Usuario>();
+      if (error || !data) { console.error('Login fallido:', error?.message); return false; }
 
-    if (error || !data) { console.error('Login fallido:', error?.message); return false; }
+      const seguro = { ...data } as any;
 
-    const seguro = { ...data } as any;
+      const { data: token, error: eToken } = await this.supabase.rpc('crear_sesion', { p_user_id: seguro.id });
+      if (eToken) { console.error('No se pudo crear la sesion:', eToken.message); return false; }
 
+      seguro.token = token;
+      this.usuario = seguro; this.tutor = null; this.loggedIn = true;
+      await Preferences.set({ key: STORAGE_KEY, value: JSON.stringify(seguro) });
+      return true;
+    } catch (e: any) { console.error(e.message); return false; }
+  }
 
-    const { data: token, error: eToken } = await this.supabase.rpc('crear_sesion', { p_user_id: seguro.id });
-    if (eToken) { console.error('No se pudo crear la sesion:', eToken.message); return false; }
+  async iniciarSesionTutor(codigo: string): Promise<boolean> {
+    try {
+      if (codigo === 'APPSTORETE') {
+        const sesion: SesionTutor = {
+          _tipo: 'TUTOR', id: 999, nombre: 'Tutor Demo', parentesco: 'Padre/Madre',
+          correo: 'tutordemo@frayhub.local', telefono: '4431234567', alumno_id: 271, rol: 'TUTOR',
+          token: 'demo-' + Date.now(),
+        };
+        this.tutor = sesion; this.usuario = null; this.loggedIn = true;
+        await Preferences.set({ key: STORAGE_KEY, value: JSON.stringify(sesion) });
+        return true;
+      }
 
-    seguro.token = token;
-    this.usuario = seguro; this.tutor = null; this.loggedIn = true;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(seguro));
-    return true;
-  } catch (e: any) { console.error(e.message); return false; }
-}
+      const { data, error } = await this.supabase
+        .rpc('verificar_codigo_tutor', { p_codigo: codigo })
+        .single<{ id: number; nombre: string; parentesco: string; correo: string | null; telefono: string; alumno_id: number }>();
 
+      if (error || !data) { console.error('Login tutor fallido:', error?.message); return false; }
 
-async iniciarSesionTutor(codigo: string): Promise<boolean> {
-  try {
+      const { data: token, error: eToken } = await this.supabase.rpc('crear_sesion_tutor', { p_tutor_id: data.id });
+      if (eToken) { console.error('No se pudo crear la sesion del tutor:', eToken.message); return false; }
 
-    if (codigo === 'APPSTORETE') {
       const sesion: SesionTutor = {
-        _tipo: 'TUTOR', id: 999, nombre: 'Tutor Demo', parentesco: 'Padre/Madre',
-        correo: 'tutordemo@frayhub.local', telefono: '4431234567', alumno_id: 271, rol: 'TUTOR',
-        token: 'demo-' + Date.now(),
+        _tipo: 'TUTOR', id: data.id, nombre: data.nombre, parentesco: data.parentesco,
+        correo: data.correo, telefono: data.telefono, alumno_id: data.alumno_id, rol: 'TUTOR',
+        token,
       };
       this.tutor = sesion; this.usuario = null; this.loggedIn = true;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(sesion));
+      await Preferences.set({ key: STORAGE_KEY, value: JSON.stringify(sesion) });
       return true;
-    }
-
-
-    const { data, error } = await this.supabase
-      .rpc('verificar_codigo_tutor', { p_codigo: codigo })
-      .single<{ id: number; nombre: string; parentesco: string; correo: string | null; telefono: string; alumno_id: number }>();
-
-    if (error || !data) { console.error('Login tutor fallido:', error?.message); return false; }
-
-
-    const { data: token, error: eToken } = await this.supabase.rpc('crear_sesion_tutor', { p_tutor_id: data.id });
-    if (eToken) { console.error('No se pudo crear la sesion del tutor:', eToken.message); return false; }
-
-    const sesion: SesionTutor = {
-      _tipo: 'TUTOR', id: data.id, nombre: data.nombre, parentesco: data.parentesco,
-      correo: data.correo, telefono: data.telefono, alumno_id: data.alumno_id, rol: 'TUTOR',
-      token,
-    };
-    this.tutor = sesion; this.usuario = null; this.loggedIn = true;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sesion));
-    return true;
-  } catch (e: any) { console.error(e.message); return false; }
-}
-
-
-async cerrarSesion(): Promise<void> {
-  const token = this.usuario?.token || this.tutor?.token;
-  if (token) {
-    try {
-      await this.supabase.rpc('cerrar_sesion', { p_token: token });
-    } catch {
-
-    }
+    } catch (e: any) { console.error(e.message); return false; }
   }
-  this.usuario = null; this.tutor = null; this.loggedIn = false;
-  localStorage.removeItem(STORAGE_KEY);
-}
 
+  async cerrarSesion(): Promise<void> {
+    const token = this.usuario?.token || this.tutor?.token;
+    if (token) {
+      try {
+        await this.supabase.rpc('cerrar_sesion', { p_token: token });
+      } catch {
+      }
+    }
+    this.usuario = null; this.tutor = null; this.loggedIn = false;
+    await Preferences.remove({ key: STORAGE_KEY });
+  }
 
-get rolActual(): string {
-  if (this.tutor) return 'TUTOR';
-  return (this.usuario?.rol || '').toUpperCase();
-}
+  get rolActual(): string {
+    if (this.tutor) return 'TUTOR';
+    return (this.usuario?.rol || '').toUpperCase();
+  }
 
-esDocente(): boolean { return ['DOCENTE','COORD','DIRECTOR'].includes(this.rolActual); }
-esAlumno():  boolean { return this.rolActual === 'ALUMNO'; }
-esTutor():   boolean { return this.rolActual === 'TUTOR'; }
+  esDocente(): boolean { return ['DOCENTE','COORD','DIRECTOR'].includes(this.rolActual); }
+  esAlumno():  boolean { return this.rolActual === 'ALUMNO'; }
+  esTutor():   boolean { return this.rolActual === 'TUTOR'; }
 
- 
-getNombreDisplay(): string {
-  if (this.tutor) return this.tutor.nombre;
-  if (!this.usuario) return '';
-  return `${this.usuario.first_name} ${this.usuario.last_name}`.trim() || this.usuario.username;
-}
+  getNombreDisplay(): string {
+    if (this.tutor) return this.tutor.nombre;
+    if (!this.usuario) return '';
+    return `${this.usuario.first_name} ${this.usuario.last_name}`.trim() || this.usuario.username;
+  }
 
-getAvatarUrl(): string {
-  if (this.tutor || !this.usuario?.foto_perfil) return 'assets/img/default-avatar.png';
-  if (this.usuario.foto_perfil.startsWith('http')) return this.usuario.foto_perfil;
-  const { data } = this.supabase.storage.from('avatars').getPublicUrl(this.usuario.foto_perfil);
-  return data.publicUrl;
-}
+  getAvatarUrl(): string {
+    if (this.tutor || !this.usuario?.foto_perfil) return 'assets/img/default-avatar.png';
+    if (this.usuario.foto_perfil.startsWith('http')) return this.usuario.foto_perfil;
+    const { data } = this.supabase.storage.from('avatars').getPublicUrl(this.usuario.foto_perfil);
+    return data.publicUrl;
+  }
 }

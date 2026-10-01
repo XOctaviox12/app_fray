@@ -1724,3 +1724,226 @@ ion-menu-button {
     background: var(--p-bg-2);
   }
 }
+
+// ============================================================================
+// CAPA VISUAL · TAREAS LIQUID GLASS
+// ============================================================================
+
+.tareas-content {
+  --background: #fff8f5;
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(245, 124, 0, 0.14), transparent 29rem),
+    radial-gradient(circle at 0% 56%, rgba(13, 71, 161, 0.1), transparent 25rem),
+    #fff8f5;
+}
+
+.tareas-content > :not(.tareas-atmosphere) {
+  position: relative;
+  z-index: 1;
+}
+
+.tareas-atmosphere {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.tareas-orb {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  filter: blur(2px);
+  animation: tareas-float 15s ease-in-out infinite alternate;
+}
+
+.tareas-orb-orange {
+  width: clamp(15rem, 35vw, 31rem);
+  height: clamp(15rem, 35vw, 31rem);
+  top: -11rem;
+  right: -10rem;
+  background: radial-gradient(circle at 34% 34%, rgba(255, 203, 108, 0.65), rgba(245, 124, 0, 0.14) 58%, transparent 71%);
+}
+
+.tareas-orb-blue {
+  width: clamp(12rem, 29vw, 25rem);
+  height: clamp(12rem, 29vw, 25rem);
+  top: 47rem;
+  left: -11rem;
+  background: radial-gradient(circle at 60% 40%, rgba(90, 135, 210, 0.36), rgba(13, 71, 161, 0.08) 60%, transparent 71%);
+  animation-delay: -7s;
+}
+
+.tareas-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.24;
+  background-image: linear-gradient(rgba(150, 73, 0, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(13, 71, 161, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, black, transparent 62rem);
+}
+
+.header-toolbar {
+  --background: rgba(255, 251, 248, 0.82);
+  --border-color: transparent;
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: blur(20px) saturate(145%);
+  box-shadow: 0 10px 26px rgba(77, 37, 5, 0.1);
+}
+
+.tareas-hero,
+.task-card,
+.new-task-form,
+.filters-bar,
+.panel-entregas,
+.entrega-row,
+.mi-entrega-status,
+.empty-state,
+.error-tareas,
+.loading-tareas {
+  border-color: rgba(255, 255, 255, 0.78) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+  backdrop-filter: blur(16px) saturate(125%);
+  box-shadow: 0 14px 34px rgba(79, 39, 12, 0.1), inset 0 1px rgba(255, 255, 255, 0.82);
+}
+
+.tareas-hero,
+.new-task-form,
+.panel-entregas {
+  position: relative;
+  overflow: hidden;
+}
+
+.tareas-hero::after,
+.new-task-form::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+  background: linear-gradient(118deg, rgba(255, 255, 255, 0.28), transparent 42%, rgba(255, 255, 255, 0.12));
+}
+
+.task-card,
+.entrega-row,
+.panel-entregas {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  animation: tareas-card-in 450ms both;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .task-card:hover,
+  .entrega-row:hover,
+  .panel-entregas:hover {
+    transform: translateY(-4px) rotateX(1deg);
+    border-color: rgba(245, 124, 0, 0.34) !important;
+    box-shadow: 0 20px 42px rgba(79, 39, 12, 0.16), inset 0 1px rgba(255, 255, 255, 0.9);
+  }
+}
+
+.tasks-list,
+.stats-row { perspective: 1000px; }
+.task-card:nth-child(2n), .entrega-row:nth-child(2n) { animation-delay: 70ms; }
+.task-card:nth-child(3n) { animation-delay: 130ms; }
+
+.stat-chip,
+.task-materia-badge,
+.task-status,
+.draft-badge,
+.entrega-estado-badge,
+.entrega-tardia-badge,
+.file-chip {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 5px 12px rgba(79, 39, 12, 0.08);
+}
+
+.filter-chip,
+.filter-select-wrap,
+.search-wrap,
+.input-wrap,
+.file-upload-zone,
+.calificar-input-wrap,
+.calificar-row input,
+.calificar-row textarea {
+  border-color: rgba(150, 73, 0, 0.16);
+}
+
+.input-wrap:focus-within,
+.search-wrap:focus-within,
+.filter-select-wrap:focus-within,
+.calificar-input-wrap:focus-within {
+  border-color: rgba(245, 124, 0, 0.76);
+  box-shadow: 0 0 0 4px rgba(245, 124, 0, 0.12), 0 8px 18px rgba(150, 73, 0, 0.08);
+}
+
+.btn-nueva-tarea-inline,
+.btn-save,
+.btn-entregar,
+.btn-editar-entrega,
+.btn-guardar-calif,
+.btn-ver-entregas,
+.cargar-mas-btn,
+.retry-btn {
+  box-shadow: 0 9px 19px rgba(150, 73, 0, 0.22);
+  transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+}
+
+.btn-nueva-tarea-inline:active,
+.btn-save:active,
+.btn-entregar:active,
+.btn-editar-entrega:active,
+.btn-guardar-calif:active,
+.btn-ver-entregas:active,
+.cargar-mas-btn:active,
+.retry-btn:active,
+.task-action-btn:active,
+.task-delete-btn:active,
+.fab-agregar:active {
+  transform: scale(0.96);
+  filter: brightness(0.96);
+}
+
+@keyframes tareas-float {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-1.2rem, 1.5rem, 0) scale(1.08); }
+}
+
+@keyframes tareas-card-in {
+  from { opacity: 0; transform: translateY(12px) rotateX(-3deg); }
+  to { opacity: 1; transform: translateY(0) rotateX(0); }
+}
+
+@media (max-width: 389px) {
+  .tareas-grid { background-size: 22px 22px; }
+  .tareas-orb-orange { right: -12rem; }
+  .stats-row, .form-actions { gap: 0.55rem; }
+}
+
+@media (min-width: 768px) {
+  .tareas-content { --padding-start: clamp(1.25rem, 4vw, 3.5rem); --padding-end: clamp(1.25rem, 4vw, 3.5rem); }
+  .tasks-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+  .tasks-list > .task-card { margin: 0; }
+}
+
+@media (min-width: 1180px) {
+  .tareas-content { --padding-start: max(3rem, calc((100% - 1220px) / 2)); --padding-end: max(3rem, calc((100% - 1220px) / 2)); }
+  .tasks-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (prefers-color-scheme: dark) {
+  .tareas-content {
+    --background: #fff8f5;
+    background: radial-gradient(circle at 100% 0%, rgba(245, 124, 0, 0.14), transparent 29rem), radial-gradient(circle at 0% 56%, rgba(13, 71, 161, 0.1), transparent 25rem), #fff8f5;
+  }
+  .header-toolbar { --background: rgba(255, 251, 248, 0.88); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tareas-orb,
+  .task-card,
+  .entrega-row,
+  .panel-entregas { animation: none !important; }
+}

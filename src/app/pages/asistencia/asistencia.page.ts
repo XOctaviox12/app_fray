@@ -513,38 +513,77 @@ export class AsistenciaPage implements OnInit {
 
     await this.confirmarResumenYGuardar();
   }
-  private async ejecutarGuardado() {
-    this.guardando = true;
-    const fechaStr = this.toDateStr(this.fechaSeleccionada);
+private async ejecutarGuardado() {
+  this.guardando = true;
+  const fechaStr = this.toDateStr(this.fechaSeleccionada);
 
-    const registros = this.alumnos.map(a => ({
-      alumno_id:     a.id,
-      grupo_id:      this.grupoId,
-      asignatura_id: this.materiaId,
-      fecha:         fechaStr,
-      estado:        a.estado,
-    }));
+  // 🔹 Detectar parcial automáticamente
+  const parcialActual = await this.detectarParcialActual();
 
+  const registros = this.alumnos.map(a => ({
+    alumno_id:     a.id,
+    grupo_id:      this.grupoId,
+    asignatura_id: this.materiaId,
+    fecha:         fechaStr,
+    estado:        a.estado,
+    parcial:       parcialActual,  // ← Detectado automáticamente
+  }));
+
+  const token = this.sesion.usuario?.token;
+  const { error } = token
+    ? await this.sesion.supabase.rpc('guardar_asistencia', { p_token: token, p_grupo_id: this.grupoId, p_materia_id: this.materiaId, p_registros: registros })
+    : { error: { message: 'Sesión no válida' } };
+
+  this.guardando = false;
+
+  if (error) {
+    this.mostrarToast(`Error al guardar. Detalle: ${error.message}`, 'danger');
+    console.error(error.message);
+    return;
+  }
+
+  this.alumnos.forEach(a => { a.guardado = true; a.revisado = true; });
+  this.snapshotEstados = new Map(this.alumnos.map(a => [a.id, a.estado]));
+  this.yaGuardada = true;
+  this.mostrarToast(`Lista guardada · ${this.totalPresentes}P ${this.totalRetardos}R ${this.totalAusentes}A`, 'success');
+  this.historial = [];
+  this.historialPorParcial = [];
+}
+
+private async detectarParcialActual(): Promise<number> {
+  try {
     const token = this.sesion.usuario?.token;
-    const { error } = token
-      ? await this.sesion.supabase.rpc('guardar_asistencia', { p_token: token, p_grupo_id: this.grupoId, p_materia_id: this.materiaId, p_registros: registros })
-      : { error: { message: 'Sesión no válida' } };
+    if (!token) return 1;
 
-    this.guardando = false;
+    // Obtener el máximo parcial ya registrado para este grupo + materia
+    const { data, error } = await this.sesion.supabase
+      .from('academic_asistencia')
+      .select('parcial')
+      .eq('grupo_id', this.grupoId)
+      .eq('asignatura_id', this.materiaId)
+      .order('parcial', { ascending: false })
+      .limit(1);
 
     if (error) {
-      this.mostrarToast(`Error al guardar. Detalle: ${error.message}`, 'danger');
-      console.error(error.message);
-      return;
+      console.warn('⚠️ Error detectando parcial:', error.message);
+      return 1;
     }
 
-    this.alumnos.forEach(a => { a.guardado = true; a.revisado = true; });
-    this.snapshotEstados = new Map(this.alumnos.map(a => [a.id, a.estado]));
-    this.yaGuardada = true;
-    this.mostrarToast(`Lista guardada · ${this.totalPresentes}P ${this.totalRetardos}R ${this.totalAusentes}A`, 'success');
-    this.historial = [];
-    this.historialPorParcial = [];
+    // Si hay registros, retorna el máximo parcial encontrado
+    if (data && data.length > 0 && data[0].parcial) {
+      const parcialDetectado = data[0].parcial;
+      console.log(`✅ Parcial detectado: ${parcialDetectado}`);
+      return parcialDetectado;
+    }
+
+    // Si no hay registros, comienza con parcial 1
+    console.log('ℹ️ Sin registros previos, usando parcial 1');
+    return 1;
+  } catch (err) {
+    console.error('❌ Error en detectarParcialActual:', err);
+    return 1;
   }
+}
 
   async onSegmentoChange() {
     if (this.segmento === 'historial' && !this.historial.length) {

@@ -48,6 +48,11 @@
 </ion-header>
 
 <ion-content class="asist-content">
+  <div class="asist-atmosphere" aria-hidden="true">
+    <span class="asist-orb asist-orb-orange"></span>
+    <span class="asist-orb asist-orb-blue"></span>
+    <span class="asist-grid"></span>
+  </div>
 
   <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
     <ion-refresher-content
@@ -159,7 +164,7 @@
               </div>
 
               <div class="grupo-card-estado" [ngClass]="{ tomada: g.tomada }">
-                <ion-icon [name]="g.tomada ? 'checkmark-circle' : 'clock-outline'" aria-hidden="true"></ion-icon>
+                <ion-icon [name]="g.tomada ? 'checkmark-circle' : 'time-outline'" aria-hidden="true"></ion-icon>
                 {{ g.tomada ? 'Tomada' : 'Pendiente' }}
               </div>
 

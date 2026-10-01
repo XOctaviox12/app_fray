@@ -862,3 +862,200 @@ ion-menu-button {
 
   .task-detalle { background: var(--p-surface-low); }
 }
+
+// ============================================================================
+// CAPA VISUAL · SEGUIMIENTO ACADÉMICO LIQUID GLASS
+// ============================================================================
+
+.tareas-content {
+  --background: #fff8f5;
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(245, 124, 0, 0.14), transparent 29rem),
+    radial-gradient(circle at 0% 56%, rgba(74, 89, 161, 0.1), transparent 25rem),
+    #fff8f5;
+}
+
+.tareas-content > :not(.seguimiento-atmosphere) {
+  position: relative;
+  z-index: 1;
+}
+
+.seguimiento-atmosphere {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.seguimiento-orb {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  filter: blur(2px);
+  animation: seguimiento-float 15s ease-in-out infinite alternate;
+}
+
+.seguimiento-orb-orange {
+  width: clamp(15rem, 35vw, 31rem);
+  height: clamp(15rem, 35vw, 31rem);
+  top: -11rem;
+  right: -10rem;
+  background: radial-gradient(circle at 34% 34%, rgba(255, 203, 108, 0.65), rgba(245, 124, 0, 0.14) 58%, transparent 71%);
+}
+
+.seguimiento-orb-blue {
+  width: clamp(12rem, 29vw, 25rem);
+  height: clamp(12rem, 29vw, 25rem);
+  top: 45rem;
+  left: -11rem;
+  background: radial-gradient(circle at 60% 40%, rgba(120, 139, 207, 0.38), rgba(74, 89, 161, 0.08) 60%, transparent 71%);
+  animation-delay: -7s;
+}
+
+.seguimiento-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.24;
+  background-image: linear-gradient(rgba(150, 73, 0, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(74, 89, 161, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, black, transparent 62rem);
+}
+
+.header-toolbar {
+  --background: rgba(255, 251, 248, 0.82);
+  --border-color: transparent;
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: blur(20px) saturate(145%);
+  box-shadow: 0 10px 26px rgba(77, 37, 5, 0.1);
+}
+
+.tareas-hero,
+.task-card,
+.progress-card,
+.filter-row,
+.empty-state,
+.global-error,
+.skeleton-card {
+  border-color: rgba(255, 255, 255, 0.78) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+  backdrop-filter: blur(16px) saturate(125%);
+  box-shadow: 0 14px 34px rgba(79, 39, 12, 0.1), inset 0 1px rgba(255, 255, 255, 0.82);
+}
+
+.tareas-hero,
+.task-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.tareas-hero::after,
+.task-card::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+  background: linear-gradient(118deg, rgba(255, 255, 255, 0.27), transparent 42%, rgba(255, 255, 255, 0.11));
+}
+
+.task-card,
+.progress-card,
+.filter-chip,
+.hijo-chip {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.task-card {
+  animation: seguimiento-card-in 450ms both;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .task-card:hover,
+  .progress-card:hover {
+    transform: translateY(-4px) rotateX(1deg);
+    border-color: rgba(245, 124, 0, 0.34) !important;
+    box-shadow: 0 20px 42px rgba(79, 39, 12, 0.16), inset 0 1px rgba(255, 255, 255, 0.9);
+  }
+}
+
+.tasks-list { perspective: 1000px; }
+.task-card:nth-child(2n) { animation-delay: 70ms; }
+.task-card:nth-child(3n) { animation-delay: 130ms; }
+
+.progress-card,
+.filter-chip,
+.hijo-chip,
+.tipo-badge,
+.pill-badge,
+.nota-badge,
+.task-status {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 5px 12px rgba(79, 39, 12, 0.08);
+}
+
+.vista-segment {
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-color: rgba(150, 73, 0, 0.12);
+  box-shadow: 0 8px 20px rgba(79, 39, 12, 0.07);
+}
+
+.vista-tab,
+.filter-chip,
+.hijo-chip,
+.ver-mas-btn,
+.cargar-mas-btn {
+  transition: transform 180ms ease, color 180ms ease, background 180ms ease, filter 180ms ease;
+}
+
+.vista-tab:active,
+.filter-chip:active,
+.hijo-chip:active,
+.ver-mas-btn:active,
+.cargar-mas-btn:active {
+  transform: scale(0.96);
+  filter: brightness(0.96);
+}
+
+@keyframes seguimiento-float {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-1.2rem, 1.5rem, 0) scale(1.08); }
+}
+
+@keyframes seguimiento-card-in {
+  from { opacity: 0; transform: translateY(12px) rotateX(-3deg); }
+  to { opacity: 1; transform: translateY(0) rotateX(0); }
+}
+
+@media (max-width: 389px) {
+  .seguimiento-grid { background-size: 22px 22px; }
+  .seguimiento-orb-orange { right: -12rem; }
+  .filter-row, .hijo-filter-row { gap: 0.55rem; }
+}
+
+@media (min-width: 768px) {
+  .tareas-content { --padding-start: clamp(1.25rem, 4vw, 3.5rem); --padding-end: clamp(1.25rem, 4vw, 3.5rem); }
+  .tasks-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+  .tasks-list > .task-card { margin: 0; }
+}
+
+@media (min-width: 1180px) {
+  .tareas-content { --padding-start: max(3rem, calc((100% - 1220px) / 2)); --padding-end: max(3rem, calc((100% - 1220px) / 2)); }
+  .tasks-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (prefers-color-scheme: dark) {
+  .tareas-content {
+    --background: #fff8f5;
+    background: radial-gradient(circle at 100% 0%, rgba(245, 124, 0, 0.14), transparent 29rem), radial-gradient(circle at 0% 56%, rgba(74, 89, 161, 0.1), transparent 25rem), #fff8f5;
+  }
+  .header-toolbar { --background: rgba(255, 251, 248, 0.88); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seguimiento-orb,
+  .task-card { animation: none !important; }
+}

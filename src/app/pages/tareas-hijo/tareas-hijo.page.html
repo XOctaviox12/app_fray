@@ -11,6 +11,12 @@
 
 <ion-content class="tareas-content">
 
+  <div class="seguimiento-atmosphere" aria-hidden="true">
+    <span class="seguimiento-orb seguimiento-orb-orange"></span>
+    <span class="seguimiento-orb seguimiento-orb-blue"></span>
+    <span class="seguimiento-grid"></span>
+  </div>
+
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>

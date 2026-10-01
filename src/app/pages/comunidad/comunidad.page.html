@@ -12,6 +12,12 @@
 
 <ion-content class="comunidad-content" role="main" aria-label="Comunicados">
 
+  <div class="comunidad-atmosphere" aria-hidden="true">
+    <span class="comunidad-orb comunidad-orb-orange"></span>
+    <span class="comunidad-orb comunidad-orb-blue"></span>
+    <span class="comunidad-grid"></span>
+  </div>
+
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" aria-label="Actualizar comunicados">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>

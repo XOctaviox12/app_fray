@@ -867,3 +867,217 @@ ion-segment-button {
     scroll-behavior: auto !important;
   }
 }
+
+// ============================================================================
+// CAPA VISUAL · MATERIAS LIQUID GLASS
+// ============================================================================
+
+.materias-content {
+  --background: #fff8f5;
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(245, 124, 0, 0.14), transparent 29rem),
+    radial-gradient(circle at 0% 55%, rgba(74, 89, 161, 0.1), transparent 25rem),
+    #fff8f5;
+}
+
+.materias-content > :not(.materias-atmosphere) {
+  position: relative;
+  z-index: 1;
+}
+
+.materias-atmosphere {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.materias-orb {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  filter: blur(2px);
+  animation: materias-float 15s ease-in-out infinite alternate;
+}
+
+.materias-orb-orange {
+  width: clamp(15rem, 35vw, 31rem);
+  height: clamp(15rem, 35vw, 31rem);
+  top: -11rem;
+  right: -10rem;
+  background: radial-gradient(circle at 34% 34%, rgba(255, 203, 108, 0.65), rgba(245, 124, 0, 0.14) 58%, transparent 71%);
+}
+
+.materias-orb-blue {
+  width: clamp(12rem, 29vw, 25rem);
+  height: clamp(12rem, 29vw, 25rem);
+  top: 43rem;
+  left: -11rem;
+  background: radial-gradient(circle at 60% 40%, rgba(120, 139, 207, 0.38), rgba(74, 89, 161, 0.08) 60%, transparent 71%);
+  animation-delay: -7s;
+}
+
+.materias-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.24;
+  background-image: linear-gradient(rgba(150, 73, 0, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(74, 89, 161, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, black, transparent 60rem);
+}
+
+.header-toolbar,
+.segment-wrapper {
+  --background: rgba(255, 251, 248, 0.82);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: blur(20px) saturate(145%);
+}
+
+.header-toolbar {
+  --border-color: transparent;
+  box-shadow: 0 10px 26px rgba(77, 37, 5, 0.1);
+}
+
+.header-accent-bar {
+  height: 3px;
+  background: linear-gradient(90deg, #964900, #f57c00 46%, #4a59a1);
+  box-shadow: 0 2px 12px rgba(245, 124, 0, 0.32);
+}
+
+.header-action-btn {
+  border-radius: 50%;
+  background: rgba(245, 124, 0, 0.1);
+  box-shadow: 0 5px 12px rgba(150, 73, 0, 0.12);
+}
+
+.section-hero,
+.docente-materia-card,
+.cal-card,
+.pendiente-card,
+.promedio-card,
+.resumen-card,
+.empty-state,
+.loading-state {
+  border-color: rgba(255, 255, 255, 0.78) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+  backdrop-filter: blur(16px) saturate(125%);
+  box-shadow: 0 14px 34px rgba(79, 39, 12, 0.1), inset 0 1px rgba(255, 255, 255, 0.82);
+}
+
+.section-hero,
+.promedio-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.section-hero::after,
+.promedio-card::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+  background: linear-gradient(118deg, rgba(255, 255, 255, 0.27), transparent 42%, rgba(255, 255, 255, 0.12));
+}
+
+.docente-materia-card,
+.cal-card,
+.pendiente-card,
+.resumen-card {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  animation: materias-card-in 450ms both;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .docente-materia-card:hover,
+  .cal-card:hover,
+  .pendiente-card:hover,
+  .resumen-card:hover {
+    transform: translateY(-4px) rotateX(1deg);
+    border-color: rgba(245, 124, 0, 0.34) !important;
+    box-shadow: 0 20px 42px rgba(79, 39, 12, 0.16), inset 0 1px rgba(255, 255, 255, 0.9);
+  }
+}
+
+.resumen-grid,
+.cal-parciales-row {
+  perspective: 1000px;
+}
+
+.docente-materia-card:nth-child(2n),
+.cal-card:nth-child(2n),
+.pendiente-card:nth-child(2n),
+.resumen-card:nth-child(2n) { animation-delay: 70ms; }
+
+.dm-icon-wrap,
+.pendiente-icon-wrap,
+.kpi-icon-wrap {
+  box-shadow: 0 8px 18px rgba(150, 73, 0, 0.14);
+}
+
+.dm-grupo-chip,
+.cal-parcial-badge,
+.urgente-badge,
+.tareas-indicator {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 5px 12px rgba(79, 39, 12, 0.08);
+}
+
+.btn-materia,
+.btn-urgente,
+.dm-btn {
+  box-shadow: 0 9px 19px rgba(150, 73, 0, 0.2);
+  transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+}
+
+.btn-materia:active,
+.btn-urgente:active,
+.dm-btn:active,
+.header-action-btn:active {
+  transform: scale(0.96);
+  filter: brightness(0.96);
+}
+
+@keyframes materias-float {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-1.2rem, 1.5rem, 0) scale(1.08); }
+}
+
+@keyframes materias-card-in {
+  from { opacity: 0; transform: translateY(12px) rotateX(-3deg); }
+  to { opacity: 1; transform: translateY(0) rotateX(0); }
+}
+
+@media (max-width: 389px) {
+  .materias-grid { background-size: 22px 22px; }
+  .materias-orb-orange { right: -12rem; }
+  .dm-actions, .materia-actions { gap: 0.55rem; }
+}
+
+@media (min-width: 768px) {
+  .materias-content { --padding-start: clamp(1.25rem, 4vw, 3.5rem); --padding-end: clamp(1.25rem, 4vw, 3.5rem); }
+  .resumen-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1180px) {
+  .materias-content { --padding-start: max(3rem, calc((100% - 1220px) / 2)); --padding-end: max(3rem, calc((100% - 1220px) / 2)); }
+}
+
+@media (prefers-color-scheme: dark) {
+  .materias-content {
+    --background: #fff8f5;
+    background: radial-gradient(circle at 100% 0%, rgba(245, 124, 0, 0.14), transparent 29rem), radial-gradient(circle at 0% 55%, rgba(74, 89, 161, 0.1), transparent 25rem), #fff8f5;
+  }
+  .header-toolbar { --background: rgba(255, 251, 248, 0.88); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .materias-orb,
+  .docente-materia-card,
+  .cal-card,
+  .pendiente-card,
+  .resumen-card { animation: none !important; }
+}

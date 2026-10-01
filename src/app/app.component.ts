@@ -1,9 +1,13 @@
 ﻿import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { AlertController, MenuController, Platform } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { SesionService, Usuario } from './services/sesion.service';
 import { NetworkStatusService } from '../environments/network-status.service';
+
+// Rutas donde NUNCA debe mostrarse el menú inferior
+const RUTAS_SIN_NAV = ['/login'];
 
 @Component({
   selector: 'app-root',
@@ -15,7 +19,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   currentYear = new Date().getFullYear();
 
-
   private avatarFallback = 'assets/img/default-avatar.png';
   private avatarErrorOcurrido = false;
   private ultimaAvatarUrlCruda: string | null = null;
@@ -24,10 +27,14 @@ export class AppComponent implements OnInit, OnDestroy {
   hayAsistenciaPendienteHoy = false;
   hayClaseEnVivoActiva = false;
 
-
   sinConexion = false;
   private networkSub?: Subscription;
+  private routerSub?: Subscription;
 
+  sesionLista = false;
+
+  // null = la navegación inicial todavía no termina
+  private urlActual: string | null = null;
 
   private keepAliveInterval: any;
 
@@ -40,13 +47,29 @@ export class AppComponent implements OnInit, OnDestroy {
     private platform: Platform,
   ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
+    // Seguimos la ruta actual para saber si estamos en /login.
+    // Se suscribe ANTES de cualquier await para no perder la primera navegación.
+    if (this.router.navigated) {
+      this.urlActual = this.router.url;
+    }
+    this.routerSub = this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe(e => {
+        this.urlActual = e.urlAfterRedirects;
+      });
+
+    await this.sesion.listo;
+    this.sesionLista = true;
+
+    // La redirección login <-> inicio ya la resuelven authGuard / guestGuard,
+    // así no hay carreras con la navegación inicial.
+
     if (this.esDocente) this.chequearAsistenciaPendienteHoy();
 
     this.networkSub = this.networkStatus.online$.subscribe(isOnline => {
       this.sinConexion = !isOnline;
     });
-
 
     this.platform.ready().then(() => {
       if (this.platform.is('ios')) {
@@ -57,14 +80,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.networkSub?.unsubscribe();
+    this.routerSub?.unsubscribe();
     this.stopKeepAlive();
   }
-
 
   private startKeepAlive() {
     this.stopKeepAlive();
     this.keepAliveInterval = setInterval(() => {
-
       document.body.getBoundingClientRect();
     }, 500);
   }
@@ -75,7 +97,6 @@ export class AppComponent implements OnInit, OnDestroy {
       this.keepAliveInterval = null;
     }
   }
-
 
   @HostListener('document:touchstart', ['$event'])
   onTouchStart(event: TouchEvent) {
@@ -90,13 +111,25 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
-
   get usuario(): Usuario | null {
     return this.sesion.usuario;
   }
 
   get loggedIn(): boolean {
     return this.sesion.loggedIn;
+  }
+
+  /**
+   * El menú solo se muestra cuando:
+   *  1) la sesión ya se restauró,
+   *  2) ya terminó la navegación inicial,
+   *  3) hay un usuario logeado,
+   *  4) la ruta actual no es /login.
+   */
+  get mostrarNav(): boolean {
+    if (!this.sesionLista || this.urlActual === null) return false;
+    if (!this.loggedIn) return false;
+    return !RUTAS_SIN_NAV.some(r => this.urlActual!.startsWith(r));
   }
 
   get avatarUrl(): string {
@@ -115,7 +148,6 @@ export class AppComponent implements OnInit, OnDestroy {
     const separador = urlCruda.includes('?') ? '&' : '?';
     return `${urlCruda}${separador}v=${this.avatarCacheBuster}`;
   }
-
 
   get esAlumno(): boolean {
     return this.sesion.rolActual === 'ALUMNO';
@@ -153,8 +185,10 @@ export class AppComponent implements OnInit, OnDestroy {
           role: 'destructive',
           handler: async () => {
             await this.menuCtrl.close();
-            this.sesion.cerrarSesion();
-            this.router.navigate(['/login']);
+            // await: guestGuard revisa loggedIn al navegar a /login,
+            // la sesión debe estar ya cerrada para que no rebote a /inicio.
+            await this.sesion.cerrarSesion();
+            this.router.navigate(['/login'], { replaceUrl: true });
           },
         },
       ],
@@ -166,7 +200,6 @@ export class AppComponent implements OnInit, OnDestroy {
     return this.sesion.iniciarSesion(username, password);
   }
 
- 
   private async chequearAsistenciaPendienteHoy() {
     try {
       const uid = this.sesion.usuario?.id;

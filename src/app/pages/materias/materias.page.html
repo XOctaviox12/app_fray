@@ -52,6 +52,11 @@
 </ion-header>
 
 <ion-content class="materias-content" role="main" aria-label="Materias">
+  <div class="materias-atmosphere" aria-hidden="true">
+    <span class="materias-orb materias-orb-orange"></span>
+    <span class="materias-orb materias-orb-blue"></span>
+    <span class="materias-grid"></span>
+  </div>
 
   <div class="loading-state" *ngIf="cargando" role="status" aria-live="polite">
     <ion-spinner name="crescent" aria-label="Cargando materias"></ion-spinner>
